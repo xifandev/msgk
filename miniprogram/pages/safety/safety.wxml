@@ -1,0 +1,20 @@
+<view class="corner-icon">
+  <van-icon name="bulb-o" />
+</view>
+<page-main title="场所安全动态" title1="安全无小事" title2="责任重于山" bind:chudi="onScrollLower">
+  <van-cell-group wx:if="{{ loaded && list.length === 0 }}">
+    <van-empty description="暂无安全文章" />
+  </van-cell-group>
+  <van-cell-group wx:else>
+    <van-cell wx:for="{{ list }}" wx:key="id">
+      <view slot="title" class="news-item" bind:tap="openArticle" data-id="{{ item.id }}">
+        <view class="news-title">{{ item.title }}</view>
+        <view class="news-time">{{ item.date }}</view>
+      </view>
+    </van-cell>
+    <view class="load-status" wx:if="{{ list.length > 0 }}">
+      <text wx:if="{{ isLoading }}">正在加载...</text>
+      <text wx:elif="{{ noMoreData }}">已加载全部内容</text>
+    </view>
+  </van-cell-group>
+</page-main>

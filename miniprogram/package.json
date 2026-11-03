@@ -1,0 +1,9 @@
+{
+  "name": "msgk-miniprogram",
+  "version": "2.0.0",
+  "private": true,
+  "description": "码上公开微信小程序（纯公开查询版）",
+  "dependencies": {
+    "@vant/weapp": "^1.11.7"
+  }
+}

@@ -1,0 +1,11 @@
+.summary {
+  padding: 30rpx 40rpx;
+  font-size: 32rpx;
+  line-height: 1.9;
+  background-color: #f7f8fa;
+  color: #323233;
+}
+
+.tab-gap {
+  height: 20rpx;
+}

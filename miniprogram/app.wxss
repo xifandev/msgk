@@ -1,0 +1,23 @@
+/**app.wxss**/
+page {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 15px;
+  color: #323233;
+  background-color: #f1f2f4;
+}
+
+.van-cell {
+  font-size: 16px !important;
+}
+
+.van-cell__label {
+  font-size: 14px !important;
+}
+
+.van-cell-group__title {
+  font-size: 15px !important;
+}
+
+.van-tab {
+  font-size: 15px !important;
+}

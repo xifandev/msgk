@@ -1,0 +1,90 @@
+<view class="bgc"></view>
+<view class="title-box">
+  <view class="top-title">码上公开</view>
+  <view class="top-title2">场所信息透明化，权益保障零距离！</view>
+</view>
+<view class="top-img-box">
+  <image class="top-img" src="/assets/images/xing5.png" mode="widthFix" />
+  <image class="top-img-gezi" src="/assets/images/gezi.png" mode="widthFix" />
+</view>
+
+<van-cell-group inset>
+  <view class="card-all">
+    <view class="card-venue" bind:tap="openVenuePopup">
+      <text>{{ venueName || '点击选择场所' }}</text>
+      <van-icon class="card-venue-icon" name="{{ venueName ? 'sort' : 'arrow-up' }}" />
+    </view>
+    <view class="card-yuan-box">
+      <view class="card-yuan"></view>
+    </view>
+  </view>
+  <view class="grid-gap"></view>
+  <van-grid column-num="3">
+    <van-grid-item use-slot bind:tap="navigate" data-url="/pages/venue/venue" data-need-venue="{{true}}">
+      <image class="grid-img" src="/assets/images/changsuo.png" mode="aspectFit" />
+      <view class="grid-title">场所介绍</view>
+    </van-grid-item>
+    <van-grid-item use-slot bind:tap="navigate" data-url="/pages/personnel/personnel" data-need-venue="{{true}}">
+      <van-icon class="grid-icon icon-renyuan" name="manager" />
+      <view class="grid-title">人员公开</view>
+    </van-grid-item>
+    <van-grid-item use-slot bind:tap="navigate" data-url="/pages/safety/safety" data-need-venue="{{true}}">
+      <van-icon class="grid-icon icon-anquan" name="bell" />
+      <view class="grid-title">场所安全</view>
+    </van-grid-item>
+  </van-grid>
+</van-cell-group>
+
+<view class="block-gap"></view>
+
+<van-cell-group inset>
+  <van-grid column-num="2" direction="horizontal">
+    <van-grid-item use-slot bind:tap="navigate" data-url="/pages/finance/finance" data-need-venue="{{true}}">
+      <van-icon class="grid-icon icon-caiwu" name="balance-pay" />
+      <view class="grid2-box">
+        <view class="grid2-title">财务公开</view>
+        <view class="grid2-sub">收支信息透明化</view>
+      </view>
+    </van-grid-item>
+    <van-grid-item use-slot bind:tap="navigate" data-url="/pages/news/news">
+      <van-icon class="grid-icon icon-fagui" name="column" />
+      <view class="grid2-box">
+        <view class="grid2-title">政策法规</view>
+        <view class="grid2-sub">学习最新政策</view>
+      </view>
+    </van-grid-item>
+  </van-grid>
+</van-cell-group>
+
+<view class="block-gap"></view>
+
+<van-cell-group inset>
+  <view class="news-head">最新动态</view>
+  <van-empty wx:if="{{ itemsLoaded && items.length === 0 }}" description="暂无动态" />
+  <view wx:for="{{ items }}" wx:key="id">
+    <view class="news-item" bind:tap="openItem" data-kind="{{ item.kind }}" data-id="{{ item.id }}">
+      <view class="news-content">
+        <view class="news-title">{{ item.title }}</view>
+        <view class="news-time">{{ item.date }}</view>
+      </view>
+      <view class="news-kind kind-{{ item.kind }}">{{ item.kindText }}</view>
+    </view>
+    <van-divider wx:if="{{ index < items.length - 1 }}" />
+  </view>
+</van-cell-group>
+
+<view class="foot-title">
+  <view>当前版本号：{{ version }}</view>
+  <view>技术支持：山东盖特网络有限公司</view>
+</view>
+
+<!-- 场所选择 -->
+<van-popup show="{{ venuePopup }}" round position="bottom" bind:close="closeVenuePopup">
+  <view class="popup-box">
+    <view class="popup-title">请选择场所</view>
+    <van-loading wx:if="{{ venueTree.length === 0 }}" custom-class="popup-loading" color="#d31027" size="48rpx">正在加载</van-loading>
+    <van-transition wx:else show="{{ venuePopup }}">
+      <van-tree-select height="460" items="{{ venueTree }}" main-active-index="{{ venueNav }}" bind:click-nav="onVenueNav" bind:click-item="onVenueSelect" />
+    </van-transition>
+  </view>
+</van-popup>

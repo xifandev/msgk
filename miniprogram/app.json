@@ -1,0 +1,21 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/article/article",
+    "pages/venue/venue",
+    "pages/personnel/personnel",
+    "pages/safety/safety",
+    "pages/finance/finance",
+    "pages/news/news"
+  ],
+  "window": {
+    "navigationBarTitleText": "码上公开",
+    "navigationBarBackgroundColor": "#d31027",
+    "navigationBarTextStyle": "white",
+    "backgroundColorTop": "#d31027",
+    "backgroundColor": "#d31027"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

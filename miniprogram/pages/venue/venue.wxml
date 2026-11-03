@@ -1,0 +1,22 @@
+<page-main title="{{ venue.name || '场所介绍' }}">
+  <van-empty wx:if="{{ loaded && (!venue || !venue.profile) }}" description="暂无场所信息" />
+  <van-tabs wx:if="{{ venue && venue.profile }}" swipeable animated>
+    <van-tab title="场所简介">
+      <view class="summary" wx:if="{{ venue.profile.summary }}">
+        <rich-text nodes="{{ venue.profile.summary }}" />
+      </view>
+      <van-empty wx:else description="暂无场所简介" />
+    </van-tab>
+    <van-tab title="登记注册信息">
+      <view class="tab-gap"></view>
+      <van-cell title="登记时间" value="{{ venue.profile.registrationDate || '—' }}" />
+      <van-cell title="宗教" value="{{ venue.profile.religion || '—' }}" />
+      <van-cell title="场所类别" value="{{ venue.profile.category || '—' }}" />
+      <van-cell title="场所负责人" value="{{ venue.profile.manager || '—' }}" />
+      <van-cell title="联系电话" value="{{ venue.profile.phone || '—' }}" />
+      <van-cell title="批准设立机构" value="{{ venue.profile.approvalAuthority || '—' }}" />
+      <van-cell title="地址" label="{{ venue.profile.address || '—' }}" />
+      <van-cell title="统一社会信用代码" label="{{ venue.profile.creditCode || '—' }}" />
+    </van-tab>
+  </van-tabs>
+</page-main>

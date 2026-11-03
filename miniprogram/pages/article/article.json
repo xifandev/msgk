@@ -1,0 +1,9 @@
+{
+  "usingComponents": {
+    "van-empty": "@vant/weapp/empty/index"
+  },
+  "navigationBarTitleText": "",
+  "navigationBarBackgroundColor": "#f8f8fa",
+  "backgroundColorTop": "#f8f8fa",
+  "navigationBarTextStyle": "black"
+}

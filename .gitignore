@@ -1,0 +1,14 @@
+node_modules/
+.nuxt/
+.output/
+.data/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+coverage/
+dist/
+miniprogram/node_modules/
+miniprogram/miniprogram_npm/
+database/dumps/

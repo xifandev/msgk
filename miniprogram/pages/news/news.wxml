@@ -1,0 +1,34 @@
+<page-main title="法律法规 最新政策" title1="速览最新政策" title2="学习强国理念" title3="紧跟时代步伐">
+  <van-empty wx:if="{{ loaded && categories.length === 0 }}" description="暂时没有分类" />
+  <van-tabs wx:if="{{ categories.length > 0 }}" animated swipeable ellipsis="{{ false }}" bind:click="onTabClick">
+    <van-tab wx:for="{{ categories }}" wx:key="id" title="{{ item.name }}">
+      <view class="tab-gap"></view>
+      <van-empty wx:if="{{ loaded && list.length === 0 }}" description="暂时没有文章" />
+      <van-cell wx:for="{{ list }}" wx:key="id" wx:for-item="article" bind:tap="openArticle" data-id="{{ article.id }}">
+        <view slot="title" class="news-box">
+          <view class="book">
+            <view class="book-top">
+              <view class="book-title">
+                <text wx:if="{{ article.summary }}">{{ article.summary }}</text>
+                <block wx:else>
+                  <van-icon size="39" class="book-title-icon" name="star" />
+                  <text>法规政策</text>
+                </block>
+              </view>
+            </view>
+            <view class="book-bottom">
+              <view class="book-tuxing">
+                <view class="book-fangkuai"></view>
+                <view class="book-fangkuai"></view>
+                <view class="book-fangkuai"></view>
+              </view>
+              <view class="book-hengtiao"></view>
+            </view>
+          </view>
+          <view class="news-title">{{ article.title }}</view>
+          <view class="news-time">发布日期：{{ article.date }}</view>
+        </view>
+      </van-cell>
+    </van-tab>
+  </van-tabs>
+</page-main>

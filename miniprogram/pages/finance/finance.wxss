@@ -1,0 +1,110 @@
+.tab-gap {
+  height: 20rpx;
+}
+
+.tab-box {
+  padding-bottom: 20rpx;
+}
+
+.select-time {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #323233;
+  padding: 24rpx 0;
+}
+
+.select-time-icon {
+  transform: rotate(90deg);
+  margin-left: 10rpx;
+  color: #d31027;
+}
+
+.stat-title {
+  font-size: 26rpx;
+  color: #646566;
+}
+
+.stat-money {
+  margin-top: 8rpx;
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #323233;
+}
+
+.stat-unit {
+  font-size: 22rpx;
+  font-weight: normal;
+  color: #969799;
+  margin-left: 6rpx;
+}
+
+.type-badge {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+  align-self: center;
+}
+
+.type-income {
+  background-color: rgba(7, 192, 96, 0.12);
+}
+
+.type-expense {
+  background-color: rgba(211, 16, 39, 0.1);
+}
+
+.type-text {
+  font-size: 24rpx;
+}
+
+.type-income .type-text {
+  color: #07c060;
+}
+
+.type-expense .type-text {
+  color: #d31027;
+}
+
+.item-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.item-summary {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #3b3a39;
+}
+
+.item-time {
+  font-size: 24rpx;
+  color: #b9b9b9;
+  margin-top: 8rpx;
+}
+
+.item-money {
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.money-income {
+  color: #07c060;
+}
+
+.money-expense {
+  color: #d31027;
+}
+
+.month-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #323233;
+}

@@ -1,0 +1,90 @@
+.tab-gap {
+  height: 10px;
+}
+
+.news-box {
+  display: flex;
+  align-items: center;
+}
+
+.book {
+  width: 125rpx;
+  height: 146rpx;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: space-between;
+  color: #fff;
+  padding: 20rpx;
+  border-radius: 8px;
+  background: linear-gradient(to bottom, #ea384d, #b31217);
+  flex-shrink: 0;
+}
+
+.book-top {
+  width: 100%;
+}
+
+.book-title {
+  height: 100rpx;
+  width: 100%;
+  overflow: hidden;
+  text-align: center;
+  font-size: 26rpx;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0.9;
+}
+
+.book-title-icon {
+  margin-right: 6rpx;
+}
+
+.book-bottom {
+  width: 100%;
+}
+
+.book-tuxing {
+  display: flex;
+  justify-content: center;
+}
+
+.book-fangkuai {
+  width: 25rpx;
+  height: 25rpx;
+  background: rgba(255, 255, 255, 0.5);
+  margin: 10rpx 10rpx;
+  transform: rotate(45deg);
+}
+
+.book-fangkuai:nth-of-type(1) {
+  opacity: 0.3;
+}
+
+.book-fangkuai:nth-of-type(2) {
+  opacity: 0.5;
+}
+
+.book-hengtiao {
+  background-color: #fff;
+  height: 15rpx;
+  width: 125rpx;
+  border-radius: 10px;
+}
+
+.news-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  max-height: 85rpx;
+  overflow: hidden;
+  color: #3b3a39;
+  margin-left: 24rpx;
+}
+
+.news-time {
+  color: #b9b9b9;
+  font-size: 26rpx;
+  margin-top: 12rpx;
+  margin-left: 24rpx;
+}

@@ -1,0 +1,55 @@
+.list-gap {
+  height: 20rpx;
+}
+
+.member-box {
+  display: flex;
+  align-items: flex-start;
+}
+
+.avatar {
+  width: 110rpx;
+  height: 110rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-right: 24rpx;
+}
+
+.avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f2f3f5;
+}
+
+.member-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.member-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #323233;
+}
+
+.member-gender {
+  font-size: 24rpx;
+  font-weight: normal;
+  color: #969799;
+  margin-left: 12rpx;
+}
+
+.member-role {
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  color: #646566;
+  display: flex;
+  gap: 20rpx;
+}
+
+.member-phone {
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  color: #1989fa;
+}

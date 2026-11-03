@@ -1,0 +1,29 @@
+# 码上公开（MSGK）
+
+基于 Nuxt 4 的场所信息、人员、安全、新闻和财务公开系统，包含后台管理、公开 API 和纯查询微信小程序。
+
+## 本地开发
+
+```bash
+npm install
+cp .env.example .env
+npm run dev
+```
+
+生产构建：
+
+```bash
+npm run typecheck
+npm run build
+```
+
+## 目录
+
+- `app/`：Nuxt 后台页面和组件
+- `server/`：后台与小程序 API、鉴权、数据库及第三方服务
+- `shared/`：前后端共享权限和状态定义
+- `database/`：数据库结构与迁移工具
+- `miniprogram/`：纯公开查询微信小程序
+- `.github/workflows/`：构建与部署工作流
+
+小程序不包含登录、管理员验证和财务写入功能。后台管理员通过手机号短信验证码登录。

@@ -1,0 +1,76 @@
+name: Build and deploy MSGK
+
+on:
+  push:
+    tags:
+      - 'MSGK-v*'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-msgk
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Check types
+        run: npm run typecheck
+
+      - name: Build production bundle
+        env:
+          NODE_OPTIONS: '--max-old-space-size=4096'
+        run: npm run build
+
+      - name: Prepare server directory
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: 116.62.189.189
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            command -v rsync >/dev/null 2>&1 || (yum install -y rsync 2>/dev/null || apt-get install -y rsync)
+            mkdir -p /www/wwwroot/msgk
+
+      - name: Sync build output
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          export RSYNC_RSH="ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p 22"
+          rsync -az --delete .output/ root@116.62.189.189:/www/wwwroot/msgk/.output/
+          rsync -az ecosystem.config.cjs .env.example root@116.62.189.189:/www/wwwroot/msgk/
+
+      - name: Restart application
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: 116.62.189.189
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd /www/wwwroot/msgk
+            if [ ! -f .env ]; then
+              cp .env.example .env
+              echo 'Created .env from template; fill production values before using the application.'
+            fi
+            chown -R www:www /www/wwwroot/msgk
+            chmod 640 .env
+            pm2 delete msgk 2>/dev/null || true
+            pm2 start ecosystem.config.cjs
+            pm2 save

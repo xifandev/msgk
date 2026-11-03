@@ -1,0 +1,27 @@
+<page-main title="管理组织及人员情况" title1="公开监督新举措" title2="透明管理新模式">
+  <van-cell-group>
+    <view class="list-gap"></view>
+    <van-empty wx:if="{{ loaded && members.length === 0 }}" description="暂未公开" />
+    <van-cell wx:for="{{ members }}" wx:key="index">
+      <view slot="title" class="member-box">
+        <image wx:if="{{ item.imageUrl }}" class="avatar" src="{{ item.imageUrl }}" mode="aspectFill" />
+        <view wx:else class="avatar avatar-fallback">
+          <van-icon name="contact" size="60rpx" color="#c8c9cc" />
+        </view>
+        <view class="member-info">
+          <view class="member-name">
+            <text>{{ item.name }}</text>
+            <text class="member-gender" wx:if="{{ item.gender }}">{{ item.gender }}</text>
+          </view>
+          <view class="member-role">
+            <text wx:if="{{ item.clergy }}">{{ item.clergy }}</text>
+            <text wx:if="{{ item.position }}">{{ item.position }}</text>
+          </view>
+          <view class="member-phone" wx:if="{{ item.phone }}" bind:tap="callPhone" data-phone="{{ item.phone }}">
+            电话：{{ item.phone }}
+          </view>
+        </view>
+      </view>
+    </van-cell>
+  </van-cell-group>
+</page-main>

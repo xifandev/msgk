@@ -1,0 +1,144 @@
+<page-main title="财务公开" title1="收支公开透明化" title2="阳光监督新举措">
+  <view class="tab-gap"></view>
+  <van-tabs animated swipeable bind:change="onTabChange">
+    <van-tab title="月度收支">
+      <view class="tab-box">
+        <view class="select-time" bind:tap="openMonthPicker">
+          <text>{{ monthText }}</text>
+          <van-icon name="play" class="select-time-icon" />
+        </view>
+
+        <block wx:if="{{ monthLoaded && bill }}">
+          <van-cell-group title="收支统计">
+            <van-grid direction="horizontal" column-num="2">
+              <van-grid-item use-slot>
+                <view class="stat-title">本月结余</view>
+                <view class="stat-money">
+                  <text>{{ bill.currentBalance }}</text>
+                  <text class="stat-unit">元</text>
+                </view>
+              </van-grid-item>
+              <van-grid-item use-slot>
+                <view class="stat-title">上月结余</view>
+                <view class="stat-money">
+                  <text>{{ bill.previousBalance }}</text>
+                  <text class="stat-unit">元</text>
+                </view>
+              </van-grid-item>
+              <van-grid-item use-slot>
+                <view class="stat-title">本月总收入</view>
+                <view class="stat-money">
+                  <text>{{ bill.income }}</text>
+                  <text class="stat-unit">元</text>
+                </view>
+              </van-grid-item>
+              <van-grid-item use-slot>
+                <view class="stat-title">本月总支出</view>
+                <view class="stat-money">
+                  <text>{{ bill.expense }}</text>
+                  <text class="stat-unit">元</text>
+                </view>
+              </van-grid-item>
+            </van-grid>
+          </van-cell-group>
+
+          <van-cell-group title="收支明细">
+            <van-empty wx:if="{{ items.length === 0 }}" description="本月暂无收支明细" />
+            <van-cell wx:for="{{ items }}" wx:key="id">
+              <view slot="icon" class="type-badge {{ item.kind === 'expense' ? 'type-expense' : 'type-income' }}">
+                <text class="type-text">{{ item.kindText }}</text>
+              </view>
+              <view slot="title" class="item-box">
+                <view>
+                  <view class="item-summary">{{ item.summary }}</view>
+                  <view class="item-time">{{ item.date }}</view>
+                </view>
+                <view class="item-money {{ item.kind === 'expense' ? 'money-expense' : 'money-income' }}">{{ item.amountText }}</view>
+              </view>
+            </van-cell>
+          </van-cell-group>
+        </block>
+        <van-empty wx:elif="{{ monthLoaded && !bill }}" description="本月暂无公开数据" />
+      </view>
+    </van-tab>
+
+    <van-tab title="年度收支">
+      <view class="tab-box">
+        <view class="select-time" bind:tap="openYearPicker">
+          <text>{{ year }}年</text>
+          <van-icon name="play" class="select-time-icon" />
+        </view>
+
+        <block wx:if="{{ yearLoaded && months.length > 0 }}">
+          <van-cell-group title="收支统计" wx:if="{{ totals }}">
+            <van-grid direction="horizontal" column-num="2">
+              <van-grid-item use-slot>
+                <view class="stat-title">本年总收入</view>
+                <view class="stat-money">
+                  <text>{{ totals.income }}</text>
+                  <text class="stat-unit">元</text>
+                </view>
+              </van-grid-item>
+              <van-grid-item use-slot>
+                <view class="stat-title">本年总支出</view>
+                <view class="stat-money">
+                  <text>{{ totals.expense }}</text>
+                  <text class="stat-unit">元</text>
+                </view>
+              </van-grid-item>
+            </van-grid>
+          </van-cell-group>
+
+          <van-cell-group title="月度明细">
+            <van-cell wx:for="{{ months }}" wx:key="month" use-label-slot>
+              <view slot="title" class="month-title">{{ item.monthText }}</view>
+              <view slot="label">
+                <van-grid direction="horizontal" column-num="2">
+                  <van-grid-item use-slot>
+                    <view class="stat-title">收入</view>
+                    <view class="stat-money">
+                      <text>{{ item.income }}</text>
+                      <text class="stat-unit">元</text>
+                    </view>
+                  </van-grid-item>
+                  <van-grid-item use-slot>
+                    <view class="stat-title">支出</view>
+                    <view class="stat-money">
+                      <text>{{ item.expense }}</text>
+                      <text class="stat-unit">元</text>
+                    </view>
+                  </van-grid-item>
+                  <van-grid-item use-slot>
+                    <view class="stat-title">上月结余</view>
+                    <view class="stat-money">
+                      <text>{{ item.previousBalance }}</text>
+                      <text class="stat-unit">元</text>
+                    </view>
+                  </van-grid-item>
+                  <van-grid-item use-slot>
+                    <view class="stat-title">本月结余</view>
+                    <view class="stat-money">
+                      <text>{{ item.currentBalance }}</text>
+                      <text class="stat-unit">元</text>
+                    </view>
+                  </van-grid-item>
+                </van-grid>
+              </view>
+            </van-cell>
+          </van-cell-group>
+        </block>
+        <van-empty wx:elif="{{ yearLoaded && months.length === 0 }}" description="本年暂无公开数据" />
+      </view>
+    </van-tab>
+  </van-tabs>
+</page-main>
+
+<!-- 选择年月 -->
+<van-action-sheet show="{{ monthPickerShow }}" title="选择年月" bind:close="closeMonthPicker">
+  <van-datetime-picker type="year-month" value="{{ currentDate }}" min-date="{{ minDate }}" max-date="{{ maxDate }}" formatter="{{ monthFormatter }}" bind:input="onMonthInput" bind:confirm="confirmMonth" bind:cancel="closeMonthPicker" />
+</van-action-sheet>
+
+<!-- 选择年份 -->
+<van-action-sheet show="{{ yearPickerShow }}" title="选择年份" bind:close="closeYearPicker">
+  <van-picker show-toolbar columns="{{ yearColumns }}" default-index="{{ yearDefaultIndex }}" bind:change="onYearChange" bind:confirm="confirmYear" bind:cancel="closeYearPicker" />
+</van-action-sheet>

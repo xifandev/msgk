@@ -1,0 +1,11 @@
+<view wx:if="{{ article }}">
+  <view class="head-box">
+    <view class="article-title">{{ article.title }}</view>
+    <view class="article-time">{{ date }}</view>
+  </view>
+  <view class="content-box">
+    <rich-text nodes="{{ article.content }}"></rich-text>
+  </view>
+  <view class="bottom-gap"></view>
+</view>
+<van-empty wx:elif="{{ loadFailed }}" description="文章不存在或加载失败" />

@@ -1,0 +1,52 @@
+.bgc {
+  background: linear-gradient(180deg, #d31027, #f1f2f4 70%);
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+
+.top-title {
+  font-size: 50rpx;
+  color: #fff;
+  padding-top: 30rpx;
+  margin-left: 40rpx;
+  font-weight: bold;
+}
+
+.top-title2 {
+  font-size: 30rpx;
+  color: rgba(239, 239, 239, 1);
+  margin-top: 5rpx;
+  margin-left: 40rpx;
+  margin-bottom: 43rpx;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.top-title2-item {
+  display: flex;
+  align-items: center;
+  padding-right: 20rpx;
+}
+
+.top-title2-item text {
+  padding-left: 6rpx;
+}
+
+.top-box {
+  width: 100vw;
+  position: relative;
+  overflow: hidden;
+}
+
+.cellgroup {
+  background-color: #fff;
+  height: 85vh;
+}
+
+.bottom-gap {
+  height: 100rpx;
+}

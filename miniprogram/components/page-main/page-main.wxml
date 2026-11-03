@@ -1,0 +1,24 @@
+<view class="bgc"></view>
+<view class="top-box">
+  <view class="top-title">{{ title }}</view>
+  <view class="top-title2">
+    <view class="top-title2-item" wx:if="{{ title1 }}">
+      <van-icon name="passed" />
+      <text>{{ title1 }}</text>
+    </view>
+    <view class="top-title2-item" wx:if="{{ title2 }}">
+      <van-icon name="passed" />
+      <text>{{ title2 }}</text>
+    </view>
+    <view class="top-title2-item" wx:if="{{ title3 }}">
+      <van-icon name="passed" />
+      <text>{{ title3 }}</text>
+    </view>
+  </view>
+</view>
+<van-cell-group inset>
+  <scroll-view scroll-y class="cellgroup" bindscrolltolower="onScrollToLower" lower-threshold="60">
+    <slot></slot>
+    <view class="bottom-gap"></view>
+  </scroll-view>
+</van-cell-group>
