@@ -19,7 +19,6 @@ Page({
     venueTree: [],
     venueNav: 0,
     activeVenueId: null,
-    venueCount: 0,
     venueKeyword: '',
     venueResults: [],
     // 首页动态
@@ -42,7 +41,7 @@ Page({
             .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)),
         }));
         this.venueList = res.list || [];
-        this.setData({ venueTree: tree, venueCount: this.venueList.length });
+        this.setData({ venueTree: tree });
 
         if (this.data.cid) {
           const venue = this.venueList.find((item) => String(item.id) === String(this.data.cid));

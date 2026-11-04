@@ -264,43 +264,32 @@
   flex-direction: column;
   height: 100vh;
   box-sizing: border-box;
+  padding-bottom: env(safe-area-inset-bottom);
   background-color: #ffffff;
 }
 
 .venue-sheet__head {
   position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  padding: calc(env(safe-area-inset-top) + 40rpx) 32rpx 24rpx;
+  padding: calc(env(safe-area-inset-top) + 44rpx) 32rpx 8rpx;
   background: linear-gradient(to bottom, #f5f8fc, #ffffff);
 }
 
-.venue-sheet__titles {
+.venue-sheet__title {
   flex: 1;
   min-width: 0;
-  padding-right: 24rpx;
-}
-
-.venue-sheet__title {
-  font-size: 42rpx;
+  font-size: 44rpx;
   font-weight: 600;
   color: #1f2329;
   line-height: 1.3;
-}
-
-.venue-sheet__sub {
-  margin-top: 10rpx;
-  font-size: 24rpx;
-  color: #969799;
-  line-height: 1.5;
 }
 
 .venue-sheet__close {
   flex-shrink: 0;
   width: 64rpx;
   height: 64rpx;
-  margin-top: 4rpx;
   border-radius: 50%;
   background-color: #f2f3f5;
   display: flex;
@@ -315,7 +304,7 @@
 .venue-sheet__search {
   display: flex;
   align-items: center;
-  margin: 8rpx 32rpx 0;
+  margin: 16rpx 32rpx 0;
   padding: 0 24rpx;
   height: 76rpx;
   border-radius: 38rpx;
@@ -343,33 +332,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.venue-sheet__current {
-  display: flex;
-  align-items: center;
-  margin: 20rpx 32rpx 0;
-  font-size: 24rpx;
-  color: #646566;
-  line-height: 1.5;
-}
-
-.venue-sheet__current-label {
-  flex-shrink: 0;
-  margin-right: 12rpx;
-  padding: 2rpx 12rpx;
-  border-radius: 6rpx;
-  background-color: #fdecee;
-  color: #d31027;
-  font-size: 22rpx;
-}
-
-.venue-sheet__current-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
 .venue-sheet__body {
@@ -463,15 +425,6 @@
   color: #969799;
   text-align: center;
   line-height: 1.6;
-}
-
-.venue-sheet__foot {
-  flex-shrink: 0;
-  padding: 20rpx 32rpx calc(env(safe-area-inset-bottom) + 20rpx);
-  border-top: 1rpx solid #f0f1f3;
-  font-size: 22rpx;
-  color: #b9bbbf;
-  text-align: center;
 }
 
 /* ---------- 技术支持 ---------- */

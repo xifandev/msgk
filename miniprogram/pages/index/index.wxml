@@ -114,10 +114,7 @@
 >
   <view class="venue-sheet">
     <view class="venue-sheet__head">
-      <view class="venue-sheet__titles">
-        <view class="venue-sheet__title">请选择场所</view>
-        <view class="venue-sheet__sub">{{ venueKeyword ? '找到 ' + venueResults.length + ' 个场所' : '共 ' + venueCount + ' 个场所 · 点左侧乡镇，再点场所' }}</view>
-      </view>
+      <view class="venue-sheet__title">请选择场所</view>
       <view
         class="venue-sheet__close"
         hover-class="venue-sheet__close--hover"
@@ -148,11 +145,6 @@
       >
         <ms-icon name="cross" size="20rpx" color="#ffffff" />
       </view>
-    </view>
-
-    <view wx:if="{{ venueName }}" class="venue-sheet__current">
-      <text class="venue-sheet__current-label">当前</text>
-      <text class="venue-sheet__current-name">{{ venueName }}</text>
     </view>
 
     <view class="venue-sheet__body">
@@ -192,8 +184,6 @@
         bind:clickitem="onVenueSelect"
       />
     </view>
-
-    <view class="venue-sheet__foot">选择后可在首页随时切换场所</view>
   </view>
 </ms-popup>
 
