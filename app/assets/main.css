@@ -1,12 +1,25 @@
 :root {
-  --brand: #b7202e;
-  --brand-dark: #8f1420;
-  --brand-soft: #fff1f2;
+  /* 政务蓝主色 */
+  --brand: #17549c;
+  --brand-dark: #0b396c;
+  --brand-soft: #eef4fc;
+  --el-component-size-large: 44px;
   --ink: #1f2937;
   --muted: #667085;
   --line: #e7e9ee;
   --surface: #ffffff;
   --background: #f5f6f8;
+}
+
+/* 覆盖 Element Plus 默认主题色（提高优先级，确保晚于组件库变量生效） */
+:root:root {
+  --el-color-primary: #17549c;
+  --el-color-primary-dark-2: #12437d;
+  --el-color-primary-light-3: #5d87ba;
+  --el-color-primary-light-5: #8baace;
+  --el-color-primary-light-7: #b9cce1;
+  --el-color-primary-light-8: #d1ddeb;
+  --el-color-primary-light-9: #e8eef5;
 }
 
 * { box-sizing: border-box; }

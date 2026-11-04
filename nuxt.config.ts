@@ -15,7 +15,7 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { lang: 'zh-CN' },
-      title: '码上公开管理系统',
+      title: '沂水宗教码上公开管理系统',
       meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }]
     }
   },
