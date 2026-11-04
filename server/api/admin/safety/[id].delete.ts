@@ -1,8 +1,11 @@
 export default defineEventHandler(async (event) => {
   const admin = await requirePermission(event, 'safety:delete')
   const id = positiveId(getRouterParam(event, 'id'), '文章ID')
-  const existing = await queryOne<{ id: number, title: string }>('SELECT id, title FROM safety_articles WHERE id = ?', [id])
+  const existing = await queryOne<{ id: number, title: string, state: string }>('SELECT id, title, state FROM safety_articles WHERE id = ?', [id])
   if (!existing) throw createError({ statusCode: 404, message: '文章不存在' })
+  if (!['draft', 'rejected'].includes(existing.state)) {
+    throw createError({ statusCode: 409, message: '只有编辑中或审核失败的文章可以删除，请先“重新编辑”退回后再删除' })
+  }
   const venueIds = (await query<{ venue_id: number }>(
     'SELECT venue_id FROM safety_article_venues WHERE article_id = ?', [id]
   )).map((row) => row.venue_id)

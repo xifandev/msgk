@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { QuestionFilled } from '@element-plus/icons-vue'
 
 useHead({ title: '新闻与法规 | 码上公开' })
-const { hasPerm } = useAdmin()
+const { admin, hasPerm } = useAdmin()
 const loading = ref(false)
 const list = ref<any[]>([])
 const total = ref(0)
@@ -31,13 +32,16 @@ async function loadCategories() {
     categories.value = response.list
   } catch (error) { ElMessage.error(errorMessage(error)) }
 }
+function rowIndex(index: number) {
+  return (filters.page - 1) * filters.pageSize + index + 1
+}
 function search() {
   filters.page = 1
   load()
 }
 async function editArticle(row?: any) {
   if (!row) {
-    Object.assign(form, { id: 0, categoryId: null, title: '', summary: '', coverUrl: '', authorName: '', content: '' })
+    Object.assign(form, { id: 0, categoryId: null, title: '', summary: '', coverUrl: '', authorName: admin.value?.name ?? '', content: '' })
     editorVisible.value = true
     return
   }
@@ -52,8 +56,9 @@ async function editArticle(row?: any) {
 }
 async function saveArticle() {
   if (!form.categoryId) { ElMessage.warning('请选择文章分类'); return }
-  if (!form.title.trim()) { ElMessage.warning('请填写标题'); return }
-  if (!form.content.trim()) { ElMessage.warning('请填写正文内容'); return }
+  if (!form.title.trim()) { ElMessage.warning('请填写文章标题'); return }
+  if (!form.summary.trim()) { ElMessage.warning('请填写标题摘要'); return }
+  if (!form.content.trim()) { ElMessage.warning('请填写文章内容'); return }
   saving.value = true
   try {
     await $fetch(form.id ? `/api/admin/news/${form.id}` : '/api/admin/news', { method: form.id ? 'PUT' : 'POST', body: form })
@@ -130,36 +135,51 @@ onMounted(() => { load(); loadCategories() })
       </div>
       <div class="table-region" tabindex="0" role="region" aria-label="新闻文章列表">
         <el-table v-loading="loading" :data="list">
-          <el-table-column prop="title" label="标题" min-width="220" show-overflow-tooltip />
+          <el-table-column type="index" label="序号" width="64" :index="rowIndex" />
           <el-table-column prop="categoryName" label="分类" width="120" />
+          <el-table-column prop="title" label="标题" min-width="200" show-overflow-tooltip />
           <el-table-column prop="authorName" label="作者" width="110"><template #default="{ row }">{{ row.authorName || '—' }}</template></el-table-column>
-          <el-table-column prop="updatedAt" label="更新时间" width="170" />
-          <el-table-column v-if="hasPerm('news:publish')" label="发布" width="80">
-            <template #default="{ row }"><el-switch v-model="row.published" :active-value="1" :inactive-value="0" :aria-label="`《${row.title}》发布状态`" @change="publish(row)" /></template>
+          <el-table-column prop="createdAt" label="发布时间" width="170" />
+          <el-table-column v-if="hasPerm('news:publish')" label="状态" width="100">
+            <template #default="{ row }"><el-switch v-model="row.published" :active-value="1" :inactive-value="0" inline-prompt active-text="发布" inactive-text="隐藏" :aria-label="`《${row.title}》发布状态`" @change="publish(row)" /></template>
           </el-table-column>
           <el-table-column label="操作" width="150" fixed="right">
             <template #default="{ row }">
-              <el-button v-if="hasPerm('news:edit')" text type="primary" @click="editArticle(row)">编辑</el-button>
+              <el-button v-if="hasPerm('news:edit')" text bg type="primary" @click="editArticle(row)">编辑</el-button>
               <el-button v-if="hasPerm('news:delete')" text type="danger" @click="removeArticle(row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
       </div>
-      <div class="pagination"><el-pagination v-model:current-page="filters.page" v-model:page-size="filters.pageSize" :total="total" layout="total, sizes, prev, pager, next" /></div>
+      <div class="pagination"><el-pagination v-model:current-page="filters.page" v-model:page-size="filters.pageSize" :total="total" :page-sizes="[5, 10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" /></div>
     </section>
 
     <el-dialog v-model="editorVisible" :title="form.id ? '编辑文章' : '新建文章'" width="min(880px, 96vw)" destroy-on-close>
       <el-form label-position="top" @submit.prevent="saveArticle">
         <div class="form-grid">
-          <el-form-item label="文章分类" required>
-            <el-select v-model="form.categoryId" placeholder="请选择分类">
+          <el-form-item required>
+            <template #label>
+              文章分类
+              <el-tooltip content="添加/修改分类请点击列表页右上角【管理分类】" placement="top">
+                <el-icon class="label-icon"><QuestionFilled /></el-icon>
+              </el-tooltip>
+            </template>
+            <el-select v-model="form.categoryId" placeholder="请选择文章分类">
               <el-option v-for="category in categories" :key="category.id" :value="category.id" :label="category.name" />
             </el-select>
           </el-form-item>
-          <el-form-item label="作者"><el-input v-model="form.authorName" maxlength="50" /></el-form-item>
+          <el-form-item label="作者"><el-input v-model="form.authorName" maxlength="50" placeholder="请输入作者" /></el-form-item>
         </div>
-        <el-form-item label="标题" required><el-input v-model="form.title" maxlength="200" show-word-limit /></el-form-item>
-        <el-form-item label="摘要"><el-input v-model="form.summary" type="textarea" :rows="2" maxlength="500" show-word-limit /></el-form-item>
+        <el-form-item label="标题" required><el-input v-model="form.title" maxlength="200" show-word-limit placeholder="请输入文章标题" /></el-form-item>
+        <el-form-item required>
+          <template #label>
+            摘要
+            <el-tooltip content="8个字内的标题摘要，用作封面展示" placement="top">
+              <el-icon class="label-icon"><QuestionFilled /></el-icon>
+            </el-tooltip>
+          </template>
+          <el-input v-model="form.summary" maxlength="8" show-word-limit placeholder="请输入标题摘要" />
+        </el-form-item>
         <el-form-item label="封面图片"><ImageUpload v-model="form.coverUrl" label="文章封面" /></el-form-item>
         <el-form-item label="正文内容" required><RichTextEditor v-model="form.content" /></el-form-item>
         <el-button type="primary" native-type="submit" :loading="saving">保存文章</el-button>
@@ -190,6 +210,7 @@ onMounted(() => { load(); loadCategories() })
 
 <style scoped>
 .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.label-icon { margin-inline-start: 4px; color: var(--muted); vertical-align: -2px; }
 .toolbar .el-input { max-width: 260px; }
 .toolbar .el-select { min-width: 160px; }
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0 18px; }

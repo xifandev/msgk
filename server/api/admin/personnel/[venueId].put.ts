@@ -19,6 +19,9 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody<Record<string, unknown>>(event)
   const members = sanitizeMembers(body?.members)
+  members.forEach((member, index) => {
+    if (!member.position) throw createError({ statusCode: 400, message: `第${index + 1}位成员的职务不能为空` })
+  })
   const membersJson = JSON.stringify(members)
 
   if (existing) {

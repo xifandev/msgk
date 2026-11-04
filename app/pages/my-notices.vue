@@ -4,6 +4,8 @@ import { ElMessage } from 'element-plus'
 useHead({ title: '我的通知 | 码上公开' })
 const loading = ref(false)
 const list = ref<any[]>([])
+const total = ref(0)
+const paging = reactive({ page: 1, pageSize: 10 })
 const detailVisible = ref(false)
 const current = ref<Record<string, any>>({})
 const marking = ref(false)
@@ -11,8 +13,9 @@ const marking = ref(false)
 async function load() {
   loading.value = true
   try {
-    const response = await $fetch<{ list: any[] }>('/api/admin/notices/my')
+    const response = await $fetch<{ list: any[], total: number }>('/api/admin/notices/my', { query: paging })
     list.value = response.list
+    total.value = response.total
   } catch (error) { ElMessage.error(errorMessage(error)) } finally { loading.value = false }
 }
 async function openNotice(row: any) {
@@ -26,6 +29,7 @@ async function openNotice(row: any) {
     current.value = { ...row }
   } catch (error) { ElMessage.error(errorMessage(error)) } finally { marking.value = false }
 }
+watch(() => [paging.page, paging.pageSize], load)
 onMounted(load)
 </script>
 
@@ -38,6 +42,7 @@ onMounted(load)
     <section class="panel">
       <div class="table-region" tabindex="0" role="region" aria-label="内部公告列表">
         <el-table v-loading="loading" :data="list">
+          <el-table-column type="index" label="序号" width="64" :index="(index: number) => (paging.page - 1) * paging.pageSize + index + 1" />
           <el-table-column label="状态" width="90">
             <template #default="{ row }"><el-tag :type="row.readAt ? 'info' : 'danger'" effect="plain">{{ row.readAt ? '已读' : '未读' }}</el-tag></template>
           </el-table-column>
@@ -51,6 +56,7 @@ onMounted(load)
         </el-table>
       </div>
       <p v-if="!loading && !list.length" class="empty-state">暂无内部公告</p>
+      <div v-else class="pagination"><el-pagination v-model:current-page="paging.page" v-model:page-size="paging.pageSize" :total="total" :page-sizes="[5, 10, 20, 50]" layout="total, sizes, prev, pager, next" /></div>
     </section>
 
     <el-dialog v-model="detailVisible" :title="current.title ?? '公告详情'" width="min(720px, 94vw)">

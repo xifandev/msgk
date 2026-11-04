@@ -30,6 +30,11 @@ export default defineEventHandler(async (event) => {
     where.push('a.title LIKE ?')
     params.push(`%${search}%`)
   }
+  const venueId = Number(input.venueId)
+  if (Number.isSafeInteger(venueId) && venueId > 0) {
+    where.push('EXISTS (SELECT 1 FROM safety_article_venues sv WHERE sv.article_id = a.id AND sv.venue_id = ?)')
+    params.push(venueId)
+  }
   const state = String(input.state ?? '')
   if (state) {
     if (!REVIEW_STATE_SET.includes(state)) throw createError({ statusCode: 400, message: '审核状态不正确' })

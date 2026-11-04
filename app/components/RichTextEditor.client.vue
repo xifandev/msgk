@@ -7,7 +7,7 @@ const props = defineProps<{ modelValue: string }>()
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 const editorRef = shallowRef()
 const toolbarConfig = { excludeKeys: ['uploadVideo', 'insertVideo', 'fullScreen'] }
-const editorConfig = { placeholder: '请输入正文内容', MENU_CONF: {} as Record<string, any> }
+const editorConfig = { placeholder: '请输入内容...', MENU_CONF: {} as Record<string, any> }
 editorConfig.MENU_CONF.uploadImage = {
   async customUpload(file: File, insertFn: (url: string) => void) {
     try {

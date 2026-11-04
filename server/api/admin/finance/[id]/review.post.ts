@@ -5,9 +5,16 @@ export default defineEventHandler(async (event) => {
   if (!['submit', 'approve', 'reject', 'reopen'].includes(action)) throw createError({ statusCode: 400, message: '审核操作不正确' })
   const permission = ['submit', 'reopen'].includes(action) ? 'finance:edit' : 'finance:review'
   const admin = await requirePermission(event, permission)
-  const bill = await queryOne<{ venue_id: number, state: string }>('SELECT venue_id, state FROM bills WHERE id = ?', [id])
+  const bill = await queryOne<{ venue_id: number, state: string, previous_balance: string | null }>('SELECT venue_id, state, previous_balance FROM bills WHERE id = ?', [id])
   if (!bill) throw createError({ statusCode: 404, message: '账单不存在' })
   requireVenueScope(admin, bill.venue_id)
+  if (action === 'submit') {
+    const count = await queryOne<{ total: number | string }>('SELECT COUNT(*) AS total FROM bill_items WHERE bill_id = ?', [id])
+    if (Number(count?.total ?? 0) === 0) throw createError({ statusCode: 409, message: '请先录入至少一条收支明细，再提交审核' })
+    if (bill.previous_balance === null || bill.previous_balance === undefined) {
+      throw createError({ statusCode: 409, message: '请填写上月结余，再提交审核' })
+    }
+  }
   const next = nextReviewState(bill.state, admin.roleCode, action)
   const reason = action === 'reject' ? text(body.reason, '驳回原因', 500) : ''
   const data = reviewUpdate(action, next, reason, admin.roleCode, bill.state)

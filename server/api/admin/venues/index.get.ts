@@ -5,6 +5,7 @@ import { pageParams } from '../../../utils/http'
 export default defineEventHandler(async (event) => {
   const admin = await requirePermission(event, 'venues:view')
   const { page, pageSize, offset, search } = pageParams(event)
+  const input = getQuery(event)
   const scope = venueScope(admin, 'v.id')
   const conditions = [scope.sql]
   const params: unknown[] = [...scope.params]
@@ -12,15 +13,23 @@ export default defineEventHandler(async (event) => {
     conditions.push('(v.name LIKE ? OR v.township LIKE ?)')
     params.push(`%${search}%`, `%${search}%`)
   }
+  const profileState = String(input.profileState ?? '')
+  if (profileState) {
+    if (!['draft', 'pending_town', 'pending_county', 'approved', 'rejected'].includes(profileState)) {
+      throw createError({ statusCode: 400, message: '审核状态不正确' })
+    }
+    conditions.push('p.state = ?')
+    params.push(profileState)
+  }
   const where = conditions.join(' AND ')
   const totalRow = await queryOne<{ total: number | string }>(
-    `SELECT COUNT(*) AS total FROM venues v WHERE ${where}`,
+    `SELECT COUNT(*) AS total FROM venues v LEFT JOIN venue_profiles p ON p.venue_id = v.id WHERE ${where}`,
     params
   )
   const list = await query(
     `SELECT v.id, v.name, v.township, v.sort_order, v.image_url, v.qr_code_url, v.safety_note,
             v.created_at, v.updated_at,
-            p.state AS profile_state, p.published AS profile_published,
+            p.state AS profile_state, p.published AS profile_published, p.submitted_at AS profile_submitted_at,
             m.state AS personnel_state, m.published AS personnel_published
      FROM venues v
      LEFT JOIN venue_profiles p ON p.venue_id = v.id
