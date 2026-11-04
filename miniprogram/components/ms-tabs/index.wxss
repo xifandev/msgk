@@ -31,9 +31,10 @@
 }
 
 .ms-tabs__nav.is-scrollable .ms-tabs__item {
-  flex: none;
-  min-width: 160rpx;
-  padding: 0 24rpx;
+  /* 不压缩、可伸展：内容总宽小于整屏时均分铺满，超出时横向滚动，标题不会折行 */
+  flex: 1 0 auto;
+  min-width: 0;
+  padding: 0 20rpx;
 }
 
 .ms-tabs__item.is-active {
@@ -41,7 +42,11 @@
 }
 
 .ms-tabs__text {
+  max-width: 100%;
   line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ms-tabs__text.is-ellipsis {
