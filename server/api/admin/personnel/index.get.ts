@@ -30,13 +30,32 @@ export default defineEventHandler(async (event) => {
     `SELECT p.id, p.venue_id, v.name AS venue_name, v.township,
             p.state, p.published, p.submitted_at, p.town_note, p.town_reviewed_at,
             p.county_note, p.county_reviewed_at, p.updated_at,
-            JSON_LENGTH(p.members) AS member_count
+            JSON_LENGTH(p.members) AS member_count,
+            JSON_UNQUOTE(JSON_EXTRACT(p.members, '$[0].name')) AS first_member
      FROM personnel p
      JOIN venues v ON v.id = p.venue_id
      WHERE ${where}
-     ORDER BY p.updated_at DESC, p.id DESC
+     ORDER BY (p.state IN ('pending_county', 'pending_town')) DESC, p.updated_at DESC, p.id DESC
      LIMIT ? OFFSET ?`,
     [...params, pageSize, offset]
   )
-  return { list, total: Number(totalRow?.total ?? 0), page, pageSize }
+  // 分类统计：只受数据权限与搜索词影响，不受当前分类筛选影响
+  const countConditions = [scope.sql]
+  const countParams: unknown[] = [...scope.params]
+  if (search) {
+    countConditions.push('(v.name LIKE ? OR v.township LIKE ?)')
+    countParams.push(`%${search}%`, `%${search}%`)
+  }
+  const rows = await query<{ state: string; total: number | string }>(
+    `SELECT p.state, COUNT(*) AS total FROM personnel p JOIN venues v ON v.id = p.venue_id
+     WHERE ${countConditions.join(' AND ')} GROUP BY p.state`,
+    countParams
+  )
+  const counts: Record<string, number> = { all: 0 }
+  for (const value of REVIEW_STATES) counts[value] = 0
+  for (const row of rows) {
+    counts[row.state] = Number(row.total)
+    counts.all = (counts.all ?? 0) + Number(row.total)
+  }
+  return { list, total: Number(totalRow?.total ?? 0), counts, page, pageSize }
 })

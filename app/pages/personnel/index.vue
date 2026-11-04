@@ -47,7 +47,14 @@ async function load() {
   if (!venueId.value) return
   loading.value = true
   try {
-    const response = await $fetch<Record<string, any>>(`/api/admin/personnel/${venueId.value}`)
+    let response: Record<string, any>
+    try {
+      response = await $fetch<Record<string, any>>(`/api/admin/personnel/${venueId.value}`)
+    } catch (error: any) {
+      // 该场所还没有名册：按空白的编辑中名册处理，首次保存时由接口创建
+      if (error?.statusCode !== 404) throw error
+      response = { venue_id: venueId.value, state: 'draft', published: 0, members: [] }
+    }
     record.value = response
     suppressDirty = true
     members.value = (response.members ?? []).map((member: any, index: number) => ({
@@ -145,11 +152,11 @@ onMounted(() => { if (!venueId.value && venues.value.length) venueId.value = ven
         <p v-if="!editable" class="muted">当前内容正在审核或已经通过，如需修改请先重新编辑。</p>
         <el-empty v-if="!members.length" description="尚未添加人员" />
         <div v-for="(member, index) in members" :key="index" class="member-card">
-          <div class="member-head"><strong>第 {{ index + 1 }} 位成员</strong><div v-if="canEdit" class="member-actions"><el-button size="small" :disabled="index === 0" @click="move(index, -1)">上移</el-button><el-button size="small" :disabled="index === members.length - 1" @click="move(index, 1)">下移</el-button><el-button size="small" type="danger" plain @click="removeMember(index)">删除</el-button></div></div>
+          <div class="member-head"><span class="member-no" aria-hidden="true">{{ index + 1 }}</span><strong>第 {{ index + 1 }} 位成员</strong><span v-if="member.name" class="member-name">{{ member.name }}</span><div v-if="canEdit" class="member-actions"><el-button size="small" :disabled="index === 0" @click="move(index, -1)">上移</el-button><el-button size="small" :disabled="index === members.length - 1" @click="move(index, 1)">下移</el-button><el-button size="small" type="danger" plain @click="removeMember(index)">删除</el-button></div></div>
           <div class="member-body">
             <ImageUpload v-if="canEdit" v-model="member.imageUrl" :label="`${member.name || '成员'}照片`" />
-            <el-image v-else-if="member.imageUrl" :src="member.imageUrl" :preview-src-list="[member.imageUrl]" fit="cover" class="photo-preview" :alt="`${member.name}照片`" />
-            <span v-else class="muted">未上传照片</span>
+            <el-image v-else-if="member.imageUrl" :src="member.imageUrl" :preview-src-list="[member.imageUrl]" fit="contain" class="photo-preview" :alt="`${member.name}照片`" />
+            <span v-else class="photo-preview photo-empty">尚未上传照片</span>
             <el-form label-position="top" :disabled="!canEdit" class="member-form" @change="markDirty"><div class="member-grid">
               <el-form-item label="姓名" required><el-input v-model="member.name" maxlength="50" placeholder="请输入姓名" /></el-form-item>
               <el-form-item label="性别"><el-select v-model="member.gender" clearable><el-option label="男" value="男" /><el-option label="女" value="女" /></el-select></el-form-item>
@@ -176,9 +183,13 @@ onMounted(() => { if (!venueId.value && venues.value.length) venueId.value = ven
 <style scoped>
 .detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; align-items: start; }
 .review-side { display: grid; gap: 20px; align-content: start; }
-.member-card { border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-block-end: 16px; }
-.member-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-block-end: 12px; }
-.member-actions { display: flex; gap: 8px; }
+.review-side :deep(.review-status > .el-tag) { justify-self: start; }
+.member-card { border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-block-end: 14px; background: var(--surface); transition: border-color 0.15s, box-shadow 0.15s; }
+.member-card:hover { border-color: var(--el-color-primary-light-7); box-shadow: 0 6px 18px rgb(16 24 40 / 5%); }
+.member-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-block-end: 12px; }
+.member-no { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--brand-soft); color: var(--brand); font-size: 13px; font-weight: 700; }
+.member-name { padding: 1px 8px; border-radius: 6px; background: #f2f4f7; color: var(--muted); font-size: 12px; font-weight: 400; }
+.member-actions { display: flex; gap: 8px; margin-inline-start: auto; }
 .member-actions .el-button + .el-button { margin-inline-start: 0; }
 .member-body { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: start; }
 .member-form { width: 100%; }
@@ -188,7 +199,8 @@ onMounted(() => { if (!venueId.value && venues.value.length) venueId.value = ven
 .position-row { display: grid; gap: 8px; width: 100%; }
 .position-quick { max-width: 260px; }
 .hint-text { margin-block-start: -6px; }
-.photo-preview { width: 120px; height: 90px; border-radius: 10px; border: 1px solid var(--line); }
+.photo-preview { width: 104px; height: 136px; border-radius: 10px; border: 1px solid var(--line); background: #f3f5f8; flex: none; }
+.photo-empty { display: grid; place-items: center; text-align: center; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .muted { color: var(--muted); font-size: 13px; }
 @media (max-width: 900px) { .detail-layout { grid-template-columns: 1fr; } .member-body { grid-template-columns: 1fr; } .member-grid { grid-template-columns: 1fr; } }
 </style>

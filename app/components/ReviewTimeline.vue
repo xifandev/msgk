@@ -6,7 +6,7 @@ const items = computed(() => [
   { label: '提交审核', value: props.record.submitted_at, note: '内容已提交' },
   { label: '镇级审核', value: props.record.town_reviewed_at, note: props.record.town_note },
   { label: '县级审核', value: props.record.county_reviewed_at, note: props.record.county_note }
-].filter((item) => item.value || item.note))
+].filter((item) => item.value))
 </script>
 
 <template>
@@ -16,7 +16,7 @@ const items = computed(() => [
       {{ record.published ? '已公开' : '未公开' }}
     </el-tag>
     <el-timeline v-if="items.length" class="timeline">
-      <el-timeline-item v-for="item in items" :key="item.label" :timestamp="String(item.value)">
+      <el-timeline-item v-for="item in items" :key="item.label" :timestamp="formatDateTime(item.value)">
         <strong>{{ item.label }}</strong><p v-if="item.note">{{ item.note }}</p>
       </el-timeline-item>
     </el-timeline>

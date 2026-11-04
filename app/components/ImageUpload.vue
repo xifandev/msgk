@@ -27,7 +27,7 @@ async function upload(file: File) {
 
 <template>
   <div class="image-upload">
-    <el-image v-if="modelValue" :src="modelValue" :preview-src-list="[modelValue]" fit="cover" class="preview" :alt="label ?? '已上传图片'" />
+    <el-image v-if="modelValue" :src="modelValue" :preview-src-list="[modelValue]" fit="contain" class="preview" :alt="label ?? '已上传图片'" />
     <div v-else class="placeholder">尚未上传图片</div>
     <el-upload :show-file-list="false" accept="image/jpeg,image/png,image/webp,image/gif" :auto-upload="false" :on-change="(file) => file.raw && upload(file.raw)">
       <el-button :loading="uploading">{{ modelValue ? '更换图片' : '上传图片' }}</el-button>
@@ -37,6 +37,7 @@ async function upload(file: File) {
 
 <style scoped>
 .image-upload { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-.preview, .placeholder { width: 120px; height: 90px; border-radius: 10px; border: 1px solid var(--line); }
-.placeholder { display: grid; place-items: center; color: var(--muted); background: var(--background); font-size: 13px; }
+.preview, .placeholder { width: 104px; height: 136px; border-radius: 10px; border: 1px solid var(--line); background: #f3f5f8; }
+.preview { display: block; }
+.placeholder { display: grid; place-items: center; color: var(--muted); font-size: 12px; text-align: center; line-height: 1.5; }
 </style>
