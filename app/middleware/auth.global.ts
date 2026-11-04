@@ -8,5 +8,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (to.path === '/') return navigateTo('/dashboard')
   const item = NAVIGATION.find((entry) => entry.path === to.path)
   const required = (to.meta.permission as string | undefined) ?? item?.permission
+  if (item?.superOnly && admin.value?.roleCode !== 'super') return navigateTo('/dashboard')
   if (required && !hasPerm(required)) return navigateTo('/dashboard')
 })

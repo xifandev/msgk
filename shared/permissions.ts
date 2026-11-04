@@ -34,8 +34,8 @@ export const PERMISSIONS: PermissionDefinition[] = [
   { code: 'finance:review', name: '审核财务', group: '财务公开' },
   { code: 'finance:publish', name: '设置财务公开状态', group: '财务公开' },
   { code: 'system:admins', name: '管理管理员', group: '系统设置' },
-  { code: 'system:roles', name: '管理角色', group: '系统设置' },
-  { code: 'system:logs', name: '查看操作日志', group: '系统设置' }
+  { code: 'system:roles', name: '管理角色', group: '系统设置' }
+  // system:logs（操作日志）仅系统管理员可见，不对外开放，故不在可分配权限列表中
 ]
 
 export const COUNTY_PERMISSIONS = PERMISSIONS
@@ -48,8 +48,7 @@ export const TOWN_PERMISSIONS = [
   'personnel:view', 'personnel:review', 'personnel:publish',
   'safety:view', 'safety:review', 'safety:publish',
   'news:view', 'notices:view',
-  'finance:view', 'finance:review', 'finance:publish',
-  'system:logs'
+  'finance:view', 'finance:review', 'finance:publish'
 ]
 
 export const VENUE_PERMISSIONS = [

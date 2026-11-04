@@ -11,6 +11,8 @@ const route = useRoute()
 const mobileMenu = ref(false)
 const icons = { Avatar, Bell, DataAnalysis, Document, DocumentChecked, Guide, Key, List, Message, OfficeBuilding, Reading, Setting, User, UserFilled, Wallet, Warning }
 const items = computed(() => NAVIGATION.filter((item) => hasPerm(item.permission)))
+const mainItems = computed(() => items.value.filter((item) => !item.superOnly))
+const opsItems = computed(() => items.value.filter((item) => item.superOnly && admin.value?.roleCode === 'super'))
 watch(() => route.path, () => { mobileMenu.value = false })
 
 async function switchBack() {
@@ -34,7 +36,7 @@ async function switchBack() {
       <nav class="nav" aria-label="后台主导航">
         <el-menu :default-active="route.path" router>
           <el-menu-item
-            v-for="item in items"
+            v-for="item in mainItems"
             :key="item.path"
             :index="item.path"
             :aria-current="route.path === item.path ? 'page' : undefined"
@@ -42,6 +44,17 @@ async function switchBack() {
             <el-icon><component :is="icons[item.icon as keyof typeof icons]" /></el-icon>
             <span>{{ item.label }}</span>
           </el-menu-item>
+          <el-menu-item-group v-if="opsItems.length" title="运维工具">
+            <el-menu-item
+              v-for="item in opsItems"
+              :key="item.path"
+              :index="item.path"
+              :aria-current="route.path === item.path ? 'page' : undefined"
+            >
+              <el-icon><component :is="icons[item.icon as keyof typeof icons]" /></el-icon>
+              <span>{{ item.label }}</span>
+            </el-menu-item>
+          </el-menu-item-group>
         </el-menu>
       </nav>
     </aside>
@@ -50,7 +63,7 @@ async function switchBack() {
       <nav aria-label="移动端主导航">
         <el-menu :default-active="route.path" router>
           <el-menu-item
-            v-for="item in items"
+            v-for="item in mainItems"
             :key="item.path"
             :index="item.path"
             :aria-current="route.path === item.path ? 'page' : undefined"
@@ -58,6 +71,17 @@ async function switchBack() {
             <el-icon><component :is="icons[item.icon as keyof typeof icons]" /></el-icon>
             <span>{{ item.label }}</span>
           </el-menu-item>
+          <el-menu-item-group v-if="opsItems.length" title="运维工具">
+            <el-menu-item
+              v-for="item in opsItems"
+              :key="item.path"
+              :index="item.path"
+              :aria-current="route.path === item.path ? 'page' : undefined"
+            >
+              <el-icon><component :is="icons[item.icon as keyof typeof icons]" /></el-icon>
+              <span>{{ item.label }}</span>
+            </el-menu-item>
+          </el-menu-item-group>
         </el-menu>
       </nav>
     </el-drawer>
@@ -154,6 +178,17 @@ async function switchBack() {
   --el-menu-text-color: #c3d0dd;
   --el-menu-hover-bg-color: rgb(255 255 255 / 7%);
   --el-menu-active-color: #fff;
+}
+.sidebar .el-menu-item-group ul,
+.nav-drawer .el-menu-item-group ul { margin: 0; padding: 0; }
+.sidebar .el-menu-item-group__title,
+.nav-drawer .el-menu-item-group__title {
+  margin-block-start: 8px;
+  padding: 8px 10px 2px 16px;
+  color: #748ca2;
+  font-size: 12px;
+  letter-spacing: 2px;
+  border-block-start: 1px solid rgb(255 255 255 / 8%);
 }
 .sidebar .el-menu-item,
 .nav-drawer .el-menu-item {

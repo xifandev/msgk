@@ -230,8 +230,8 @@ CREATE TABLE IF NOT EXISTS operation_logs (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO roles (id, code, name, permissions) VALUES
-  (1, 'county', '县级管理员', JSON_ARRAY('dashboard:view','venues:view','venues:edit','venues:delete','venues:review','venues:publish','personnel:view','personnel:edit','personnel:review','personnel:publish','safety:view','safety:edit','safety:delete','safety:review','safety:publish','news:view','news:edit','news:delete','news:publish','notices:view','notices:edit','notices:delete','notices:publish','finance:view','finance:edit','finance:delete','finance:review','finance:publish','system:logs')),
-  (2, 'town', '镇级管理员', JSON_ARRAY('dashboard:view','venues:view','venues:review','venues:publish','personnel:view','personnel:review','personnel:publish','safety:view','safety:review','safety:publish','news:view','notices:view','finance:view','finance:review','finance:publish','system:logs')),
+  (1, 'county', '县级管理员', JSON_ARRAY('dashboard:view','venues:view','venues:edit','venues:delete','venues:review','venues:publish','personnel:view','personnel:edit','personnel:review','personnel:publish','safety:view','safety:edit','safety:delete','safety:review','safety:publish','news:view','news:edit','news:delete','news:publish','notices:view','notices:edit','notices:delete','notices:publish','finance:view','finance:edit','finance:delete','finance:review','finance:publish')),
+  (2, 'town', '镇级管理员', JSON_ARRAY('dashboard:view','venues:view','venues:review','venues:publish','personnel:view','personnel:review','personnel:publish','safety:view','safety:review','safety:publish','news:view','notices:view','finance:view','finance:review','finance:publish')),
   (3, 'venue', '场所管理员', JSON_ARRAY('dashboard:view','venues:view','venues:edit','personnel:view','personnel:edit','safety:view','safety:edit','news:view','notices:view','finance:view','finance:edit')),
   (999, 'super', '系统管理员', JSON_ARRAY('*'))
 ON DUPLICATE KEY UPDATE name = VALUES(name);

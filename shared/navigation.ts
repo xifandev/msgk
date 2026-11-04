@@ -3,6 +3,10 @@ export interface NavigationItem {
   label: string
   permission: string
   icon: string
+  /** 导航分组标题（目前仅用于底部运维工具组） */
+  group?: string
+  /** 仅系统管理员（super）可见和访问 */
+  superOnly?: boolean
 }
 
 export const NAVIGATION: NavigationItem[] = [
@@ -17,9 +21,9 @@ export const NAVIGATION: NavigationItem[] = [
   { path: '/news', label: '新闻与法规', permission: 'news:view', icon: 'Reading' },
   { path: '/notices', label: '公告管理', permission: 'notices:edit', icon: 'Bell' },
   { path: '/my-notices', label: '我的通知', permission: 'notices:view', icon: 'Message' },
-  { path: '/logs', label: '操作日志', permission: 'system:logs', icon: 'List' },
   { path: '/admins', label: '管理员', permission: 'system:admins', icon: 'Avatar' },
-  { path: '/roles', label: '角色权限', permission: 'system:roles', icon: 'Key' },
   { path: '/manual', label: '使用手册', permission: 'dashboard:view', icon: 'Guide' },
-  { path: '/settings', label: '个人设置', permission: 'dashboard:view', icon: 'Setting' }
+  { path: '/settings', label: '个人设置', permission: 'dashboard:view', icon: 'Setting' },
+  { path: '/logs', label: '操作日志', permission: 'system:logs', icon: 'List', group: '运维工具', superOnly: true },
+  { path: '/roles', label: '角色权限', permission: 'system:roles', icon: 'Key', group: '运维工具', superOnly: true }
 ]
