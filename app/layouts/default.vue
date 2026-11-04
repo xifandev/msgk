@@ -46,7 +46,7 @@ async function switchBack() {
       </nav>
     </aside>
 
-    <el-drawer v-model="mobileMenu" class="nav-drawer" direction="ltr" size="272px" title="沂水宗教码上公开">
+    <el-drawer v-model="mobileMenu" class="nav-drawer" direction="ltr" size="240px" title="沂水宗教码上公开">
       <nav aria-label="移动端主导航">
         <el-menu :default-active="route.path" router>
           <el-menu-item
@@ -92,7 +92,7 @@ async function switchBack() {
   position: fixed;
   inset-block: 0;
   inset-inline-start: 0;
-  width: 240px;
+  width: 200px;
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #22303f 0%, #1b2734 100%);
@@ -109,7 +109,7 @@ async function switchBack() {
   justify-content: center;
   gap: 3px;
   min-height: 88px;
-  padding: 18px 20px;
+  padding: 16px 18px;
   border-block-end: 1px solid rgb(255 255 255 / 8%);
   background: rgb(255 255 255 / 3%);
   flex: none;
@@ -122,7 +122,7 @@ async function switchBack() {
 .nav::-webkit-scrollbar { width: 6px; }
 .nav::-webkit-scrollbar-thumb { background: rgb(255 255 255 / 14%); border-radius: 3px; }
 
-.workspace { min-height: 100dvh; margin-inline-start: 240px; }
+.workspace { min-height: 100dvh; margin-inline-start: 200px; }
 .top-sticky { position: sticky; inset-block-start: 0; z-index: 10; }
 .topbar { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 28px; background: rgb(255 255 255 / 92%); border-block-end: 1px solid var(--line); backdrop-filter: blur(12px); }
 .topbar-title { color: var(--muted); }
@@ -199,7 +199,7 @@ async function switchBack() {
 
 /* 移动端抽屉深色外观 */
 .nav-drawer .el-drawer { background: #1e2b39; }
-.nav-drawer .el-drawer__header { margin: 0; padding: 18px 20px; color: #fff; border-block-end: 1px solid rgb(255 255 255 / 8%); font-weight: 700; }
+.nav-drawer .el-drawer__header { margin: 0; padding: 16px 18px; color: #fff; border-block-end: 1px solid rgb(255 255 255 / 8%); font-weight: 700; }
 .nav-drawer .el-drawer__body { padding: 8px 0; }
 .nav-drawer .el-drawer__close-btn { color: #c3d0dd; }
 </style>
