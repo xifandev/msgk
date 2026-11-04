@@ -68,6 +68,11 @@ onMounted(load)
       </el-descriptions>
       <el-image v-if="current.coverUrl" :src="current.coverUrl" fit="cover" class="detail-cover" alt="公告封面" />
       <article class="rich-content" v-html="current.content" />
+      <template #footer>
+        <div class="dialog-actions">
+          <el-button @click="detailVisible = false">关闭</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>

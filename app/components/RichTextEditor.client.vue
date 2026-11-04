@@ -34,5 +34,6 @@ onBeforeUnmount(() => { editorRef.value?.destroy() })
 <style scoped>
 .editor { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
 .toolbar { border-block-end: 1px solid var(--line); }
-.editor-content { min-height: 360px; }
+/* 编辑区随视口高度自适应：矮屏也不会把弹窗撑出屏幕，同时保留可用的输入高度 */
+.editor-content { min-height: clamp(160px, 32dvh, 320px); }
 </style>

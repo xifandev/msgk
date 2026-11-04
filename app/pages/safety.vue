@@ -155,7 +155,7 @@ onMounted(() => {
       <div class="pagination"><el-pagination v-model:current-page="filters.page" v-model:page-size="filters.pageSize" :total="total" :page-sizes="[5, 10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" /></div>
     </section>
 
-    <el-dialog v-model="editorVisible" :title="form.id ? '编辑安全文章' : '新建安全文章'" width="min(880px, 96vw)" destroy-on-close>
+    <el-dialog v-model="editorVisible" :title="form.id ? '编辑安全文章' : '新建安全文章'" width="min(960px, 94vw)" destroy-on-close>
       <el-form label-position="top" @submit.prevent="saveArticle">
         <el-form-item label="关联场所" required><VenueSelect v-model="form.venueIds" multiple /></el-form-item>
         <el-form-item label="标题" required><el-input v-model="form.title" maxlength="200" show-word-limit /></el-form-item>
@@ -165,8 +165,13 @@ onMounted(() => {
         </div>
         <el-form-item label="封面图片"><ImageUpload v-model="form.coverUrl" label="文章封面" /></el-form-item>
         <el-form-item label="正文内容" required><RichTextEditor v-model="form.content" /></el-form-item>
-        <el-button type="primary" native-type="submit" :loading="saving">保存文章</el-button>
       </el-form>
+      <template #footer>
+        <div class="dialog-actions">
+          <el-button @click="editorVisible = false">取消</el-button>
+          <el-button type="primary" :loading="saving" @click="saveArticle">保存文章</el-button>
+        </div>
+      </template>
     </el-dialog>
 
     <el-drawer v-model="detailVisible" size="min(900px, 96vw)" :title="current.title ?? '文章详情'">

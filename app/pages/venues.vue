@@ -184,8 +184,13 @@ onMounted(load)
           <p class="muted upload-hint">二维码用于打印张贴，信众扫码直达该场所公开页。</p>
         </el-form-item>
         <el-form-item label="安全提示"><el-input v-model="editForm.safety_note" type="textarea" :rows="4" maxlength="2000" show-word-limit placeholder="面向公众展示的安全注意事项" /></el-form-item>
-        <el-button type="primary" native-type="submit" :loading="saving">保存</el-button>
       </el-form>
+      <template #footer>
+        <div class="dialog-actions">
+          <el-button @click="editVisible = false">取消</el-button>
+          <el-button type="primary" :loading="saving" @click="saveVenue">保存</el-button>
+        </div>
+      </template>
     </el-dialog>
 
     <el-dialog v-model="qrVisible" :title="qrRow ? `${qrRow.name} · 场所二维码` : '场所二维码'" width="min(460px, 94vw)">
@@ -197,6 +202,11 @@ onMounted(load)
           <el-button type="primary" :loading="qrDownloading" @click="downloadQr">下载二维码</el-button>
         </div>
       </div>
+      <template #footer>
+        <div class="dialog-actions">
+          <el-button @click="qrVisible = false">关闭</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>

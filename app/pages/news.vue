@@ -154,7 +154,7 @@ onMounted(() => { load(); loadCategories() })
       <div class="pagination"><el-pagination v-model:current-page="filters.page" v-model:page-size="filters.pageSize" :total="total" :page-sizes="[5, 10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" /></div>
     </section>
 
-    <el-dialog v-model="editorVisible" :title="form.id ? '编辑文章' : '新建文章'" width="min(880px, 96vw)" destroy-on-close>
+    <el-dialog v-model="editorVisible" :title="form.id ? '编辑文章' : '新建文章'" width="min(960px, 94vw)" destroy-on-close>
       <el-form label-position="top" @submit.prevent="saveArticle">
         <div class="form-grid">
           <el-form-item required>
@@ -182,16 +182,19 @@ onMounted(() => { load(); loadCategories() })
         </el-form-item>
         <el-form-item label="封面图片"><ImageUpload v-model="form.coverUrl" label="文章封面" /></el-form-item>
         <el-form-item label="正文内容" required><RichTextEditor v-model="form.content" /></el-form-item>
-        <el-button type="primary" native-type="submit" :loading="saving">保存文章</el-button>
       </el-form>
+      <template #footer>
+        <div class="dialog-actions">
+          <el-button @click="editorVisible = false">取消</el-button>
+          <el-button type="primary" :loading="saving" @click="saveArticle">保存文章</el-button>
+        </div>
+      </template>
     </el-dialog>
 
     <el-dialog v-model="categoryVisible" title="管理文章分类" width="min(560px, 94vw)">
       <el-form class="category-form" @submit.prevent="saveCategory">
         <el-form-item label="分类名称" required><el-input v-model="categoryForm.name" maxlength="50" /></el-form-item>
         <el-form-item label="排序值"><el-input-number v-model="categoryForm.sortOrder" :min="0" :max="9999" /></el-form-item>
-        <el-button type="primary" native-type="submit" :loading="categorySaving">{{ categoryForm.id ? '保存分类' : '添加分类' }}</el-button>
-        <el-button v-if="categoryForm.id" @click="editCategory()">取消编辑</el-button>
       </el-form>
       <el-table :data="categories" aria-label="文章分类列表">
         <el-table-column prop="name" label="分类名称" min-width="140" />
@@ -206,6 +209,12 @@ onMounted(() => { load(); loadCategories() })
           </template>
         </el-table-column>
       </el-table>
+      <template #footer>
+        <div class="dialog-actions">
+          <el-button v-if="categoryForm.id" @click="editCategory()">取消编辑</el-button>
+          <el-button type="primary" :loading="categorySaving" @click="saveCategory">{{ categoryForm.id ? '保存分类' : '添加分类' }}</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>

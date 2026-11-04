@@ -3,6 +3,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { PERMISSIONS, type PermissionDefinition } from '~~/shared/permissions'
 const list = ref<any[]>([])
 const visible = ref(false)
+const saving = ref(false)
 const form = reactive({ id: 0, code: '', name: '', permissions: [] as string[] })
 const groups = computed(() => Object.groupBy(PERMISSIONS, (item: PermissionDefinition) => item.group))
 async function load() { try { list.value = (await $fetch<{ list: any[] }>('/api/admin/roles')).list } catch (error) { ElMessage.error(errorMessage(error)) } }
@@ -26,7 +27,8 @@ function toggleGroup(checked: any, items?: PermissionDefinition[]) {
 async function save() {
   if (!form.name.trim()) { ElMessage.warning('角色名不能为空！'); return }
   if (!form.permissions.length && form.code !== 'super') { ElMessage.warning('您还未分配权限！'); return }
-  try { await $fetch(form.id ? `/api/admin/roles/${form.id}` : '/api/admin/roles', { method: form.id ? 'PUT' : 'POST', body: form }); visible.value = false; ElMessage.success('角色已保存'); await load() } catch (error) { ElMessage.error(errorMessage(error)) }
+  saving.value = true
+  try { await $fetch(form.id ? `/api/admin/roles/${form.id}` : '/api/admin/roles', { method: form.id ? 'PUT' : 'POST', body: form }); visible.value = false; ElMessage.success('角色已保存'); await load() } catch (error) { ElMessage.error(errorMessage(error)) } finally { saving.value = false }
 }
 async function remove(row: any) {
   try {
@@ -53,7 +55,7 @@ onMounted(load)
     <section class="panel table-region" tabindex="0" role="region" aria-label="角色列表">
       <el-table :data="list"><el-table-column type="index" label="序号" width="64" /><el-table-column prop="name" label="角色名" width="180" /><el-table-column label="拥有权限"><template #default="{ row }"><el-tag v-for="code in row.permissions" :key="code" class="perm-tag" effect="plain">{{ code === '*' ? '全部权限' : PERMISSIONS.find((item) => item.code === code)?.name ?? code }}</el-tag></template></el-table-column><el-table-column label="操作" width="150" align="right"><template #default="{ row }"><TableActions><el-button size="small" type="primary" @click="edit(row)">编辑</el-button><el-button v-if="!['super','county','town','venue'].includes(row.code)" size="small" type="danger" plain @click="remove(row)">删除</el-button></TableActions></template></el-table-column></el-table>
     </section>
-    <el-dialog v-model="visible" :title="form.id ? '编辑角色' : '新增角色'" width="min(720px, 95vw)">
+    <el-dialog v-model="visible" :title="form.id ? '编辑角色' : '新增角色'" width="min(760px, 94vw)">
       <el-form label-position="top" @submit.prevent="save">
         <el-form-item label="角色名称" required><el-input v-model="form.name" maxlength="50" placeholder="请输入角色名称" /></el-form-item>
         <el-form-item label="功能权限">
@@ -68,8 +70,13 @@ onMounted(load)
             </el-checkbox-group>
           </div>
         </el-form-item>
-        <el-button type="primary" native-type="submit">提交保存</el-button>
       </el-form>
+      <template #footer>
+        <div class="dialog-actions">
+          <el-button @click="visible = false">取消</el-button>
+          <el-button type="primary" :loading="saving" @click="save">提交保存</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>

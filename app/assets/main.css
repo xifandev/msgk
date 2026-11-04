@@ -61,10 +61,11 @@ img { max-width: 100%; }
 
 /* 弹窗：高度永不超过可视区，内容区独立滚动，底部操作按钮常驻可见 */
 .el-overlay-dialog { padding-block: 0; }
-.el-dialog {
-  --el-dialog-margin-top: 4vh;
+.el-overlay-dialog .el-dialog {
   display: flex;
   flex-direction: column;
+  margin-block: 4vh;
+  margin-inline: auto;
   max-height: calc(100dvh - 8vh);
   overflow: hidden;
   border-radius: 14px;
@@ -77,9 +78,11 @@ img { max-width: 100%; }
 
 /* 抽屉：宽度限制在可视区内，正文滚动 */
 .el-drawer { max-width: 100vw; }
+/* 详情表标签不因长内容被压成竖排 */
+.el-descriptions__label { white-space: nowrap; }
 
 @media (max-width: 760px) {
-  .el-dialog { --el-dialog-margin-top: 3vh; max-height: calc(100dvh - 6vh); border-radius: 12px; }
+  .el-overlay-dialog .el-dialog { margin-block: 3vh; max-height: calc(100dvh - 6vh); border-radius: 12px; }
   .el-dialog__body { padding: 16px; }
   .dialog-actions { justify-content: stretch; }
   .dialog-actions .el-button { flex: 1 1 0; }

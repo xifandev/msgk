@@ -121,7 +121,7 @@ onMounted(load)
       <div class="pagination"><el-pagination v-model:current-page="filters.page" v-model:page-size="filters.pageSize" :total="total" :page-sizes="[5, 10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" /></div>
     </section>
 
-    <el-dialog v-model="editorVisible" :title="form.id ? '编辑公告' : '新建公告'" width="min(880px, 96vw)" destroy-on-close>
+    <el-dialog v-model="editorVisible" :title="form.id ? '编辑公告' : '新建公告'" width="min(960px, 94vw)" destroy-on-close>
       <el-form label-position="top" @submit.prevent="saveNotice">
         <div class="form-grid">
           <el-form-item label="选择公告分类" required>
@@ -135,8 +135,13 @@ onMounted(load)
         <el-form-item label="标题" required><el-input v-model="form.title" maxlength="200" show-word-limit /></el-form-item>
         <el-form-item label="封面图片"><ImageUpload v-model="form.coverUrl" label="公告封面" /></el-form-item>
         <el-form-item label="正文内容" required><RichTextEditor v-model="form.content" /></el-form-item>
-        <el-button type="primary" native-type="submit" :loading="saving">保存公告</el-button>
       </el-form>
+      <template #footer>
+        <div class="dialog-actions">
+          <el-button @click="editorVisible = false">取消</el-button>
+          <el-button type="primary" :loading="saving" @click="saveNotice">保存公告</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>

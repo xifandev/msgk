@@ -8,11 +8,13 @@ const list = ref<any[]>([])
 const total = ref(0)
 const filters = reactive({ page: 1, pageSize: 10, venueId: null as number | null, month: '', state: '' })
 const addVisible = ref(false)
+const adding = ref(false)
 const addForm = reactive({ venueId: null as number | null, month: '' })
 const detailVisible = ref(false)
 const current = ref<Record<string, any>>({})
 const items = ref<any[]>([])
 const itemVisible = ref(false)
+const itemSaving = ref(false)
 const itemForm = reactive({ id: 0, kind: 'income', occurredOn: '', summary: '', amount: '' })
 const prevDirty = ref(false)
 const billEditable = computed(() => ['draft', 'rejected'].includes(current.value.state))
@@ -51,6 +53,7 @@ async function load() {
 async function addBill() {
   if (!addForm.venueId) { ElMessage.warning('请选择场所'); return }
   if (!addForm.month) { ElMessage.warning('请选择要添加的月份'); return }
+  adding.value = true
   try {
     await $fetch('/api/admin/finance', { method: 'POST', body: addForm })
     ElMessage.success('月度公开已添加')
@@ -58,7 +61,7 @@ async function addBill() {
     addForm.venueId = null
     addForm.month = ''
     await load()
-  } catch (error) { ElMessage.error(errorMessage(error)) }
+  } catch (error) { ElMessage.error(errorMessage(error)) } finally { adding.value = false }
 }
 async function openBill(row: any) {
   try {
@@ -105,12 +108,13 @@ async function saveItem() {
   if (!itemForm.summary.trim()) { ElMessage.warning('请输入简要描述'); return }
   if (!(Number(itemForm.amount) > 0)) { ElMessage.warning('请输入收支金额'); return }
   const url = itemForm.id ? `/api/admin/finance/items/${itemForm.id}` : `/api/admin/finance/${current.value.id}/items`
+  itemSaving.value = true
   try {
     await $fetch(url, { method: itemForm.id ? 'PUT' : 'POST', body: itemForm })
     itemVisible.value = false
     await openBill(current.value)
     await load()
-  } catch (error) { ElMessage.error(errorMessage(error)) }
+  } catch (error) { ElMessage.error(errorMessage(error)) } finally { itemSaving.value = false }
 }
 async function deleteItem(item: any) {
   try {
@@ -211,8 +215,13 @@ onMounted(() => {
       <el-form label-position="top" @submit.prevent="addBill">
         <el-form-item label="当前场所" required><VenueSelect v-model="addForm.venueId" /></el-form-item>
         <el-form-item label="公开月份" required><el-date-picker v-model="addForm.month" type="month" value-format="YYYY-MM" placeholder="选择月份" /></el-form-item>
-        <el-button type="primary" native-type="submit">确定添加</el-button>
       </el-form>
+      <template #footer>
+        <div class="dialog-actions">
+          <el-button @click="addVisible = false">取消</el-button>
+          <el-button type="primary" :loading="adding" @click="addBill">确定添加</el-button>
+        </div>
+      </template>
     </el-dialog>
 
     <el-drawer v-model="detailVisible" size="min(900px, 96vw)" :title="`${current.venue_name ?? ''} ${current.bill_month ?? ''}`" :before-close="confirmClose">
@@ -268,8 +277,13 @@ onMounted(() => {
             <template #prepend>¥</template>
           </el-input>
         </el-form-item>
-        <el-button type="primary" native-type="submit">保存明细</el-button>
       </el-form>
+      <template #footer>
+        <div class="dialog-actions">
+          <el-button @click="itemVisible = false">取消</el-button>
+          <el-button type="primary" :loading="itemSaving" @click="saveItem">保存明细</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
