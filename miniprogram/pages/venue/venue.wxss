@@ -182,7 +182,7 @@
   padding-top: 18rpx;
   border-top: 1rpx dashed #eceef1;
   font-size: 22rpx;
-  color: #b0b3b8;
+  color: #8c9097;
   line-height: 1.5;
 }
 

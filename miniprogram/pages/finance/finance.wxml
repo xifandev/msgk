@@ -20,14 +20,19 @@
             <view class="balance__glow"></view>
             <view class="balance__top">
               <text class="balance__label">本月结余（元）</text>
-              <view class="balance__delta {{ bill.deltaUp ? 'is-up' : 'is-down' }}">
-                <ms-icon wx:if="{{ !bill.deltaFlat }}" name="{{ bill.deltaUp ? 'arrow-up' : 'arrow-down' }}" size="20rpx" color="#ffffff" />
+              <view class="balance__delta {{ bill.deltaFlat ? 'is-flat' : (bill.deltaUp ? 'is-up' : 'is-down') }}">
+                <text class="balance__delta-arrow" wx:if="{{ !bill.deltaFlat }}">{{ bill.deltaUp ? '↑' : '↓' }}</text>
                 <text>{{ bill.deltaText }}</text>
               </view>
             </view>
             <view class="balance__value">{{ bill.currentText }}</view>
 
             <view class="balance__flow">
+              <view class="flow">
+                <text class="flow__label">上月结余</text>
+                <text class="flow__value">{{ bill.previousText }}</text>
+              </view>
+              <view class="flow__split"></view>
               <view class="flow">
                 <text class="flow__label">本月收入</text>
                 <text class="flow__value">{{ bill.incomeText }}</text>
@@ -126,7 +131,7 @@
               </view>
             </view>
 
-            <view class="year__totals">
+            <view class="year__totals" wx:if="{{ totals }}">
               <view class="total">
                 <text class="total__label">总收入</text>
                 <text class="total__value is-income">{{ totals.incomeText }}</text>
@@ -136,7 +141,7 @@
                 <text class="total__value is-expense">{{ totals.expenseText }}</text>
               </view>
               <view class="total">
-                <text class="total__label">年末结余</text>
+                <text class="total__label">期末结余</text>
                 <text class="total__value">{{ totals.balanceText }}</text>
               </view>
             </view>

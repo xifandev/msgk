@@ -77,7 +77,7 @@ page {
   display: flex;
   align-items: center;
   font-size: 24rpx;
-  color: #9a9ca1;
+  color: #8f939a;
   line-height: 1.5;
 }
 
@@ -152,7 +152,7 @@ page {
   padding: 0 12rpx;
   text-align: center;
   font-size: 22rpx;
-  color: #a9abb0;
+  color: #8f939a;
   line-height: 1.7;
 }
 

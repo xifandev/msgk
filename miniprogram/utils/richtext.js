@@ -1,28 +1,43 @@
 // utils/richtext.js
 // 小程序 rich-text 不继承页面样式，排版样式必须内联到标签上；
 // 同时统一修正图片固定宽高导致的横向溢出问题。
+//
+// rich-text 内部不支持 rpx，这里按屏幕宽度把 rpx 换算成 px，
+// 让正文排版与页面其余部分保持同一比例（不同机型字号一致）。
 
-// 正文排版（px 在小程序渲染层即逻辑像素，与 750rpx 设计稿等比例）
+let RATIO = 0.5; // 以 375pt 宽屏幕为基准：1rpx = 0.5px
+try {
+  const info = (wx.getWindowInfo && wx.getWindowInfo()) || wx.getSystemInfoSync();
+  if (info && info.windowWidth) {
+    RATIO = info.windowWidth / 750;
+  }
+} catch (err) {
+  // 非小程序环境（如本地脚本）保持默认比例
+}
+
+function px(rpx) {
+  return `${Math.round(rpx * RATIO * 10) / 10}px`;
+}
+
+// 正文排版（按 750rpx 设计稿尺寸书写，运行时换算）
 const STYLES = {
-  p: 'margin:0 0 14px;line-height:1.9;font-size:16px;color:#3b3a39;text-align:justify;word-break:break-word;',
-  h2: 'margin:24px 0 12px;font-size:19px;line-height:1.5;font-weight:600;color:#1f2329;',
-  h3: 'margin:20px 0 10px;font-size:17px;line-height:1.55;font-weight:600;color:#1f2329;',
-  h4: 'margin:16px 0 8px;font-size:16px;line-height:1.6;font-weight:600;color:#1f2329;',
-  blockquote:
-    'margin:16px 0;padding:12px 14px;border-left:3px solid #d31027;background-color:#fbf3f4;color:#5c5f66;font-size:15px;line-height:1.8;border-radius:0 8px 8px 0;',
-  ul: 'margin:0 0 14px;padding-left:22px;',
-  ol: 'margin:0 0 14px;padding-left:22px;',
-  li: 'margin:7px 0;line-height:1.85;font-size:16px;color:#3b3a39;',
-  table: 'width:100%;max-width:100%;table-layout:fixed;border-collapse:collapse;margin:14px 0;font-size:14px;color:#3b3a39;word-break:break-word;',
-  th: 'border:1px solid #e6e8eb;padding:8px 10px;background-color:#f7f8fa;font-weight:600;text-align:left;line-height:1.6;',
-  td: 'border:1px solid #e6e8eb;padding:8px 10px;line-height:1.6;word-break:break-word;',
+  p: `margin:0 0 ${px(28)};line-height:1.9;font-size:${px(32)};color:#3b3a39;text-align:justify;word-break:break-word;`,
+  h2: `margin:${px(48)} 0 ${px(24)};font-size:${px(38)};line-height:1.5;font-weight:600;color:#1f2329;`,
+  h3: `margin:${px(40)} 0 ${px(20)};font-size:${px(34)};line-height:1.55;font-weight:600;color:#1f2329;`,
+  h4: `margin:${px(32)} 0 ${px(16)};font-size:${px(32)};line-height:1.6;font-weight:600;color:#1f2329;`,
+  blockquote: `margin:${px(32)} 0;padding:${px(24)} ${px(28)};border-left:${px(6)} solid #d31027;background-color:#fbf3f4;color:#5c5f66;font-size:${px(30)};line-height:1.8;border-radius:0 ${px(16)} ${px(16)} 0;`,
+  ul: `margin:0 0 ${px(28)};padding-left:${px(44)};`,
+  ol: `margin:0 0 ${px(28)};padding-left:${px(44)};`,
+  li: `margin:${px(14)} 0;line-height:1.85;font-size:${px(32)};color:#3b3a39;`,
+  table: `width:100%;max-width:100%;table-layout:fixed;border-collapse:collapse;margin:${px(28)} 0;font-size:${px(28)};color:#3b3a39;word-break:break-word;`,
+  th: `border:1px solid #e6e8eb;padding:${px(16)} ${px(20)};background-color:#f7f8fa;font-weight:600;text-align:left;line-height:1.6;`,
+  td: `border:1px solid #e6e8eb;padding:${px(16)} ${px(20)};line-height:1.6;word-break:break-word;`,
   a: 'color:#d31027;text-decoration:none;word-break:break-all;',
-  hr: 'border:none;border-top:1px solid #eceef1;margin:22px 0;',
+  hr: `border:none;border-top:1px solid #eceef1;margin:${px(44)} 0;`,
 };
 
 // 图片：宽度不超过容器、等比缩放、居中显示
-const IMG_STYLE =
-  'display:block;max-width:100%;height:auto;margin:16px auto;border-radius:8px;';
+const IMG_STYLE = `display:block;max-width:100%;height:auto;margin:${px(32)} auto;border-radius:${px(16)};`;
 
 const BLOCK_TAG = /<(p|div|h[1-6]|ul|ol|table|blockquote|hr|img)\b/i;
 
@@ -116,7 +131,11 @@ function enhanceRichText(html) {
     content = applyTagStyle(content, tag, STYLES[tag]);
   });
 
-  // 主题色分隔线
+  // 图片全部无效时会留下空段落，这里再判一次空
+  if (isRichTextEmpty(content)) {
+    return '';
+  }
+
   return content;
 }
 

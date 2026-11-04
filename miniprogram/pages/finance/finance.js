@@ -113,7 +113,7 @@ Page({
 
     let deltaText = '与上月持平';
     if (delta !== 0) {
-      deltaText = `${delta > 0 ? '较上月增加' : '较上月减少'} ${formatAmount(Math.abs(delta))} 元`;
+      deltaText = `${delta > 0 ? '较上月增加' : '较上月减少'} ${formatAmount(Math.abs(delta))}`;
     }
 
     return {
@@ -244,7 +244,7 @@ Page({
         const totals = {
           incomeText: formatAmount(rawTotals.income),
           expenseText: formatAmount(rawTotals.expense),
-          balanceText: formatAmount(last ? last.currentNum : 0),
+          balanceText: formatAmount(last ? last.currentNum : 0), // 最近一个月账面结余
         };
 
         this.setData({ months, totals, chart, yearLoaded: true });
