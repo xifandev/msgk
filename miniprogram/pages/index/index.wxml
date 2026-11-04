@@ -1,12 +1,18 @@
 <view class="bgc"></view>
 
-<view class="title-box">
-  <view class="top-title">码上公开</view>
-  <view class="top-title2">场所信息透明化，权益保障零距离！</view>
-</view>
-<view class="top-img-wrap">
-  <image class="top-img" src="/assets/images/xing5.png" mode="widthFix" />
-  <image class="top-img-gezi" src="/assets/images/gezi.png" mode="widthFix" />
+<!-- 全屏沉浸式：仅覆盖状态栏的渐隐蒙层，保证状态栏文字在滚动后依然可读 -->
+<view class="status-veil" style="height:{{ statusBarHeight }}px"></view>
+
+<!-- 顶部安全区：状态栏 + 胶囊按钮行，按机型动态预留 -->
+<view class="page-head" style="padding-top:{{ safeTop }}px">
+  <view class="top-img-wrap" style="top:{{ safeTop }}px">
+    <image class="top-img" src="/assets/images/xing5.png" mode="widthFix" />
+    <image class="top-img-gezi" src="/assets/images/gezi.png" mode="widthFix" />
+  </view>
+  <view class="title-box">
+    <view class="top-title">码上公开</view>
+    <view class="top-title2">场所信息透明化，权益保障零距离！</view>
+  </view>
 </view>
 
 <ms-cell-group inset>

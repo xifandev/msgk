@@ -1,6 +1,7 @@
 // pages/index/index.js
 const { get } = require('../../utils/request');
 const { formatDate } = require('../../utils/format');
+const { getSafeArea } = require('../../utils/system');
 
 const KIND_TEXT = {
   safety: '安全',
@@ -10,6 +11,10 @@ const KIND_TEXT = {
 
 Page({
   data: {
+    // 自定义导航栏安全区（状态栏 + 胶囊行），由 utils/system 按机型计算
+    statusBarHeight: 20,
+    navBarHeight: 44,
+    safeTop: 64,
     // 当前场所
     cid: '',
     venueName: '',
@@ -215,6 +220,7 @@ Page({
   },
 
   onLoad(options) {
+    this.updateSafeArea();
     let cid = (options && options.cid) || wx.getStorageSync('cid') || '';
     if (cid) {
       wx.setStorageSync('cid', cid);
@@ -226,7 +232,25 @@ Page({
     setTimeout(() => this.setData({ showCard: true }), 120);
   },
 
+  // 计算并同步顶部安全区，onReady 再校正一次（个别机型 onLoad 取不到胶囊信息）
+  updateSafeArea() {
+    const area = getSafeArea();
+    if (
+      area.statusBarHeight === this.data.statusBarHeight &&
+      area.navBarHeight === this.data.navBarHeight &&
+      area.safeTop === this.data.safeTop
+    ) {
+      return;
+    }
+    this.setData({
+      statusBarHeight: area.statusBarHeight,
+      navBarHeight: area.navBarHeight,
+      safeTop: area.safeTop,
+    });
+  },
+
   onReady() {
+    this.updateSafeArea();
     const accountInfo = wx.getAccountInfoSync();
     this.setData({ version: accountInfo.miniProgram.version || '开发版' });
   },

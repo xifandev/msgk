@@ -1,4 +1,7 @@
 {
+  "navigationStyle": "custom",
+  "backgroundColorTop": "#d31027",
+  "backgroundColor": "#f1f2f4",
   "usingComponents": {
     "ms-cell-group": "/components/ms-cell-group/index",
     "ms-cell": "/components/ms-cell/index",
