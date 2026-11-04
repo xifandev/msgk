@@ -1,3 +1,14 @@
+:host {
+  display: block;
+}
+
+/* 整体：纵向 flex，页头固定高度 + 白色内容区撑满剩余空间（滚动在内容区内部进行） */
+.pm {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
 .bgc {
   width: 100vw;
   height: 100vh;
@@ -13,13 +24,12 @@
   background: linear-gradient(180deg, #d31027 0%, #ea384d 22%, #f1f2f4 70%);
 }
 
-/* 绿色主题：明亮嫩绿渐变搭配深绿文字，纵向淡出到页面底色；
-   最上层叠一条导航栏色的纵向过渡，消除与原生导航栏之间的色阶断层 */
+/* 绿色主题：阳光绿渐变（左上嫩绿 → 右下翠绿），纵向淡出到页面底色；
+   右上叠一圈柔光，营造「阳光公示」的通透感 */
 .bgc--green {
   background:
-    linear-gradient(180deg, #35c885 0%, rgba(53, 200, 133, 0.72) 4%, rgba(53, 200, 133, 0) 11%),
-    linear-gradient(180deg, rgba(244, 250, 246, 0) 0%, rgba(244, 250, 246, 0) 17%, #f4faf6 40%),
-    linear-gradient(112deg, #35c885 0%, #62d89b 45%, #9ae8b9 100%);
+    linear-gradient(180deg, rgba(244, 250, 246, 0) 0%, rgba(244, 250, 246, 0) 24%, #f4faf6 48%),
+    linear-gradient(135deg, #81fbb8 0%, #28c76f 100%);
 }
 
 .bgc--green::after {
@@ -30,13 +40,50 @@
   width: 520rpx;
   height: 520rpx;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, rgba(224, 255, 238, 0.5) 0%, rgba(224, 255, 238, 0) 66%);
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 66%);
 }
 
 .top-box {
   width: 100vw;
+  flex: none;
   position: relative;
   overflow: hidden;
+}
+
+/* ---------- 全屏模式的返回按钮行：与右上角胶囊按钮同一行 ---------- */
+.fs-nav {
+  display: flex;
+  align-items: center;
+  height: 88rpx;
+  margin: 0 40rpx 20rpx;
+}
+
+.fs-back {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(180deg);
+}
+
+/* 红色主题：白色半透明底 + 白色箭头 */
+.fs-back--red {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.fs-back--red.fs-back--hover {
+  background: rgba(255, 255, 255, 0.34);
+}
+
+/* 绿色主题：浅色底上用深绿半透明底 + 深绿箭头 */
+.fs-back--green {
+  background: rgba(12, 90, 56, 0.12);
+}
+
+.fs-back--green.fs-back--hover {
+  background: rgba(12, 90, 56, 0.22);
 }
 
 .top-title {
@@ -77,15 +124,25 @@
   color: #236647;
 }
 
+/* ---------- 白色内容区 ---------- */
 .cellgroup {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   margin: 0 32rpx;
+  /* 先给固定兜底值，再尝试安全区（个别环境不认 env() 时保留兜底） */
+  margin-bottom: 24rpx;
+  margin-bottom: calc(env(safe-area-inset-bottom) + 24rpx);
   border-radius: 16rpx;
   background-color: #fff;
   overflow: hidden;
 }
 
 .cellgroup__scroll {
-  height: 85vh;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
   background-color: #fff;
 }
 

@@ -1,24 +1,41 @@
 <view class="bgc bgc--{{ theme }}"></view>
-<view class="top-box top-box--{{ theme }}">
-  <view class="top-title">{{ title }}</view>
-  <view class="top-title2">
-    <view class="top-title2-item" wx:if="{{ title1 }}">
-      <ms-icon name="passed" size="26rpx" color="{{ theme === 'green' ? '#236647' : 'rgba(255,255,255,0.85)' }}" />
-      <text>{{ title1 }}</text>
+
+<view class="pm">
+  <view
+    class="top-box top-box--{{ theme }}"
+    style="{{ customNav ? 'padding-top:' + (statusBarHeight + 10) + 'px' : '' }}"
+  >
+    <view wx:if="{{ customNav }}" class="fs-nav">
+      <view
+        class="fs-back fs-back--{{ theme }}"
+        hover-class="fs-back--hover"
+        bind:tap="goBack"
+        aria-role="button"
+        aria-label="返回"
+      >
+        <ms-icon name="arrow" size="34rpx" color="{{ theme === 'green' ? '#0c5a38' : '#ffffff' }}" />
+      </view>
     </view>
-    <view class="top-title2-item" wx:if="{{ title2 }}">
-      <ms-icon name="passed" size="26rpx" color="{{ theme === 'green' ? '#236647' : 'rgba(255,255,255,0.85)' }}" />
-      <text>{{ title2 }}</text>
-    </view>
-    <view class="top-title2-item" wx:if="{{ title3 }}">
-      <ms-icon name="passed" size="26rpx" color="{{ theme === 'green' ? '#236647' : 'rgba(255,255,255,0.85)' }}" />
-      <text>{{ title3 }}</text>
+    <view class="top-title">{{ title }}</view>
+    <view class="top-title2">
+      <view class="top-title2-item" wx:if="{{ title1 }}">
+        <ms-icon name="passed" size="26rpx" color="{{ theme === 'green' ? '#236647' : 'rgba(255,255,255,0.85)' }}" />
+        <text>{{ title1 }}</text>
+      </view>
+      <view class="top-title2-item" wx:if="{{ title2 }}">
+        <ms-icon name="passed" size="26rpx" color="{{ theme === 'green' ? '#236647' : 'rgba(255,255,255,0.85)' }}" />
+        <text>{{ title2 }}</text>
+      </view>
+      <view class="top-title2-item" wx:if="{{ title3 }}">
+        <ms-icon name="passed" size="26rpx" color="{{ theme === 'green' ? '#236647' : 'rgba(255,255,255,0.85)' }}" />
+        <text>{{ title3 }}</text>
+      </view>
     </view>
   </view>
-</view>
-<view class="cellgroup">
-  <scroll-view scroll-y class="cellgroup__scroll" bindscrolltolower="onScrollToLower" lower-threshold="80">
-    <slot></slot>
-    <view class="bottom-gap"></view>
-  </scroll-view>
+  <view class="cellgroup">
+    <scroll-view scroll-y class="cellgroup__scroll" bindscrolltolower="onScrollToLower" lower-threshold="80">
+      <slot></slot>
+      <view class="bottom-gap"></view>
+    </scroll-view>
+  </view>
 </view>

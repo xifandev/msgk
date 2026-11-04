@@ -1,4 +1,4 @@
-<page-main theme="green" title="财务公开" title1="收支公开透明化" title2="阳光监督新举措">
+<page-main theme="green" custom-nav title="财务公开" title1="收支公开透明化" title2="阳光监督新举措">
   <ms-tabs tabs="{{ ['月度收支', '年度收支'] }}" active="{{ active }}" animated swipeable color="#0a7d59" bind:change="onTabChange">
     <view class="pane">
       <!-- ================= 月度收支 ================= -->
