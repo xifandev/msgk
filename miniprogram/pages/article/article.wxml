@@ -13,11 +13,6 @@
         <ms-icon name="calendar" size="24rpx" color="#9a9ca1" />
         <text>{{ date }}</text>
       </view>
-      <view class="article-meta__split" wx:if="{{ article.authorName }}"></view>
-      <view class="article-meta__item" wx:if="{{ article.authorName }}">
-        <ms-icon name="manager" size="24rpx" color="#9a9ca1" />
-        <text>{{ article.authorName }}</text>
-      </view>
     </view>
   </view>
 

@@ -85,13 +85,6 @@ page {
   margin-left: 8rpx;
 }
 
-.article-meta__split {
-  width: 1rpx;
-  height: 20rpx;
-  margin: 0 20rpx;
-  background: #e6e8eb;
-}
-
 /* ---------- 封面 ---------- */
 .article-cover {
   margin-top: 24rpx;
