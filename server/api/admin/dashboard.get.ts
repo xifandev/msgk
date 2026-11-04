@@ -74,7 +74,7 @@ export default defineEventHandler(async (event) => {
   const admin = await requirePermission(event, 'dashboard:view')
   const scope = venueScope(admin, 'id')
   const venues = await query<VenueRow>(
-    `SELECT id, name, township FROM venues WHERE ${scope.sql} ORDER BY township ASC, sort_order ASC, id ASC`,
+    `SELECT id, name, township FROM venues WHERE ${scope.sql} ORDER BY ${townshipOrderSql('township')} ASC, sort_order ASC, id ASC`,
     scope.params
   )
   const months = monthList(new Date())

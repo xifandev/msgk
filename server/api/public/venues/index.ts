@@ -9,7 +9,8 @@ interface VenueRow {
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') throw createError({ statusCode: 405, message: '仅支持 GET 请求' })
   const rows = await query<VenueRow>(
-    'SELECT id, name, township, sort_order, image_url FROM venues ORDER BY township ASC, sort_order ASC, id ASC'
+    `SELECT id, name, township, sort_order, image_url FROM venues
+     ORDER BY ${townshipOrderSql('township')} ASC, sort_order ASC, id ASC`
   )
   const list = rows.map(row => ({
     id: row.id,

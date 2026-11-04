@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
      LEFT JOIN venue_profiles p ON p.venue_id = v.id
      LEFT JOIN personnel m ON m.venue_id = v.id
      WHERE ${where}
-     ORDER BY v.township ASC, v.sort_order ASC, v.id ASC
+     ORDER BY ${townshipOrderSql('v.township')} ASC, v.sort_order ASC, v.id ASC
      LIMIT ? OFFSET ?`,
     [...params, pageSize, offset]
   )

@@ -8,7 +8,9 @@ export default defineEventHandler(async (event) => {
      ${search ? 'WHERE a.phone LIKE ? OR a.name LIKE ?' : ''} ORDER BY a.id`,
     search ? [`%${search}%`, `%${search}%`] : []
   )
-  const venues = await query('SELECT id, name, township FROM venues ORDER BY sort_order DESC, id')
+  const venues = await query(
+    `SELECT id, name, township FROM venues ORDER BY ${townshipOrderSql('township')} ASC, sort_order ASC, id ASC`
+  )
   const roles = await query('SELECT id, code, name FROM roles ORDER BY id')
   const list = admins.map((item) => ({ ...item, venue_ids: parseJson<number[]>(item.venue_ids, []) }))
   return { list, venues, roles }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
 import { CircleCloseFilled, Clock, OfficeBuilding, Refresh, WarningFilled } from '@element-plus/icons-vue'
+import { townshipRank } from '~~/shared/townships'
 
 type PeriodState = 'published' | 'approved' | 'pending' | 'rejected' | 'draft' | 'missing'
 
@@ -166,7 +167,7 @@ const backlog = computed(() => {
   const rank: Record<PeriodState, number> = { missing: 0, rejected: 1, pending: 2, draft: 3, approved: 4, published: 5 }
   return rows.value
     .filter((row) => row.state !== 'published')
-    .sort((a, b) => rank[a.state] - rank[b.state] || a.township.localeCompare(b.township, 'zh-Hans-CN') || a.name.localeCompare(b.name, 'zh-Hans-CN'))
+    .sort((a, b) => rank[a.state] - rank[b.state] || townshipRank(a.township) - townshipRank(b.township) || a.name.localeCompare(b.name, 'zh-Hans-CN'))
 })
 
 /** 待办每组最多展示 8 条，剩余引导到明细表，避免单一分组把其它分组挤出可视区 */
