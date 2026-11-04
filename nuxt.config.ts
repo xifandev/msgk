@@ -10,6 +10,10 @@ export default defineNuxtConfig({
     errorHandler: '~~/server/error-handler',
     externals: {
       traceInclude: [require.resolve('@alicloud/dysmsapi20170525'), require.resolve('@alicloud/openapi-client')]
+    },
+    experimental: { tasks: true },
+    scheduledTasks: {
+      '5 0 1 * *': ['bills:auto-create']
     }
   },
   css: ['~/assets/main.css'],
