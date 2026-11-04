@@ -1,0 +1,15 @@
+export default defineEventHandler(async (event) => {
+  const admin = await requirePermission(event, 'system:admins')
+  if (admin.roleCode !== 'super') throw createError({ statusCode: 403, message: '仅超级管理员可以代登录' })
+  const id = Number(getRouterParam(event, 'id'))
+  if (!Number.isSafeInteger(id) || id <= 0) throw createError({ statusCode: 400, message: '参数不正确' })
+  if (id === admin.id) throw createError({ statusCode: 400, message: '不能代登录自己的账号' })
+  const payload = await readAuthPayload(event)
+  if (payload?.imp) throw createError({ statusCode: 400, message: '当前处于代登录状态，请先切回自己的账号' })
+  const target = await loadAdmin(id)
+  if (!target) throw createError({ statusCode: 404, message: '目标账号不存在或已停用' })
+  if (target.roleCode === 'super') throw createError({ statusCode: 400, message: '不能代登录超级管理员账号' })
+  setAuthCookie(event, await signAuthToken(target.id, admin.id))
+  await logAction(admin, '管理员', target.phone, `代登录 ${target.name}`, event)
+  return { admin: target, impersonator: { id: admin.id, name: admin.name }, redirect: '/dashboard' }
+})

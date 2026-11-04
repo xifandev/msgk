@@ -40,12 +40,28 @@ function secretKey() {
   return new TextEncoder().encode(secret)
 }
 
-export async function signAuthToken(adminId: number) {
-  return new SignJWT({ aid: adminId })
+export async function signAuthToken(adminId: number, impersonatorId?: number) {
+  const payload: Record<string, unknown> = { aid: adminId }
+  if (impersonatorId && impersonatorId !== adminId) payload.imp = impersonatorId
+  return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(`${COOKIE_MAX_AGE}s`)
     .sign(secretKey())
+}
+
+export async function readAuthPayload(event: H3Event): Promise<{ aid: number, imp?: number } | null> {
+  const token = getCookie(event, AUTH_COOKIE)
+  if (!token) return null
+  try {
+    const { payload } = await jwtVerify(token, secretKey())
+    const aid = Number(payload.aid)
+    if (!Number.isSafeInteger(aid) || aid <= 0) return null
+    const imp = payload.imp ? Number(payload.imp) : undefined
+    return { aid, imp: imp !== undefined && Number.isSafeInteger(imp) && imp > 0 ? imp : undefined }
+  } catch {
+    return null
+  }
 }
 
 export function setAuthCookie(event: H3Event, token: string) {

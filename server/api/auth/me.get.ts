@@ -5,5 +5,11 @@ export default defineEventHandler(async (event) => {
     `SELECT id, name, township FROM venues WHERE ${scope.sql} ORDER BY sort_order DESC, id`,
     scope.params
   )
-  return { admin, venues }
+  const payload = await readAuthPayload(event)
+  let impersonator: { id: number, name: string } | null = null
+  if (payload?.imp) {
+    const origin = await loadAdmin(payload.imp)
+    if (origin) impersonator = { id: origin.id, name: origin.name }
+  }
+  return { admin, venues, impersonator }
 })
