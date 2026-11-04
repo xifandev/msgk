@@ -53,19 +53,23 @@
     wx:if="{{ !loading && !loadError && !keyword && towns.length > 0 }}"
     style="top:{{ statusBarHeight }}px"
   >
-    <scroll-view class="chips__scroll" scroll-x scroll-into-view="{{ chipIntoView }}" scroll-with-animation>
-      <view class="chips__inner">
-        <view
-          class="chip-tab {{ activeChip === index ? 'is-active' : '' }}"
-          wx:for="{{ towns }}"
-          wx:key="index"
-          id="chip-{{ index }}"
-          data-index="{{ index }}"
-          bind:tap="onChipTap"
-          aria-role="button"
-          aria-label="跳转到 {{ item.label }}"
-        >{{ item.label }}</view>
-      </view>
+    <scroll-view
+      class="chips__scroll"
+      scroll-x
+      enable-flex
+      scroll-into-view="{{ chipIntoView }}"
+      scroll-with-animation
+    >
+      <view
+        class="chip-tab {{ activeChip === index ? 'is-active' : '' }}"
+        wx:for="{{ towns }}"
+        wx:key="index"
+        id="chip-{{ index }}"
+        data-index="{{ index }}"
+        bind:tap="onChipTap"
+        aria-role="button"
+        aria-label="跳转到 {{ item.label }}"
+      >{{ item.label }}</view>
     </scroll-view>
   </view>
 
@@ -144,17 +148,13 @@
           bind:tap="onPick"
           hover-class="venue--hover"
           aria-role="button"
-          aria-label="选择场所 {{ v.name }}"
+          aria-label="选择场所 {{ v.label }}"
         >
           <view class="venue__avatar">
             <ms-icon name="building" size="36rpx" color="#d31027" />
           </view>
           <view class="venue__body">
-            <view class="venue__name">{{ v.name }}</view>
-            <view class="venue__town">
-              <view class="venue__town-icon"><ms-icon name="location" size="24rpx" color="#b0b3b8" /></view>
-              <text>{{ v.township }}</text>
-            </view>
+            <view class="venue__name">{{ v.label }}</view>
           </view>
         </view>
       </view>

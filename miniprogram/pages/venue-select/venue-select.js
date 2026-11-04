@@ -43,16 +43,22 @@ Page({
     get('/api/public/venues', {}, { loading: false })
       .then((res) => {
         const sections = (res.tree || []).map((group, index) => {
+          const township = group.text || '';
           const children = (group.children || [])
             .slice()
             .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
-            .map((v) => ({
-              id: v.id,
+            .map((v) => {
               // 树节点用 text 承载名称，兼容 name 字段
-              name: v.name || v.text || '',
-              township: v.township || group.text || '',
-            }));
-          return { id: 'sec-' + index, text: group.text, count: children.length, children };
+              const name = v.name || v.text || '';
+              return {
+                id: v.id,
+                name,
+                // 分组头已标明乡镇，条目内去掉重复的乡镇前缀
+                label: stripTownship(name, township),
+                township: v.township || township,
+              };
+            });
+          return { id: 'sec-' + index, text: township, count: children.length, children };
         });
 
         this.venueList = [];
@@ -115,7 +121,7 @@ Page({
     const results = (this.venueList || [])
       .filter((v) => v.name.indexOf(keyword) > -1 || v.township.indexOf(keyword) > -1)
       .slice(0, SEARCH_LIMIT)
-      .map((v) => ({ id: v.id, name: v.name, township: v.township, segs: splitHighlight(v.name, keyword) }));
+      .map((v) => ({ id: v.id, name: v.name, township: v.township, segs: splitHighlight(v.label, keyword) }));
     this.setData({ keyword, results });
   },
 
@@ -166,6 +172,25 @@ Page({
 // 筛选标签：去掉“镇 / 乡”，保留“街道”
 function shortLabel(text) {
   return String(text || '').replace(/[镇乡]$/, '');
+}
+
+// 去掉场所名前重复的乡镇前缀（仅用于分组列表展示，未改动原始数据）
+// 例：沂城街道茶庵社区基督教堂 → 茶庵社区基督教堂；道托镇小店子基督教 → 小店子基督教
+function stripTownship(name, township) {
+  const full = String(township || '').trim();
+  if (!full || !name) {
+    return name;
+  }
+  if (name.indexOf(full) === 0) {
+    return name.slice(full.length) || name;
+  }
+  // 兼容简称：乡镇名去掉“镇/乡/街道”后缀后再匹配
+  const base = full.replace(/(镇|乡|街道)$/, '');
+  if (base && name.indexOf(base) === 0) {
+    const rest = name.slice(base.length).replace(/^(镇|乡|街道)/, '');
+    return rest || name;
+  }
+  return name;
 }
 
 // 名称按关键词拆成高亮片段
