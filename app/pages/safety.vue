@@ -3,7 +3,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { REVIEW_LABELS, REVIEW_TAG_TYPES, reviewActionMessage } from '~~/shared/review'
 const route = useRoute()
-const { hasPerm } = useAdmin()
+const { admin, venues, hasPerm } = useAdmin()
 const loading = ref(false)
 const list = ref<any[]>([])
 const total = ref(0)
@@ -42,9 +42,14 @@ async function openDetail(row: any) {
     detailVisible.value = true
   } catch (error) { ElMessage.error(errorMessage(error)) }
 }
+function defaultVenueIds() {
+  const current = admin.value
+  if (!current) return []
+  return current.allVenues ? venues.value.map(venue => venue.id) : [...current.venueIds]
+}
 async function editArticle(row?: any) {
   if (!row) {
-    Object.assign(form, { id: 0, title: '', venueIds: [], coverUrl: '', authorName: '', authorRole: '', content: '' })
+    Object.assign(form, { id: 0, title: '', venueIds: defaultVenueIds(), coverUrl: '', authorName: '', authorRole: '', content: '' })
     editorVisible.value = true
     return
   }
