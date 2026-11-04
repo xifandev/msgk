@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { QuestionFilled } from '@element-plus/icons-vue'
-
-useHead({ title: '新闻与法规 | 码上公开' })
 const { admin, hasPerm } = useAdmin()
 const loading = ref(false)
 const list = ref<any[]>([])

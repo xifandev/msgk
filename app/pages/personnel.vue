@@ -11,8 +11,6 @@ interface Member {
   position: string
   phone: string
 }
-
-useHead({ title: '人员公开 | 码上公开' })
 const { venues, hasPerm } = useAdmin()
 const venueId = ref<number | null>(null)
 const loading = ref(false)

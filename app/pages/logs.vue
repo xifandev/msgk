@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
-useHead({ title: '操作日志 | 码上公开' })
 const list = ref<any[]>([])
 const total = ref(0)
 const queryInput = reactive({ page: 1, pageSize: 20, search: '' })

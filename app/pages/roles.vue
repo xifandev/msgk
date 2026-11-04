@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { PERMISSIONS, type PermissionDefinition } from '~~/shared/permissions'
-
-useHead({ title: '角色权限 | 码上公开' })
 const list = ref<any[]>([])
 const visible = ref(false)
 const form = reactive({ id: 0, code: '', name: '', permissions: [] as string[] })

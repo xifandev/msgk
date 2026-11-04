@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { REVIEW_LABELS, REVIEW_TAG_TYPES, reviewActionMessage } from '~~/shared/review'
-
-useHead({ title: '场所安全 | 码上公开' })
 const route = useRoute()
 const { hasPerm } = useAdmin()
 const loading = ref(false)

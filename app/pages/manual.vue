@@ -1,7 +1,3 @@
-<script setup lang="ts">
-useHead({ title: '使用手册 | 码上公开' })
-</script>
-
 <template>
   <div class="page">
     <article class="doc" aria-labelledby="manual-title">

@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { reviewActionMessage } from '~~/shared/review'
-
-useHead({ title: '场所介绍 | 码上公开' })
 const { admin, venues, hasPerm } = useAdmin()
 const venueId = ref<number | null>(null)
 const loading = ref(false)

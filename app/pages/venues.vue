@@ -2,8 +2,6 @@
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { REVIEW_LABELS, REVIEW_TAG_TYPES } from '~~/shared/review'
 import { TOWNSHIPS } from '~~/shared/townships'
-
-useHead({ title: '场所配置 | 码上公开' })
 const { admin, hasPerm } = useAdmin()
 const loading = ref(false)
 const saving = ref(false)

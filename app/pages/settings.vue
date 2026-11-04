@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
-useHead({ title: '个人设置 | 码上公开' })
 const { admin, venues, fetchMe } = useAdmin()
 const noticeEnabled = ref(true)
 watch(() => admin.value?.noticeEnabled, (value) => { noticeEnabled.value = value ?? true }, { immediate: true })

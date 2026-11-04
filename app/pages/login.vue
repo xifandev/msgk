@@ -3,7 +3,6 @@ import { ElMessage } from 'element-plus'
 import { ChatDotRound, Iphone } from '@element-plus/icons-vue'
 
 definePageMeta({ layout: 'auth' })
-useHead({ title: '管理员登录 | 沂水宗教码上公开' })
 const { admin } = useAdmin()
 const form = reactive({ phone: '', code: '' })
 const sending = ref(false)

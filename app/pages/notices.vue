@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
-
-useHead({ title: '公告管理 | 码上公开' })
 const { admin, hasPerm } = useAdmin()
 const loading = ref(false)
 const list = ref<any[]>([])

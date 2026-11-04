@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
-
-useHead({ title: '我的通知 | 码上公开' })
 const loading = ref(false)
 const list = ref<any[]>([])
 const total = ref(0)

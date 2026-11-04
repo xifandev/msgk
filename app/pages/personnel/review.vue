@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
 import { REVIEW_LABELS, REVIEW_TAG_TYPES, reviewActionMessage } from '~~/shared/review'
-
-useHead({ title: '人员公开审核 | 码上公开' })
 const route = useRoute()
 const { hasPerm } = useAdmin()
 const list = ref<any[]>([])
