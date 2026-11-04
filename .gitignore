@@ -12,3 +12,4 @@ dist/
 miniprogram/node_modules/
 miniprogram/miniprogram_npm/
 database/dumps/
+.workbuddy/
