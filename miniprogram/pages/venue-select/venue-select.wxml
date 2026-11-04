@@ -20,7 +20,7 @@
       </view>
     </view>
 
-    <view class="hero__title">选择场所</view>
+    <view class="hero__title">请选择场所</view>
     <view class="hero__sub" wx:if="{{ !loading }}">共 {{ total }} 个场所 · {{ townshipCount }} 个乡镇</view>
     <view class="hero__sub" wx:else>正在获取场所数据</view>
   </view>
@@ -103,11 +103,7 @@
     </view>
 
     <view wx:for="{{ sections }}" wx:key="id" wx:for-item="group" class="section">
-      <view
-        class="section__head"
-        id="{{ group.id }}"
-        style="top:{{ statusBarHeight }}px"
-      >
+      <view class="section__head" id="{{ group.id }}">
         <view class="section__dot"></view>
         <text class="section__name">{{ group.text }}</text>
         <text class="section__count">{{ group.count }} 个场所</text>
