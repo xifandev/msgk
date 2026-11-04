@@ -10,7 +10,6 @@
     <view class="article-title">{{ article.title }}</view>
     <view class="article-meta">
       <view class="article-meta__item">
-        <ms-icon name="calendar" size="24rpx" color="#9a9ca1" />
         <text>{{ date }}</text>
       </view>
     </view>

@@ -81,10 +81,6 @@ page {
   line-height: 1.5;
 }
 
-.article-meta__item text {
-  margin-left: 8rpx;
-}
-
 /* ---------- 封面 ---------- */
 .article-cover {
   margin-top: 24rpx;
