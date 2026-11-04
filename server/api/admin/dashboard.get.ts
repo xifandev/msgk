@@ -17,6 +17,18 @@ interface PeriodBucket {
   coverage: number
 }
 
+interface MatrixCell {
+  month: string
+  total: number
+  submitted: number
+  published: number
+  approved: number
+  pending: number
+  rejected: number
+  draft: number
+  missing: number
+}
+
 function monthList(now: Date): string[] {
   const months: string[] = []
   for (let offset = MONTH_COUNT - 1; offset >= 0; offset--) {
@@ -44,6 +56,20 @@ function countInto(bucket: PeriodBucket, state: PeriodState) {
   bucket.coverage = bucket.total ? bucket.published / bucket.total : 0
 }
 
+function toCell(bucket: PeriodBucket): MatrixCell {
+  return {
+    month: bucket.month,
+    total: bucket.total,
+    submitted: bucket.total - bucket.missing,
+    published: bucket.published,
+    approved: bucket.approved,
+    pending: bucket.pending,
+    rejected: bucket.rejected,
+    draft: bucket.draft,
+    missing: bucket.missing
+  }
+}
+
 export default defineEventHandler(async (event) => {
   const admin = await requirePermission(event, 'dashboard:view')
   const scope = venueScope(admin, 'id')
@@ -65,6 +91,13 @@ export default defineEventHandler(async (event) => {
   const billMap = new Map<string, BillRow>()
   for (const row of bills) billMap.set(`${row.venue_id}|${row.bill_month}`, row)
 
+  /** 一组场所在某个月的聚合，供热力图单元格使用 */
+  function cellOf(group: VenueRow[], month: string): MatrixCell {
+    const bucket = emptyBucket(month, group.length)
+    for (const venue of group) countInto(bucket, stateOf(billMap.get(`${venue.id}|${month}`)))
+    return toCell(bucket)
+  }
+
   const monthly: PeriodBucket[] = months.map((month) => {
     const bucket = emptyBucket(month, venues.length)
     for (const venue of venues) countInto(bucket, stateOf(billMap.get(`${venue.id}|${month}`)))
@@ -74,32 +107,37 @@ export default defineEventHandler(async (event) => {
   const requested = String(getQuery(event).month ?? '')
   const fallback = months[months.length - 2] ?? lastMonth
   const month = months.includes(requested) ? requested : fallback
+  const monthIndex = months.indexOf(month)
 
-  const townshipMap = new Map<string, { township: string, total: number, venues: VenueRow[] }>()
+  const townshipGroups = new Map<string, VenueRow[]>()
   for (const venue of venues) {
-    const entry = townshipMap.get(venue.township) ?? { township: venue.township, total: 0, venues: [] }
-    entry.total += 1
-    entry.venues.push(venue)
-    townshipMap.set(venue.township, entry)
+    const list = townshipGroups.get(venue.township) ?? []
+    list.push(venue)
+    townshipGroups.set(venue.township, list)
   }
 
-  const townships = [...townshipMap.values()].map((entry) => {
-    const bucket = emptyBucket(month, entry.total)
-    for (const venue of entry.venues) countInto(bucket, stateOf(billMap.get(`${venue.id}|${month}`)))
-    const history = months.map((point) => {
-      const cell = emptyBucket(point, entry.total)
-      for (const venue of entry.venues) countInto(cell, stateOf(billMap.get(`${venue.id}|${point}`)))
-      return {
-        month: point,
-        published: cell.published,
-        pending: cell.pending,
-        rejected: cell.rejected,
-        missing: cell.missing,
-        coverage: cell.coverage
-      }
-    })
-    return { ...bucket, township: entry.township, history }
-  }).sort((a, b) => a.coverage - b.coverage || b.total - a.total || a.township.localeCompare(b.township, 'zh-Hans-CN'))
+  /** 县级看镇级汇总，镇级（或只覆盖一个镇级的账号）看具体场所 */
+  const level: 'township' | 'venue' = townshipGroups.size > 1 ? 'township' : 'venue'
+  const matrixRows = (level === 'township'
+    ? [...townshipGroups.entries()].map(([township, list]) => ({
+        key: township,
+        label: township,
+        hint: list.length,
+        history: months.map((point) => cellOf(list, point))
+      }))
+    : venues.map((venue) => ({
+        key: String(venue.id),
+        label: venue.name,
+        hint: 0,
+        history: months.map((point) => cellOf([venue], point))
+      }))
+  ).sort((a, b) => {
+    const left = a.history[monthIndex]
+    const right = b.history[monthIndex]
+    return (right?.missing ?? 0) - (left?.missing ?? 0)
+      || b.hint - a.hint
+      || a.label.localeCompare(b.label, 'zh-Hans-CN')
+  })
 
   const rows = venues.map((venue) => {
     const bill = billMap.get(`${venue.id}|${month}`)
@@ -165,11 +203,11 @@ export default defineEventHandler(async (event) => {
     month,
     roleCode: admin.roleCode,
     venueTotal: venues.length,
-    townshipTotal: townshipMap.size,
+    townshipTotal: townshipGroups.size,
     period: bucket,
     previous: previous && previous.month !== month ? previous : null,
     monthly,
-    townships,
+    matrix: { level, rows: matrixRows },
     rows,
     selfHistory,
     unread: Number(unread?.count ?? 0),

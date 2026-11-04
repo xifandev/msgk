@@ -16,9 +16,23 @@ interface Bucket {
   coverage: number
 }
 
-interface TownshipRow extends Bucket {
-  township: string
-  history: { month: string, published: number, pending: number, rejected: number, missing: number, coverage: number }[]
+interface MatrixCell {
+  month: string
+  total: number
+  submitted: number
+  published: number
+  approved: number
+  pending: number
+  rejected: number
+  draft: number
+  missing: number
+}
+
+interface MatrixRow {
+  key: string
+  label: string
+  hint: number
+  history: MatrixCell[]
 }
 
 interface VenueRow {
@@ -41,7 +55,7 @@ interface Payload {
   period: Bucket
   previous: Bucket | null
   monthly: Bucket[]
-  townships: TownshipRow[]
+  matrix: { level: 'township' | 'venue', rows: MatrixRow[] }
   rows: VenueRow[]
   selfHistory: { month: string, state: PeriodState }[] | null
   unread: number
@@ -65,7 +79,12 @@ const period = computed(() => data.value?.period ?? EMPTY)
 const monthly = computed(() => data.value?.monthly ?? [])
 const months = computed(() => data.value?.months ?? [])
 const rows = computed(() => data.value?.rows ?? [])
-const townships = computed(() => data.value?.townships ?? [])
+const matrix = computed(() => data.value?.matrix ?? { level: 'township' as const, rows: [] as MatrixRow[] })
+const townshipMode = computed(() => matrix.value.level === 'township')
+/** 已报送 = 应报 − 未报送（含审核中、未通过、编辑中） */
+const submittedOf = (bucket: { total: number, missing: number }) => Math.max(bucket.total - bucket.missing, 0)
+const submitted = computed(() => submittedOf(period.value))
+const submitRate = computed(() => period.value.total ? submitted.value / period.value.total : 0)
 
 const STATE_TEXT: Record<PeriodState, string> = {
   published: '已公开',
@@ -103,36 +122,33 @@ function formatTime(value: string | null) {
   return text.slice(5, 16)
 }
 
-/** 覆盖率配色：0 单独用告警色，其余为品牌蓝色阶 */
-function tone(coverage: number) {
-  if (coverage <= 0) return 'tone-0'
-  if (coverage >= 1) return 'tone-5'
-  if (coverage >= 0.8) return 'tone-4'
-  if (coverage >= 0.6) return 'tone-3'
-  if (coverage >= 0.3) return 'tone-2'
-  return 'tone-1'
+/** 单元格只有两种符号：✕ 有场所未报送，✓ 全部已报送；✓ 再用颜色区分是否已公开 */
+function cellClass(point: { total: number, submitted: number, published: number }) {
+  if (point.submitted < point.total) return 'cell-miss'
+  return point.published >= point.total ? 'cell-done' : 'cell-wait'
 }
 
-function cellTip(town: { township: string, total: number }, point: { month: string, published: number, pending: number, rejected: number, missing: number }) {
-  const parts = [`已公开 ${point.published}/${town.total}`]
+function cellGlyph(point: { total: number, submitted: number }) {
+  return point.submitted < point.total ? '✕' : '✓'
+}
+
+function cellTip(label: string, point: MatrixCell) {
+  const parts = [`应报 ${point.total}`, `已报 ${point.submitted}`]
+  if (point.missing) parts.push(`未报 ${point.missing}`)
   if (point.pending) parts.push(`待审核 ${point.pending}`)
   if (point.rejected) parts.push(`未通过 ${point.rejected}`)
-  if (point.missing) parts.push(`未报送 ${point.missing}`)
-  return `${town.township} ${monthLabelOf(point.month)}：${parts.join('，')}`
-}
-
-function cellText(published: number, coverage: number) {
-  if (published === 0) return '0'
-  if (coverage >= 1) return '✓'
-  return String(Math.round(coverage * 100))
+  if (point.draft) parts.push(`编辑中 ${point.draft}`)
+  if (point.approved) parts.push(`待公开 ${point.approved}`)
+  if (point.published) parts.push(`已公开 ${point.published}`)
+  return `${label} ${monthLabelOf(point.month)}：${parts.join('，')}`
 }
 
 const deltaText = computed(() => {
   const prev = data.value?.previous
   if (!prev) return '暂无上月对比'
-  const diff = period.value.published - prev.published
-  if (diff === 0) return `与上月持平（${prev.published} 个场所）`
-  return `较上月${diff > 0 ? '增加' : '减少'} ${Math.abs(diff)} 个场所`
+  const diff = submitted.value - submittedOf(prev)
+  if (diff === 0) return `与上月持平（已报 ${submittedOf(prev)} 个）`
+  return `较上月${diff > 0 ? '多报' : '少报'} ${Math.abs(diff)} 个场所`
 })
 
 const townPending = computed(() => rows.value.filter((row) => row.rawState === 'pending_town').length)
@@ -160,11 +176,14 @@ const todoGroups = computed(() => {
     .map((group) => ({ ...group, shown: group.items.slice(0, GROUP_LIMIT), rest: Math.max(group.items.length - GROUP_LIMIT, 0) }))
 })
 
-/** 近 12 个月整体公开率走势与均值 */
+/** 近 12 个月报送率走势与均值 */
 const trend = computed(() => {
-  const points = monthly.value
-  const average = points.length ? points.reduce((sum, point) => sum + point.coverage, 0) / points.length : 0
-  const best = points.reduce<Bucket | null>((top, point) => (!top || point.coverage > top.coverage ? point : top), null)
+  const points = monthly.value.map((point) => ({
+    ...point,
+    rate: point.total ? submittedOf(point) / point.total : 0
+  }))
+  const average = points.length ? points.reduce((sum, point) => sum + point.rate, 0) / points.length : 0
+  const best = points.reduce<(typeof points)[number] | null>((top, point) => (!top || point.rate > top.rate ? point : top), null)
   return { points, average, best }
 })
 
@@ -201,7 +220,7 @@ function focusTable(state: 'all' | PeriodState) {
 
 const CIRC = 2 * Math.PI * 42
 const dash = computed(() => {
-  const ratio = Math.max(0, Math.min(1, period.value.coverage))
+  const ratio = Math.max(0, Math.min(1, submitRate.value))
   // 0% 时保留一个端点，避免进度环看起来像渲染失败
   return Math.max(ratio * CIRC, 2)
 })
@@ -278,12 +297,12 @@ onMounted(() => { void load() })
             <circle class="ring-track" cx="50" cy="50" r="42" />
             <circle class="ring-value" cx="50" cy="50" r="42" :stroke-dasharray="`${dash} ${CIRC}`" />
           </svg>
-          <span class="ring-num">{{ pct(period.coverage) }}</span>
+          <span class="ring-num">{{ pct(submitRate) }}</span>
         </div>
         <div class="hero-copy">
-          <p class="kpi-label">本期已公开</p>
-          <p class="kpi-value">{{ period.published }}<small>/ {{ period.total }} 个场所</small></p>
-          <p class="kpi-foot">{{ deltaText }}</p>
+          <p class="kpi-label">本期已报送</p>
+          <p class="kpi-value">{{ submitted }}<small>/ {{ period.total }} 个场所</small></p>
+          <p class="kpi-foot">其中已公开 {{ period.published }} 个 · {{ deltaText }}</p>
         </div>
       </article>
 
@@ -316,16 +335,15 @@ onMounted(() => { void load() })
       <section class="card heat-card" aria-labelledby="heat-title">
         <header class="card-head">
           <div class="card-title">
-            <h2 id="heat-title">{{ venueMode ? '近 12 个月报送记录' : '镇级报送热力图' }}</h2>
+            <h2 id="heat-title">{{ venueMode ? '近 12 个月报送记录' : townshipMode ? '镇级报送情况' : '场所报送情况' }}</h2>
             <p v-if="venueMode">每个月是否按时提交并完成公开</p>
-            <p v-else>每格为该镇当月已公开场所占比，点击格子切换统计月份</p>
+            <p v-else-if="townshipMode">每格表示该镇当月是否所有场所都已报送，点击格子切换统计月份</p>
+            <p v-else>每格表示该场所当月是否已报送，点击格子切换统计月份</p>
           </div>
-          <ul v-if="!venueMode" class="legend" aria-hidden="true">
-            <li><i class="tone-0" />0</li>
-            <li><i class="tone-1" />低</li>
-            <li><i class="tone-3" />中</li>
-            <li><i class="tone-4" />高</li>
-            <li><i class="tone-5" />全部</li>
+          <ul v-if="!venueMode" class="legend">
+            <li><i class="cell-miss" aria-hidden="true">✕</i>有未报送</li>
+            <li><i class="cell-wait" aria-hidden="true">✓</i>已报齐待审</li>
+            <li><i class="cell-done" aria-hidden="true">✓</i>已报齐并公开</li>
           </ul>
         </header>
 
@@ -342,27 +360,27 @@ onMounted(() => { void load() })
         </div>
 
         <div v-else class="heat-scroll">
-          <div class="heat" :style="{ '--cols': months.length }">
-            <div class="heat-head">镇级</div>
+          <div class="heat" :style="{ '--cols': months.length, '--label': townshipMode ? '112px' : '184px' }">
+            <div class="heat-head">{{ townshipMode ? '镇级' : '场所' }}</div>
             <div v-for="point in months" :key="point" class="heat-month" :class="{ on: point === month, running: point === runningMonth }">
               {{ Number(point.slice(5)) }}月
             </div>
 
-            <template v-for="town in townships" :key="town.township">
-              <div class="heat-name" :title="`${town.township} · 应报 ${town.total} 个场所`">
-                <span>{{ town.township }}</span><em>{{ town.total }}</em>
+            <template v-for="row in matrix.rows" :key="row.key">
+              <div class="heat-name" :title="townshipMode ? `${row.label} · 应报 ${row.hint} 个场所` : row.label">
+                <span>{{ row.label }}</span><em v-if="row.hint">{{ row.hint }}</em>
               </div>
               <button
-                v-for="point in town.history"
-                :key="point.month"
+                v-for="point in row.history"
+                :key="`${row.key}-${point.month}`"
                 type="button"
                 class="heat-cell"
-                :class="[tone(point.coverage), { on: point.month === month }]"
-                :title="cellTip(town, point)"
-                :aria-label="`${town.township} ${monthLabelOf(point.month)} 已公开 ${point.published} 个，应报 ${town.total} 个`"
+                :class="[cellClass(point), { on: point.month === month }]"
+                :title="cellTip(row.label, point)"
+                :aria-label="`${row.label} ${monthLabelOf(point.month)}：${cellGlyph(point) === '✕' ? '仍有场所未报送' : '已全部报送'}，应报 ${point.total} 个，已报 ${point.submitted} 个`"
                 @click="changeMonth(point.month)"
               >
-                {{ cellText(point.published, point.coverage) }}
+                {{ cellGlyph(point) }}
               </button>
             </template>
 
@@ -372,17 +390,17 @@ onMounted(() => { void load() })
               :key="`total-${point.month}`"
               type="button"
               class="heat-cell is-total"
-              :class="[tone(point.coverage), { on: point.month === month }]"
-              :title="`全辖区 ${monthLabelOf(point.month)}：已公开 ${point.published} / ${point.total} 个场所`"
+              :class="[cellClass({ total: point.total, submitted: submittedOf(point), published: point.published }), { on: point.month === month }]"
+              :title="`全辖区 ${monthLabelOf(point.month)}：应报 ${point.total}，已报 ${submittedOf(point)}，未报 ${point.missing}`"
               @click="changeMonth(point.month)"
             >
-              {{ cellText(point.published, point.coverage) }}
+              {{ point.missing ? point.missing : '✓' }}
             </button>
           </div>
         </div>
 
         <p class="card-foot">
-          <span v-if="!venueMode">单元格数值为公开率百分比（✓ 表示全部公开）。合计行的分母为全部 {{ data?.venueTotal ?? 0 }} 个场所；当月标注“进行中”，数据仍在报送。</span>
+          <span v-if="!venueMode">✕ 表示当月仍有场所未报送，✓ 表示全部场所都已报送（橙色为仍有场所待审核或待公开，绿色为已全部公开）。合计行为当月未报送的场所数量（共 {{ data?.venueTotal ?? 0 }} 个场所）；当月标注“进行中”，数据仍在报送。</span>
           <span v-else>统计范围：近 12 个月。灰色为未报送，橙色为审核中，红色为审核未通过。</span>
         </p>
       </section>
@@ -429,8 +447,8 @@ onMounted(() => { void load() })
       <section v-if="!venueMode" class="card" aria-labelledby="trend-title">
         <header class="card-head">
           <div class="card-title">
-            <h2 id="trend-title">近 12 个月公开率走势</h2>
-            <p>全辖区每月已公开场所占比</p>
+            <h2 id="trend-title">近 12 个月报送率走势</h2>
+            <p>全辖区每月已报送场所占比</p>
           </div>
           <span class="avg-pill">均值 {{ pct(trend.average) }}</span>
         </header>
@@ -440,18 +458,18 @@ onMounted(() => { void load() })
             :key="point.month"
             class="trend-col"
             :class="{ on: point.month === month }"
-            :title="`${monthLabelOf(point.month)}：已公开 ${point.published} / ${point.total} 个场所`"
+            :title="`${monthLabelOf(point.month)}：已报 ${submittedOf(point)} / ${point.total} 个场所，已公开 ${point.published} 个`"
           >
-            <span class="trend-val">{{ Math.round(point.coverage * 100) }}</span>
+            <span class="trend-val">{{ Math.round(point.rate * 100) }}</span>
             <span class="trend-track">
-              <i :class="{ zero: !point.published }" :style="{ height: `${Math.max(point.coverage * 100, point.published ? 4 : 0)}%` }" />
+              <i :class="{ zero: !submittedOf(point) }" :style="{ height: `${Math.max(point.rate * 100, submittedOf(point) ? 4 : 0)}%` }" />
             </span>
             <span class="trend-month">{{ Number(point.month.slice(5)) }}月</span>
           </div>
         </div>
         <p class="card-foot">
-          柱高为公开率，虚线为近 12 个月均值。
-          <template v-if="trend.best">最高月份：{{ monthLabelOf(trend.best.month) }}（{{ pct(trend.best.coverage) }}）。</template>
+          柱高为报送率，虚线为近 12 个月均值。
+          <template v-if="trend.best">最高月份：{{ monthLabelOf(trend.best.month) }}（{{ pct(trend.best.rate) }}）。</template>
         </p>
       </section>
 
@@ -591,16 +609,16 @@ button.kpi:hover, button.kpi:focus-visible { border-color: #b9cce1; box-shadow: 
 .card-foot { margin: 12px 0 0; padding-block-start: 10px; border-block-start: 1px solid #f2f4f7; color: #98a2b3; font-size: 11.5px; line-height: 1.7; }
 .count-pill { flex: none; min-width: 30px; padding: 2px 9px; border-radius: 999px; background: #fef3f2; color: #b42318; font-size: 12.5px; font-weight: 650; text-align: center; font-variant-numeric: tabular-nums; }
 
-.legend { display: flex; align-items: center; gap: 10px; flex: none; margin: 0; padding: 0; list-style: none; color: #98a2b3; font-size: 11px; }
-.legend li { display: flex; align-items: center; gap: 4px; }
-.legend i { width: 12px; height: 12px; border-radius: 3px; }
+.legend { display: flex; align-items: center; gap: 12px; flex: none; margin: 0; padding: 0; list-style: none; color: #667085; font-size: 11.5px; }
+.legend li { display: flex; align-items: center; gap: 5px; }
+.legend i { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 5px; font-size: 12px; font-style: normal; font-weight: 700; }
 
 .heat-scroll { min-width: 0; overflow-x: auto; padding-block-end: 2px; }
 .heat {
   display: grid;
-  grid-template-columns: 110px repeat(var(--cols, 12), minmax(44px, 1fr));
+  grid-template-columns: var(--label, 112px) repeat(var(--cols, 12), minmax(44px, 1fr));
   gap: 5px;
-  min-width: 660px;
+  min-width: calc(var(--label, 112px) + var(--cols, 12) * 48px);
   align-items: center;
 }
 .heat-head { color: #98a2b3; font-size: 11px; letter-spacing: .3px; }
@@ -613,29 +631,26 @@ button.kpi:hover, button.kpi:focus-visible { border-color: #b9cce1; box-shadow: 
 .heat-name.is-total { color: #101828; font-weight: 650; }
 
 .heat-cell {
-  height: 30px;
+  height: 32px;
   border: 0;
-  border-radius: 6px;
-  background: #eef3f9;
-  color: #2c4a68;
-  font-size: 11.5px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  border-radius: 7px;
+  background: #f4f6fa;
+  color: #98a2b3;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
   cursor: pointer;
   transition: transform .14s, box-shadow .14s, filter .14s;
 }
 .heat-cell:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgb(16 24 40 / 16%); filter: brightness(1.04); }
 .heat-cell:focus-visible { outline: 2px solid #17549c; outline-offset: 2px; }
 .heat-cell.on { box-shadow: inset 0 0 0 1.5px #0b396c; }
-.heat-cell.is-total { height: 32px; }
+.heat-cell.is-total { height: 32px; font-size: 13px; font-variant-numeric: tabular-nums; }
 .heat-cell.total, .heat-cell.is-total { font-weight: 700; }
 
-.tone-0 { background: #fdf1ef; color: #b42318; }
-.tone-1 { background: #e7eefa; color: #3a5b7e; }
-.tone-2 { background: #cbdef2; color: #2b4d6f; }
-.tone-3 { background: #9dc3e5; color: #163a5c; }
-.tone-4 { background: #4a86c8; color: #fff; }
-.tone-5 { background: #17549c; color: #fff; }
+.cell-miss { background: #fdecea; color: #c0392b; }
+.cell-wait { background: #fdf3e2; color: #b54708; }
+.cell-done { background: #e7f5ed; color: #067647; }
 
 .timeline { display: grid; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); gap: 8px; }
 .timeline-item { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid #e6eaf0; border-radius: 10px; background: #fbfcfe; }
