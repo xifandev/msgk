@@ -102,12 +102,12 @@
             hover-stay-time="80"
           >
             <view class="news-thumb">
-              <ms-icon name="newspaper" size="40rpx" color="#d31027" />
+              <ms-icon name="newspaper" size="52rpx" color="#d31027" />
             </view>
             <view class="news-content">
               <view class="news-title">{{ item.title }}</view>
               <view class="news-meta">
-                <text class="news-kind">{{ item.kindText }}</text>
+                <text class="news-kind">{{ item.category }}</text>
                 <text class="news-date">{{ item.date }}</text>
               </view>
             </view>

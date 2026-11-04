@@ -3,10 +3,11 @@ const { get } = require('../../utils/request');
 const { formatDate } = require('../../utils/format');
 const { getSafeArea } = require('../../utils/system');
 
-const KIND_TEXT = {
-  safety: '安全',
-  notice: '公告',
-  news: '动态',
+// 类目标签：新闻类目由接口返回（如「政策法规」），安全/公告类文章没有类目，按来源给固定名称
+const KIND_LABEL = {
+  safety: '场所安全',
+  notice: '公告通知',
+  news: '政策法规',
 };
 
 Page({
@@ -100,7 +101,7 @@ Page({
       .then((res) => {
         const items = (res.items || []).map((item) => ({
           ...item,
-          kindText: KIND_TEXT[item.kind] || '动态',
+          category: item.category || KIND_LABEL[item.kind] || '公开信息',
           date: formatDate(item.createdAt),
         }));
         this.setData({ items, itemsLoaded: true });

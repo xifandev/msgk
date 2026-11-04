@@ -2,6 +2,7 @@ interface ItemRow {
   id: number
   title: string
   created_at: string
+  category_name?: string | null
 }
 
 export default defineEventHandler(async (event) => {
@@ -25,14 +26,24 @@ export default defineEventHandler(async (event) => {
       "SELECT id, title, created_at FROM notices WHERE kind = 'public' AND published = 1 ORDER BY created_at DESC, id DESC LIMIT 15"
     ),
     query<ItemRow>(
-      'SELECT id, title, created_at FROM news_articles WHERE published = 1 ORDER BY created_at DESC, id DESC LIMIT 15'
+      `SELECT n.id, n.title, n.created_at, c.name AS category_name
+       FROM news_articles n
+       LEFT JOIN news_categories c ON c.id = n.category_id
+       WHERE n.published = 1
+       ORDER BY n.created_at DESC, n.id DESC LIMIT 15`
     )
   ])
 
   const items = [
     ...safety.map(row => ({ kind: 'safety' as const, id: row.id, title: row.title, createdAt: row.created_at })),
     ...notices.map(row => ({ kind: 'notice' as const, id: row.id, title: row.title, createdAt: row.created_at })),
-    ...news.map(row => ({ kind: 'news' as const, id: row.id, title: row.title, createdAt: row.created_at }))
+    ...news.map(row => ({
+      kind: 'news' as const,
+      id: row.id,
+      title: row.title,
+      createdAt: row.created_at,
+      category: row.category_name || null
+    }))
   ]
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : b.id - a.id))
     .slice(0, 15)
