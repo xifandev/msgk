@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
-import { Refresh } from '@element-plus/icons-vue'
+import { CircleCloseFilled, Clock, OfficeBuilding, Refresh, WarningFilled } from '@element-plus/icons-vue'
 
 type PeriodState = 'published' | 'approved' | 'pending' | 'rejected' | 'draft' | 'missing'
 
@@ -143,12 +143,10 @@ function cellTip(label: string, point: MatrixCell) {
   return `${label} ${monthLabelOf(point.month)}：${parts.join('，')}`
 }
 
-const deltaText = computed(() => {
+const delta = computed(() => {
   const prev = data.value?.previous
-  if (!prev) return '暂无上月对比'
-  const diff = submitted.value - submittedOf(prev)
-  if (diff === 0) return `与上月持平（已报 ${submittedOf(prev)} 个）`
-  return `较上月${diff > 0 ? '多报' : '少报'} ${Math.abs(diff)} 个场所`
+  if (!prev) return null
+  return submitted.value - submittedOf(prev)
 })
 
 const townPending = computed(() => rows.value.filter((row) => row.rawState === 'pending_town').length)
@@ -257,42 +255,51 @@ function gotoFinance(row: any) {
   return navigateTo(`/finance?venueId=${row.id}&month=${month.value}`)
 }
 
+const heatScroll = ref<HTMLElement>()
+
+/** 窄屏时把统计月份滚到可视区域中间，避免默认停在最早月份 */
+function scrollToMonth() {
+  const box = heatScroll.value
+  if (!box) return
+  if (box.clientWidth > 520) { box.scrollLeft = 0; return }
+  if (box.scrollWidth <= box.clientWidth + 4) return
+  const target = box.querySelector<HTMLElement>(`[data-month="${month.value}"]`)
+  if (!target) return
+  box.scrollTo({ left: Math.max(target.offsetLeft - box.clientWidth / 2 + target.offsetWidth / 2, 0), behavior: 'smooth' })
+}
+
 onMounted(() => { void load() })
+watch(() => [month.value, months.value.length], () => { void nextTick(() => scrollToMonth()) })
 </script>
 
 <template>
   <div class="page dash" v-loading="loading">
     <header class="head">
       <div class="head-copy">
-        <p class="eyebrow">工作台 · 财务公开</p>
         <h1>公开报送总览</h1>
         <p class="head-sub">
-          {{ venueMode ? '本场所' : `全县 ${data?.townshipTotal ?? 0} 个镇级 · ${data?.venueTotal ?? 0} 个场所` }}
-          <span class="sep">·</span>
-          统计月份 {{ monthLabel }}
+          {{ venueMode ? '本场所' : `${data?.townshipTotal ?? 0} 个镇级 · ${data?.venueTotal ?? 0} 个场所` }}
+          <span class="sep">·</span>{{ monthLabel }}
           <NuxtLink v-if="data?.unread" class="notice-link" to="/my-notices">{{ data.unread }} 条未读通知</NuxtLink>
         </p>
       </div>
       <div class="head-actions">
-        <label class="month-field">
-          <span>统计月份</span>
-          <el-date-picker
-            :model-value="month"
-            type="month"
-            value-format="YYYY-MM"
-            :clearable="false"
-            :disabled-date="outsideRange"
-            aria-label="统计月份"
-            @update:model-value="changeMonth"
-          />
-        </label>
+        <el-date-picker
+          :model-value="month"
+          type="month"
+          value-format="YYYY-MM"
+          :clearable="false"
+          :disabled-date="outsideRange"
+          aria-label="统计月份"
+          @update:model-value="changeMonth"
+        />
         <el-button :icon="Refresh" :loading="refreshing" @click="load()">刷新</el-button>
       </div>
     </header>
 
     <section class="kpis" aria-label="本期关键指标">
       <article class="kpi hero">
-        <div class="ring">
+        <div class="ring" role="img" :aria-label="`报送率 ${pct(submitRate)}`">
           <svg viewBox="0 0 100 100" aria-hidden="true">
             <circle class="ring-track" cx="50" cy="50" r="42" />
             <circle class="ring-value" cx="50" cy="50" r="42" :stroke-dasharray="`${dash} ${CIRC}`" />
@@ -301,49 +308,49 @@ onMounted(() => { void load() })
         </div>
         <div class="hero-copy">
           <p class="kpi-label">本期已报送</p>
-          <p class="kpi-value">{{ submitted }}<small>/ {{ period.total }} 个场所</small></p>
-          <p class="kpi-foot">其中已公开 {{ period.published }} 个 · {{ deltaText }}</p>
+          <p class="kpi-value">{{ submitted }}<small>/ {{ period.total }}</small></p>
+          <p v-if="delta !== null" class="delta-pill" :class="{ down: delta < 0, up: delta > 0 }">
+            {{ delta === 0 ? '与上月持平' : `较上月 ${delta > 0 ? '+' : ''}${delta} 家` }}
+          </p>
         </div>
       </article>
 
       <button type="button" class="kpi" @click="focusTable('missing')">
-        <p class="kpi-label"><i class="dot dot-danger" aria-hidden="true" />未报送</p>
-        <p class="kpi-value">{{ period.missing }}</p>
-        <p class="kpi-foot">另有编辑中 {{ period.draft }} 个</p>
+        <span class="kpi-icon is-red" aria-hidden="true"><el-icon><CircleCloseFilled /></el-icon></span>
+        <span class="kpi-label">未报送</span>
+        <span class="kpi-value">{{ period.missing }}</span>
       </button>
 
       <button type="button" class="kpi" @click="focusTable('pending')">
-        <p class="kpi-label"><i class="dot dot-warn" aria-hidden="true" />待审核</p>
-        <p class="kpi-value">{{ period.pending }}</p>
-        <p class="kpi-foot">镇级 {{ townPending }} · 县级 {{ countyPending }}</p>
+        <span class="kpi-icon is-amber" aria-hidden="true"><el-icon><Clock /></el-icon></span>
+        <span class="kpi-label">待审核</span>
+        <span class="kpi-value">{{ period.pending }}</span>
+        <span class="kpi-foot">镇级 {{ townPending }} · 县级 {{ countyPending }}</span>
       </button>
 
       <button type="button" class="kpi" @click="focusTable('rejected')">
-        <p class="kpi-label"><i class="dot dot-danger" aria-hidden="true" />审核未通过</p>
-        <p class="kpi-value">{{ period.rejected }}</p>
-        <p class="kpi-foot">已通过待公开 {{ period.approved }} 个</p>
+        <span class="kpi-icon is-rose" aria-hidden="true"><el-icon><WarningFilled /></el-icon></span>
+        <span class="kpi-label">审核未通过</span>
+        <span class="kpi-value">{{ period.rejected }}</span>
       </button>
 
       <div class="kpi">
-        <p class="kpi-label"><i class="dot dot-brand" aria-hidden="true" />应报场所</p>
-        <p class="kpi-value">{{ period.total }}</p>
-        <p class="kpi-foot">涵盖 {{ data?.townshipTotal ?? 0 }} 个镇级</p>
+        <span class="kpi-icon is-blue" aria-hidden="true"><el-icon><OfficeBuilding /></el-icon></span>
+        <span class="kpi-label">应报场所</span>
+        <span class="kpi-value">{{ period.total }}</span>
       </div>
     </section>
 
     <div class="split split-wide">
       <section class="card heat-card" aria-labelledby="heat-title">
         <header class="card-head">
-          <div class="card-title">
-            <h2 id="heat-title">{{ venueMode ? '近 12 个月报送记录' : townshipMode ? '镇级报送情况' : '场所报送情况' }}</h2>
-            <p v-if="venueMode">每个月是否按时提交并完成公开</p>
-            <p v-else-if="townshipMode">每格表示该镇当月是否所有场所都已报送，点击格子切换统计月份</p>
-            <p v-else>每格表示该场所当月是否已报送，点击格子切换统计月份</p>
-          </div>
+          <h2 id="heat-title">
+            {{ venueMode ? '近 12 个月报送记录' : townshipMode ? '镇级报送情况' : '场所报送情况' }}
+          </h2>
           <ul v-if="!venueMode" class="legend">
             <li><i class="cell-miss" aria-hidden="true">✕</i>有未报送</li>
-            <li><i class="cell-wait" aria-hidden="true">✓</i>已报齐待审</li>
-            <li><i class="cell-done" aria-hidden="true">✓</i>已报齐并公开</li>
+            <li><i class="cell-wait" aria-hidden="true">✓</i>报齐待审</li>
+            <li><i class="cell-done" aria-hidden="true">✓</i>报齐已公开</li>
           </ul>
         </header>
 
@@ -359,58 +366,66 @@ onMounted(() => { void load() })
           </div>
         </div>
 
-        <div v-else class="heat-scroll">
-          <div class="heat" :style="{ '--cols': months.length, '--label': townshipMode ? '112px' : '184px' }">
+        <div v-else class="heat-board">
+          <div class="heat-labels" :style="{ '--label': townshipMode ? '112px' : '176px' }">
             <div class="heat-head">{{ townshipMode ? '镇级' : '场所' }}</div>
-            <div v-for="point in months" :key="point" class="heat-month" :class="{ on: point === month, running: point === runningMonth }">
-              {{ Number(point.slice(5)) }}月
+            <div
+              v-for="row in matrix.rows"
+              :key="row.key"
+              class="heat-name"
+              :title="townshipMode ? `${row.label} · 应报 ${row.hint} 个场所` : row.label"
+            >
+              <span>{{ row.label }}</span><em v-if="row.hint">{{ row.hint }}</em>
             </div>
+            <div class="heat-name is-total">全辖区<small>未报数</small></div>
+          </div>
 
-            <template v-for="row in matrix.rows" :key="row.key">
-              <div class="heat-name" :title="townshipMode ? `${row.label} · 应报 ${row.hint} 个场所` : row.label">
-                <span>{{ row.label }}</span><em v-if="row.hint">{{ row.hint }}</em>
+          <div ref="heatScroll" class="heat-scroll">
+            <div class="heat-months" :style="{ '--cols': months.length }">
+              <div
+                v-for="point in months"
+                :key="point"
+                :data-month="point"
+                class="heat-month"
+                :class="{ on: point === month, running: point === runningMonth }"
+              >
+                {{ Number(point.slice(5)) }}月
               </div>
+            </div>
+            <div class="heat-cells" :style="{ '--cols': months.length }">
+              <template v-for="row in matrix.rows" :key="row.key">
+                <button
+                  v-for="point in row.history"
+                  :key="`${row.key}-${point.month}`"
+                  type="button"
+                  class="heat-cell"
+                  :class="[cellClass(point), { on: point.month === month }]"
+                  :title="cellTip(row.label, point)"
+                  :aria-label="`${row.label} ${monthLabelOf(point.month)}：${cellGlyph(point) === '✕' ? '仍有场所未报送' : '已全部报送'}，应报 ${point.total} 个，已报 ${point.submitted} 个`"
+                  @click="changeMonth(point.month)"
+                >
+                  {{ cellGlyph(point) }}
+                </button>
+              </template>
               <button
-                v-for="point in row.history"
-                :key="`${row.key}-${point.month}`"
+                v-for="point in monthly"
+                :key="`total-${point.month}`"
                 type="button"
-                class="heat-cell"
-                :class="[cellClass(point), { on: point.month === month }]"
-                :title="cellTip(row.label, point)"
-                :aria-label="`${row.label} ${monthLabelOf(point.month)}：${cellGlyph(point) === '✕' ? '仍有场所未报送' : '已全部报送'}，应报 ${point.total} 个，已报 ${point.submitted} 个`"
+                class="heat-cell is-total"
+                :class="[cellClass({ total: point.total, submitted: submittedOf(point), published: point.published }), { on: point.month === month }]"
+                :title="`全辖区 ${monthLabelOf(point.month)}：应报 ${point.total}，已报 ${submittedOf(point)}，未报 ${point.missing}`"
                 @click="changeMonth(point.month)"
               >
-                {{ cellGlyph(point) }}
+                {{ point.missing ? point.missing : '✓' }}
               </button>
-            </template>
-
-            <div class="heat-name is-total">全辖区</div>
-            <button
-              v-for="point in monthly"
-              :key="`total-${point.month}`"
-              type="button"
-              class="heat-cell is-total"
-              :class="[cellClass({ total: point.total, submitted: submittedOf(point), published: point.published }), { on: point.month === month }]"
-              :title="`全辖区 ${monthLabelOf(point.month)}：应报 ${point.total}，已报 ${submittedOf(point)}，未报 ${point.missing}`"
-              @click="changeMonth(point.month)"
-            >
-              {{ point.missing ? point.missing : '✓' }}
-            </button>
+            </div>
           </div>
         </div>
-
-        <p class="card-foot">
-          <span v-if="!venueMode">✕ 表示当月仍有场所未报送，✓ 表示全部场所都已报送（橙色为仍有场所待审核或待公开，绿色为已全部公开）。合计行为当月未报送的场所数量（共 {{ data?.venueTotal ?? 0 }} 个场所）；当月标注“进行中”，数据仍在报送。</span>
-          <span v-else>统计范围：近 12 个月。灰色为未报送，橙色为审核中，红色为审核未通过。</span>
-        </p>
       </section>
 
       <section class="card todo-card" aria-labelledby="todo-title">
         <header class="card-head">
-          <div class="card-title">
-            <h2 id="todo-title">本期待办</h2>
-            <p>{{ monthLabel }} 尚未完成公开的场所</p>
-          </div>
+          <h2 id="todo-title">本期待办</h2>
           <span class="count-pill">{{ backlog.length }}</span>
         </header>
 
@@ -422,10 +437,7 @@ onMounted(() => { void load() })
                 <NuxtLink class="todo-item" :to="`/finance?venueId=${row.id}&month=${month}`">
                   <span class="todo-main">
                     <strong>{{ row.name }}</strong>
-                    <small>
-                      {{ row.township }}
-                      <template v-if="row.submittedAt"> · {{ formatTime(row.submittedAt) }} 提交</template>
-                    </small>
+                    <small>{{ row.township }}<template v-if="row.submittedAt"> · {{ formatTime(row.submittedAt) }} 提交</template></small>
                   </span>
                   <span class="chip" :class="row.state">{{ stateText(row) }}</span>
                 </NuxtLink>
@@ -446,10 +458,7 @@ onMounted(() => { void load() })
     <div class="split split-even" :class="{ 'is-single': venueMode }">
       <section v-if="!venueMode" class="card" aria-labelledby="trend-title">
         <header class="card-head">
-          <div class="card-title">
-            <h2 id="trend-title">近 12 个月报送率走势</h2>
-            <p>全辖区每月已报送场所占比</p>
-          </div>
+          <h2 id="trend-title">报送率走势 · 近 12 个月</h2>
           <span class="avg-pill">均值 {{ pct(trend.average) }}</span>
         </header>
         <div class="trend" :style="{ '--avg-line': `${Math.min(1, trend.average) * 122}px` }">
@@ -467,18 +476,11 @@ onMounted(() => { void load() })
             <span class="trend-month">{{ Number(point.month.slice(5)) }}月</span>
           </div>
         </div>
-        <p class="card-foot">
-          柱高为报送率，虚线为近 12 个月均值。
-          <template v-if="trend.best">最高月份：{{ monthLabelOf(trend.best.month) }}（{{ pct(trend.best.rate) }}）。</template>
-        </p>
       </section>
 
       <section class="card" aria-labelledby="info-title">
         <header class="card-head">
-          <div class="card-title">
-            <h2 id="info-title">基础信息公开</h2>
-            <p>场所介绍、人员信息与安全公开的发布进度</p>
-          </div>
+          <h2 id="info-title">基础信息公开</h2>
         </header>
         <ul class="info-list">
           <li v-for="item in infoRows" :key="item.key">
@@ -490,16 +492,12 @@ onMounted(() => { void load() })
             </NuxtLink>
           </li>
         </ul>
-        <p class="card-foot">只统计已发布（公开）的场所信息，待审数据需在对应模块处理。</p>
       </section>
     </div>
 
     <section id="venue-detail" class="card" aria-labelledby="detail-title">
       <header class="card-head">
-        <div class="card-title">
-          <h2 id="detail-title">场所明细</h2>
-          <p>{{ monthLabel }} · 共 {{ rows.length }} 个场所</p>
-        </div>
+        <h2 id="detail-title">场所明细 <small>{{ monthLabel }}</small></h2>
         <div class="filters" role="group" aria-label="按状态筛选">
           <button
             v-for="filter in tableFilters"
@@ -534,126 +532,174 @@ onMounted(() => { void load() })
 </template>
 
 <style scoped>
-.dash { --card-pad: 22px; display: grid; gap: 16px; min-width: 0; }
+.dash { --card-pad: 26px; display: grid; gap: 18px; min-width: 0; }
 .dash > * { min-width: 0; }
 
-.head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; padding-block-end: 2px; }
-.eyebrow { margin: 0 0 6px; color: #8a94a6; font-size: 12px; letter-spacing: 1.6px; }
-.head h1 { margin: 0; font-size: clamp(23px, 2vw, 28px); font-weight: 650; letter-spacing: 1px; color: #101828; }
-.head-sub { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 8px 0 0; color: #667085; font-size: 13px; }
+/* ---------- 顶部 ---------- */
+.head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; padding-block: 4px 2px; }
+.head h1 { margin: 0; font-size: clamp(24px, 2vw, 29px); font-weight: 700; letter-spacing: 1.5px; color: #101828; }
+.head-sub { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 7px 0 0; color: #98a2b3; font-size: 13px; }
 .sep { color: #d0d5dd; }
-.notice-link { padding: 2px 9px; border-radius: 999px; background: #fffaeb; border: 1px solid #fedf89; color: #b54708; font-size: 12px; }
+.notice-link { padding: 2px 10px; border-radius: 999px; background: #fffaeb; border: 1px solid #fedf89; color: #b54708; font-size: 12px; }
 .notice-link:hover { background: #fef0c7; }
-.head-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.month-field { display: inline-flex; align-items: center; gap: 8px; color: #667085; font-size: 13px; }
-.month-field :deep(.el-date-editor) { width: 148px; }
+.head-actions { display: flex; align-items: center; gap: 10px; }
+.head-actions :deep(.el-date-editor) { width: 142px; }
 .head-actions .el-button { margin: 0; }
 
-.kpis { display: grid; grid-template-columns: 1.55fr repeat(4, minmax(0, 1fr)); gap: 14px; }
+/* ---------- KPI ---------- */
+.kpis { display: grid; grid-template-columns: 1.55fr repeat(4, minmax(0, 1fr)); gap: 16px; }
 .kpi {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 16px 18px;
-  border: 1px solid #e6eaf0;
-  border-radius: 14px;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 18px 20px 16px;
+  border: 1px solid #e9edf3;
+  border-radius: 16px;
   background: #fff;
   text-align: start;
   font: inherit;
   cursor: default;
+  box-shadow: 0 1px 4px rgb(16 24 40 / 3%);
   transition: border-color .18s, box-shadow .18s, transform .18s;
 }
 button.kpi { cursor: pointer; }
-button.kpi:hover, button.kpi:focus-visible { border-color: #b9cce1; box-shadow: 0 6px 18px rgb(16 24 40 / 7%); transform: translateY(-2px); }
-.kpi-label { display: flex; align-items: center; gap: 6px; margin: 0; color: #667085; font-size: 13px; }
-.kpi-value { margin: 4px 0 0; color: #101828; font-size: 30px; font-weight: 650; line-height: 1.15; font-variant-numeric: tabular-nums; }
-.kpi-value small { margin-inline-start: 6px; color: #8a94a6; font-size: 13px; font-weight: 500; }
-.kpi-foot { margin: 4px 0 0; color: #98a2b3; font-size: 12px; }
-.dot { width: 7px; height: 7px; border-radius: 2px; flex: none; }
-.dot-danger { background: #d92d20; }
-.dot-warn { background: #dc6803; }
-.dot-brand { background: #17549c; }
+button.kpi:hover, button.kpi:focus-visible { border-color: #c2d3e8; box-shadow: 0 8px 22px rgb(16 24 40 / 8%); transform: translateY(-2px); }
+.kpi-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-block-end: 6px;
+  border-radius: 10px;
+  font-size: 17px;
+}
+.kpi-icon.is-red { background: #fef1f0; color: #d92d20; }
+.kpi-icon.is-amber { background: #fff4e2; color: #dc6803; }
+.kpi-icon.is-rose { background: #fdeef4; color: #c0357b; }
+.kpi-icon.is-blue { background: #eef4fc; color: #17549c; }
+.kpi-label { display: block; color: #667085; font-size: 13px; }
+.kpi-value { display: block; margin-block-start: 2px; color: #101828; font-size: 30px; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.kpi-value small { margin-inline-start: 4px; color: #98a2b3; font-size: 14px; font-weight: 500; }
+.kpi-foot { color: #98a2b3; font-size: 12px; }
 
 .kpi.hero {
   flex-direction: row;
   align-items: center;
-  gap: 18px;
+  gap: 20px;
   border: 0;
   color: #fff;
-  background: radial-gradient(120% 180% at 100% 0%, #2178c4 0%, #17549c 45%, #0d3f74 100%);
-  box-shadow: 0 10px 26px rgb(13 63 116 / 22%);
+  background: radial-gradient(130% 190% at 100% 0%, #2178c4 0%, #17549c 48%, #0d3f74 100%);
+  box-shadow: 0 12px 28px rgb(13 63 116 / 22%);
 }
-.kpi.hero .kpi-label { color: rgb(255 255 255 / 76%); }
-.kpi.hero .kpi-value { color: #fff; }
-.kpi.hero .kpi-value small { color: rgb(255 255 255 / 66%); }
-.kpi.hero .kpi-foot { color: rgb(255 255 255 / 64%); }
+.kpi.hero .kpi-label { color: rgb(255 255 255 / 72%); }
+.kpi.hero .kpi-value { color: #fff; font-size: 34px; }
+.kpi.hero .kpi-value small { color: rgb(255 255 255 / 62%); font-size: 16px; }
 .hero-copy { min-width: 0; }
-.ring { position: relative; flex: none; width: 86px; height: 86px; }
+.delta-pill {
+  display: inline-flex;
+  margin: 8px 0 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 14%);
+  color: rgb(255 255 255 / 86%);
+  font-size: 12px;
+}
+.delta-pill.up { background: rgb(134 239 172 / 22%); color: #bbf7d0; }
+.delta-pill.down { background: rgb(254 202 202 / 22%); color: #fecaca; }
+.ring { position: relative; flex: none; width: 90px; height: 90px; }
 .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .ring circle { fill: none; stroke-width: 8; }
 .ring-track { stroke: rgb(255 255 255 / 18%); }
 .ring-value { stroke: #fff; stroke-linecap: round; transition: stroke-dasharray .5s ease; }
-.ring-num { position: absolute; inset: 0; display: grid; place-items: center; font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.ring-num { position: absolute; inset: 0; display: grid; place-items: center; font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; }
 
-.split { display: grid; gap: 16px; align-items: start; }
+/* ---------- 通用卡片 ---------- */
+.split { display: grid; gap: 18px; align-items: start; }
 .split-wide { grid-template-columns: minmax(0, 1.72fr) minmax(320px, 0.9fr); }
 .split-even { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .split-even.is-single { grid-template-columns: minmax(0, 1fr); }
 
-.card { padding: var(--card-pad); border: 1px solid #e6eaf0; border-radius: 16px; background: #fff; box-shadow: 0 2px 10px rgb(16 24 40 / 3%); }
-.card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-block-end: 14px; flex-wrap: wrap; }
-.card-title h2 { margin: 0; color: #101828; font-size: 15.5px; font-weight: 650; letter-spacing: .2px; }
-.card-title p { margin: 4px 0 0; color: #8a94a6; font-size: 12px; }
-.card-link { flex: none; color: #17549c; font-size: 12.5px; }
-.card-link:hover { text-decoration: underline; }
-.card-foot { margin: 12px 0 0; padding-block-start: 10px; border-block-start: 1px solid #f2f4f7; color: #98a2b3; font-size: 11.5px; line-height: 1.7; }
-.count-pill { flex: none; min-width: 30px; padding: 2px 9px; border-radius: 999px; background: #fef3f2; color: #b42318; font-size: 12.5px; font-weight: 650; text-align: center; font-variant-numeric: tabular-nums; }
-
-.legend { display: flex; align-items: center; gap: 12px; flex: none; margin: 0; padding: 0; list-style: none; color: #667085; font-size: 11.5px; }
-.legend li { display: flex; align-items: center; gap: 5px; }
-.legend i { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 5px; font-size: 12px; font-style: normal; font-weight: 700; }
-
-.heat-scroll { min-width: 0; overflow-x: auto; padding-block-end: 2px; }
-.heat {
-  display: grid;
-  grid-template-columns: var(--label, 112px) repeat(var(--cols, 12), minmax(44px, 1fr));
-  gap: 5px;
-  min-width: calc(var(--label, 112px) + var(--cols, 12) * 48px);
-  align-items: center;
+.card {
+  padding: var(--card-pad);
+  border: 1px solid #e9edf3;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgb(16 24 40 / 3%);
 }
-.heat-head { color: #98a2b3; font-size: 11px; letter-spacing: .3px; }
-.heat-month { padding-block-end: 2px; color: #8a94a6; font-size: 11.5px; text-align: center; font-variant-numeric: tabular-nums; }
-.heat-month.running { color: #a6b0c0; }
-.heat-month.on { color: #0d3f74; font-weight: 700; box-shadow: 0 2px 0 0 #17549c; }
-.heat-name { display: flex; align-items: center; gap: 6px; min-width: 0; color: #344054; font-size: 12.5px; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-block-end: 18px; flex-wrap: wrap; }
+.card-head h2 { margin: 0; color: #101828; font-size: 16.5px; font-weight: 700; letter-spacing: .4px; }
+.card-head h2 small { margin-inline-start: 8px; color: #98a2b3; font-size: 12.5px; font-weight: 500; }
+.count-pill { flex: none; min-width: 32px; padding: 3px 10px; border-radius: 999px; background: #fef1f0; color: #d92d20; font-size: 13px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+
+.legend { display: flex; align-items: center; gap: 12px; flex: none; margin: 0; padding: 0; list-style: none; color: #667085; font-size: 12px; }
+.legend li { display: flex; align-items: center; gap: 5px; }
+.legend i { display: grid; place-items: center; width: 19px; height: 19px; border-radius: 6px; color: #fff; font-size: 12px; font-style: normal; font-weight: 800; }
+
+/* ---------- 报送矩阵 ---------- */
+.heat-board { display: flex; gap: 10px; align-items: flex-start; }
+.heat-labels {
+  flex: none;
+  display: grid;
+  grid-template-rows: 22px;
+  grid-auto-rows: 36px;
+  gap: 6px;
+  width: var(--label, 112px);
+}
+.heat-head { align-self: center; color: #98a2b3; font-size: 11.5px; letter-spacing: .3px; }
+.heat-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 500;
+}
 .heat-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.heat-name em { flex: none; padding-inline: 4px; border-radius: 4px; background: #f2f4f7; color: #8a94a6; font-size: 10.5px; font-style: normal; font-variant-numeric: tabular-nums; }
-.heat-name.is-total { color: #101828; font-weight: 650; }
+.heat-name em { flex: none; padding-inline: 5px; border-radius: 5px; background: #f2f4f7; color: #98a2b3; font-size: 10.5px; font-style: normal; font-variant-numeric: tabular-nums; }
+.heat-name.is-total { color: #101828; font-weight: 700; }
+.heat-name.is-total small { margin-inline-start: 4px; color: #b6c0cd; font-size: 10.5px; font-weight: 500; }
+
+.heat-scroll { flex: 1 1 auto; min-width: 0; overflow-x: auto; padding-block-end: 2px; }
+.heat-months,
+.heat-cells {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 12), minmax(42px, 1fr));
+  gap: 6px;
+  min-width: calc(var(--cols, 12) * 42px + (var(--cols, 12) - 1) * 6px);
+}
+.heat-months { grid-auto-rows: 22px; align-items: center; }
+.heat-cells { grid-auto-rows: 36px; }
+.heat-month { color: #98a2b3; font-size: 12px; text-align: center; font-variant-numeric: tabular-nums; }
+.heat-month.running { color: #b6c0cd; }
+.heat-month.on { color: #0d3f74; font-weight: 700; box-shadow: 0 2.5px 0 0 #17549c; }
 
 .heat-cell {
-  height: 32px;
+  height: 36px;
   border: 0;
-  border-radius: 7px;
+  border-radius: 9px;
   background: #f4f6fa;
   color: #98a2b3;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   line-height: 1;
   cursor: pointer;
-  transition: transform .14s, box-shadow .14s, filter .14s;
+  transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
 }
-.heat-cell:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgb(16 24 40 / 16%); filter: brightness(1.04); }
+.heat-cell:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 6px 14px rgb(16 24 40 / 18%); filter: brightness(1.05); }
 .heat-cell:focus-visible { outline: 2px solid #17549c; outline-offset: 2px; }
-.heat-cell.on { box-shadow: inset 0 0 0 1.5px #0b396c; }
-.heat-cell.is-total { height: 32px; font-size: 13px; font-variant-numeric: tabular-nums; }
-.heat-cell.total, .heat-cell.is-total { font-weight: 700; }
+.heat-cell.on { box-shadow: inset 0 0 0 2px rgb(255 255 255 / 62%); }
+.heat-cell.is-total { font-size: 13px; font-variant-numeric: tabular-nums; }
 
-.cell-miss { background: #fdecea; color: #c0392b; }
-.cell-wait { background: #fdf3e2; color: #b54708; }
-.cell-done { background: #e7f5ed; color: #067647; }
+.cell-miss { background: linear-gradient(140deg, #f26a4f 0%, #de3a2b 100%); color: #fff; }
+.cell-wait { background: linear-gradient(135deg, #f7b955 0%, #e8930c 100%); color: #fff; }
+.cell-done { background: linear-gradient(135deg, #33b573 0%, #12805c 100%); color: #fff; }
 
-.timeline { display: grid; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); gap: 8px; }
-.timeline-item { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid #e6eaf0; border-radius: 10px; background: #fbfcfe; }
+/* ---------- 场所角色时间线 ---------- */
+.timeline { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
+.timeline-item { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid #e9edf3; border-radius: 10px; background: #fbfcfe; }
 .timeline-item.on { border-color: #17549c; box-shadow: inset 0 0 0 1px #17549c; }
 .timeline-month { color: #667085; font-size: 12px; font-variant-numeric: tabular-nums; }
 .timeline-state { color: #344054; font-size: 13px; font-weight: 600; }
@@ -663,9 +709,22 @@ button.kpi:hover, button.kpi:focus-visible { border-color: #b9cce1; box-shadow: 
 .timeline-item.missing .timeline-state { color: #b42318; }
 .timeline-item.missing { background: #fdf7f6; }
 
-.todo-scroll { max-height: 600px; overflow-y: auto; margin-inline-end: -6px; padding-inline-end: 6px; }
+/* ---------- 本期待办 ---------- */
+.todo-card { position: relative; }
+.todo-card::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  height: 56px;
+  border-end-start-radius: 18px;
+  border-end-end-radius: 18px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0%) 0%, #fff 78%);
+  pointer-events: none;
+}
+.todo-scroll { max-height: 604px; overflow-y: auto; margin-inline-end: -8px; padding-block-end: 36px; padding-inline-end: 8px; }
 .todo-group + .todo-group { margin-block-start: 14px; }
-.todo-group-title { display: flex; align-items: center; gap: 6px; margin: 0 0 6px; color: #667085; font-size: 11.5px; font-weight: 600; letter-spacing: .4px; }
+.todo-group-title { display: flex; align-items: center; gap: 6px; margin: 0 0 6px; color: #667085; font-size: 12px; font-weight: 600; letter-spacing: .4px; }
 .todo-group-title em { padding: 0 5px; border-radius: 4px; background: #f2f4f7; color: #667085; font-style: normal; font-variant-numeric: tabular-nums; }
 .todo-list { margin: 0; padding: 0; list-style: none; }
 .todo-more { margin-block-start: 2px; padding: 4px 8px; border: 0; background: none; color: #17549c; font-size: 12px; cursor: pointer; }
@@ -676,17 +735,17 @@ button.kpi:hover, button.kpi:focus-visible { border-color: #b9cce1; box-shadow: 
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  min-height: 46px;
-  padding: 8px 8px;
-  border-radius: 9px;
+  min-height: 48px;
+  padding: 8px 10px;
+  border-radius: 10px;
   transition: background-color .16s;
 }
-.todo-item:hover { background: #f7fafd; }
+.todo-item:hover { background: #f6f9fd; }
 .todo-item:focus-visible { outline: 2px solid #84adff; outline-offset: -2px; }
 .todo-main { min-width: 0; }
 .todo-main strong { display: block; color: #1f2937; font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .todo-main small { display: block; color: #98a2b3; font-size: 11.5px; }
-.todo-done { padding: 34px 12px; text-align: center; }
+.todo-done { padding: 40px 12px; text-align: center; }
 .todo-done strong { color: #067647; font-size: 14px; }
 .todo-done p { margin: 6px 0 0; color: #98a2b3; font-size: 12.5px; }
 
@@ -709,37 +768,40 @@ button.kpi:hover, button.kpi:focus-visible { border-color: #b9cce1; box-shadow: 
 .chip.draft { color: #475467; background: #f8f9fc; border-color: #e4e7ec; }
 .chip.missing { color: #b42318; background: #fff; border-color: #fecdca; border-style: dashed; }
 
+/* ---------- 走势 ---------- */
 .avg-pill { flex: none; padding: 3px 10px; border-radius: 999px; background: #eef4fc; color: #17549c; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
-.trend { position: relative; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; margin-block-start: 4px; }
+.trend { position: relative; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 7px; }
 .trend::after { content: ""; position: absolute; inset-inline: 0; bottom: calc(20px + var(--avg-line, 0px)); border-block-start: 1px dashed #a9bdd4; pointer-events: none; }
-.trend-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.trend-col { display: flex; flex-direction: column; align-items: center; gap: 7px; }
 .trend-val { color: #98a2b3; font-size: 11px; font-variant-numeric: tabular-nums; }
-.trend-track { display: flex; align-items: flex-end; width: 100%; height: 122px; padding-inline: 16%; border-block-end: 1px solid #e6eaf0; }
-.trend-track i { width: 100%; border-radius: 4px 4px 0 0; background: linear-gradient(180deg, #4a86c8 0%, #17549c 100%); transition: height .4s ease; }
+.trend-track { display: flex; align-items: flex-end; width: 100%; height: 122px; padding-inline: 18%; border-block-end: 1px solid #e9edf3; }
+.trend-track i { width: 100%; border-radius: 5px 5px 0 0; background: linear-gradient(180deg, #4a86c8 0%, #17549c 100%); transition: height .4s ease; }
 .trend-track i.zero { background: #dfe4ec; }
 .trend-month { color: #98a2b3; font-size: 11px; font-variant-numeric: tabular-nums; }
 .trend-col.on .trend-val { color: #17549c; font-weight: 700; }
 .trend-col.on .trend-month { color: #17549c; font-weight: 600; }
 
-.info-list { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
-.info-list a { display: grid; grid-template-columns: 76px minmax(0, 1fr) 52px 58px; align-items: center; gap: 12px; min-height: 42px; padding: 4px 8px; border-radius: 9px; transition: background-color .16s; }
-.info-list a:hover { background: #f7fafd; }
+/* ---------- 基础信息公开 ---------- */
+.info-list { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.info-list a { display: grid; grid-template-columns: 76px minmax(0, 1fr) 52px 58px; align-items: center; gap: 12px; min-height: 46px; padding: 4px 8px; border-radius: 10px; transition: background-color .16s; }
+.info-list a:hover { background: #f6f9fd; }
 .info-list a:focus-visible { outline: 2px solid #84adff; outline-offset: -2px; }
-.info-name { color: #344054; font-size: 13px; }
-.info-bar { height: 7px; border-radius: 999px; background: #f0f3f8; overflow: hidden; }
+.info-name { color: #344054; font-size: 13px; font-weight: 500; }
+.info-bar { height: 8px; border-radius: 999px; background: #f0f3f8; overflow: hidden; }
 .info-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #3c7cc0, #17549c); }
 .info-val { color: #475467; font-size: 12px; text-align: end; font-variant-numeric: tabular-nums; }
-.info-pending { padding: 1px 7px; border-radius: 5px; background: #fffaeb; color: #b54708; font-size: 11px; text-align: center; }
+.info-pending { padding: 2px 7px; border-radius: 6px; background: #fffaeb; color: #b54708; font-size: 11px; text-align: center; }
 .info-pending.zero { background: #f2f4f7; color: #98a2b3; }
 
+/* ---------- 明细 ---------- */
 .filters { display: flex; flex-wrap: wrap; gap: 6px; }
 .filters button {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 11px;
+  padding: 5px 12px;
   border: 1px solid #e6eaf0;
-  border-radius: 8px;
+  border-radius: 999px;
   background: #fff;
   color: #52606f;
   font-size: 12.5px;
@@ -757,6 +819,7 @@ button.kpi:hover, button.kpi:focus-visible { border-color: #b9cce1; box-shadow: 
 .table-region :deep(.el-table td.el-table__cell) { color: #344054; }
 .table-region :deep(.el-table .cell) { font-variant-numeric: tabular-nums; }
 
+/* ---------- 响应式 ---------- */
 @media (max-width: 1280px) {
   .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .kpi.hero { grid-column: span 2; }
@@ -768,14 +831,14 @@ button.kpi:hover, button.kpi:focus-visible { border-color: #b9cce1; box-shadow: 
   .head { align-items: flex-start; }
 }
 @media (max-width: 720px) {
-  .dash { --card-pad: 16px; gap: 12px; }
+  .dash { --card-pad: 18px; gap: 12px; }
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .kpi { padding: 13px 14px; }
-  .kpi.hero { grid-column: span 2; padding: 16px; }
+  .kpi { padding: 14px 15px; }
+  .kpi.hero { grid-column: span 2; padding: 18px; }
   .kpi-value { font-size: 25px; }
+  .kpi.hero .kpi-value { font-size: 28px; }
   .head-actions { width: 100%; }
-  .month-field { flex: 1; }
-  .month-field :deep(.el-date-editor) { flex: 1; width: auto; }
+  .head-actions :deep(.el-date-editor) { flex: 1; width: auto; }
   .info-list a { grid-template-columns: 64px minmax(0, 1fr) 46px; }
   .info-pending { display: none; }
 }
