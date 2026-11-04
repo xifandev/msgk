@@ -32,7 +32,6 @@ export default defineNuxtConfig({
     smsTemplateCode: '',
     smsMock: '',
     ossBucket: '',
-    ossRegion: '',
-    siteBaseUrl: ''
+    ossRegion: ''
   }
 })
