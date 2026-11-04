@@ -1,5 +1,9 @@
 # MSGK 开发约定
 
+## 项目来源
+
+本项目重构自旧项目 `/Users/getlong/Code/msgk-old`，使用新的 Node.js 技术框架（Nuxt 4 + Nitro + MySQL 8 原生 SQL）进行了完整的技术栈重构。旧项目仅作迁移参考，不参与构建和部署。
+
 ## 架构
 
 - Nuxt 4 + Nitro 提供后台页面和全部 API，微信小程序仅提供公开数据查询。
