@@ -105,6 +105,31 @@ Page({
       });
   },
 
+  // 打开场所选择独立页（原全屏弹窗保留备用，确认新页效果后可移除）
+  openVenueSelect() {
+    wx.vibrateShort({ type: 'light' });
+    wx.navigateTo({ url: '/pages/venue-select/venue-select' });
+  },
+
+  // 返回本页时同步场所选择（来自场所选择页）
+  onShow() {
+    const cid = String(wx.getStorageSync('cid') || '');
+    if (cid === this.data.cid) {
+      return;
+    }
+    const venue = (this.venueList || []).find((item) => String(item.id) === cid);
+    this.setData(
+      {
+        cid,
+        venueName: venue ? venue.name : '',
+        activeVenueId: venue ? venue.id : null,
+        items: [],
+        itemsLoaded: false,
+      },
+      () => this.loadHome()
+    );
+  },
+
   openVenuePopup() {
     wx.vibrateShort({ type: 'light' });
     this.setData({
@@ -171,7 +196,7 @@ Page({
     const { url, needVenue } = e.currentTarget.dataset;
     wx.vibrateShort({ type: 'light' });
     if (needVenue && !this.data.cid) {
-      this.setData({ venuePopup: true });
+      wx.navigateTo({ url: '/pages/venue-select/venue-select' });
       return;
     }
     wx.navigateTo({ url });

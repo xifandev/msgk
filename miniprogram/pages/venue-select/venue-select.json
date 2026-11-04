@@ -1,0 +1,8 @@
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "ms-icon": "/components/ms-icon/index",
+    "ms-loading": "/components/ms-loading/index",
+    "ms-empty": "/components/ms-empty/index"
+  }
+}

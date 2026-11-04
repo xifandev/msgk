@@ -14,7 +14,7 @@
     <view class="bian-box">
       <view class="card-bian" wx:if="{{ showCard }}">
         <view class="yezhuxinxi">
-          <view class="card-xiaoqu-title" bind:tap="openVenuePopup">
+          <view class="card-xiaoqu-title" bind:tap="openVenueSelect">
             <text>{{ venueName || '点击选择场所' }}</text>
             <ms-icon
               class="{{ venueName ? 'card-xiaoqu-qiehuan' : 'card-xiaoqu-denglu' }}"

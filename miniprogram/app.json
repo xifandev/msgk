@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/venue-select/venue-select",
     "pages/article/article",
     "pages/venue/venue",
     "pages/personnel/personnel",
