@@ -122,15 +122,25 @@ function formatTime(value: string | null) {
   return text.slice(5, 16)
 }
 
-/** 单元格只有两种符号：✕ 有场所未报送，✓ 全部已报送；✓ 再用颜色区分是否已公开 */
+/** 单元格符号：已报齐 = 绿色 ✓；未报齐 = 弱化的灰色 ✕，降低大面积红色带来的视觉压迫 */
 function cellClass(point: { total: number, submitted: number, published: number }) {
   if (point.submitted < point.total) return 'cell-miss'
   return point.published >= point.total ? 'cell-done' : 'cell-wait'
 }
 
-function cellGlyph(point: { total: number, submitted: number }) {
-  return point.submitted < point.total ? '✕' : '✓'
+function isMiss(point: { total: number, submitted: number }) {
+  return point.submitted < point.total
 }
+
+/** 每行右侧一句话结论：缺几个月 / 已全部报齐 */
+function rowSummary(history: MatrixCell[]) {
+  const missMonths = history.filter(isMiss).length
+  return { missMonths, text: missMonths ? `缺 ${missMonths} 月` : '齐全' }
+}
+
+const totalSummary = computed(() => rowSummary(
+  monthly.value.map((point) => ({ ...point, submitted: submittedOf(point) }) as MatrixCell)
+))
 
 function cellTip(label: string, point: MatrixCell) {
   const parts = [`应报 ${point.total}`, `已报 ${point.submitted}`]
@@ -348,9 +358,9 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
             {{ venueMode ? '近 12 个月报送记录' : townshipMode ? '镇级报送情况' : '场所报送情况' }}
           </h2>
           <ul v-if="!venueMode" class="legend">
-            <li><i class="cell-miss" aria-hidden="true">✕</i>有未报送</li>
-            <li><i class="cell-wait" aria-hidden="true">✓</i>报齐待审</li>
             <li><i class="cell-done" aria-hidden="true">✓</i>报齐已公开</li>
+            <li><i class="cell-wait" aria-hidden="true">✓</i>报齐待审核</li>
+            <li><i class="cell-miss" aria-hidden="true">✕</i>有未报送</li>
           </ul>
         </header>
 
@@ -367,57 +377,62 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
         </div>
 
         <div v-else class="heat-board">
-          <div class="heat-labels" :style="{ '--label': townshipMode ? '112px' : '176px' }">
-            <div class="heat-head">{{ townshipMode ? '镇级' : '场所' }}</div>
-            <div
-              v-for="row in matrix.rows"
-              :key="row.key"
-              class="heat-name"
-              :title="townshipMode ? `${row.label} · 应报 ${row.hint} 个场所` : row.label"
-            >
-              <span>{{ row.label }}</span><em v-if="row.hint">{{ row.hint }}</em>
-            </div>
-            <div class="heat-name is-total">全辖区<small>未报数</small></div>
-          </div>
-
           <div ref="heatScroll" class="heat-scroll">
-            <div class="heat-months" :style="{ '--cols': months.length }">
-              <div
-                v-for="point in months"
-                :key="point"
-                :data-month="point"
-                class="heat-month"
-                :class="{ on: point === month, running: point === runningMonth }"
-              >
-                {{ Number(point.slice(5)) }}月
+            <div
+              class="heat-grid"
+              :style="{ '--cols': months.length, '--label': townshipMode ? '104px' : '168px' }"
+            >
+              <div class="heat-row is-head">
+                <div class="heat-name is-head">{{ townshipMode ? '镇级' : '场所' }}</div>
+                <div
+                  v-for="point in months"
+                  :key="point"
+                  :data-month="point"
+                  class="heat-month"
+                  :class="{ on: point === month, running: point === runningMonth }"
+                >
+                  {{ Number(point.slice(5)) }}月
+                </div>
+                <div class="heat-sum is-head">缺报</div>
               </div>
-            </div>
-            <div class="heat-cells" :style="{ '--cols': months.length }">
-              <template v-for="row in matrix.rows" :key="row.key">
+
+              <div v-for="row in matrix.rows" :key="row.key" class="heat-row">
+                <div class="heat-name" :title="townshipMode ? `${row.label} · 应报 ${row.hint} 个场所` : row.label">
+                  <span>{{ row.label }}</span><em v-if="row.hint">{{ row.hint }}</em>
+                </div>
                 <button
                   v-for="point in row.history"
                   :key="`${row.key}-${point.month}`"
                   type="button"
                   class="heat-cell"
-                  :class="[cellClass(point), { on: point.month === month }]"
+                  :class="cellClass(point)"
                   :title="cellTip(row.label, point)"
-                  :aria-label="`${row.label} ${monthLabelOf(point.month)}：${cellGlyph(point) === '✕' ? '仍有场所未报送' : '已全部报送'}，应报 ${point.total} 个，已报 ${point.submitted} 个`"
+                  :aria-label="`${row.label} ${monthLabelOf(point.month)}：${isMiss(point) ? '有场所未报送' : '已全部报送'}，应报 ${point.total} 个，已报 ${point.submitted} 个`"
+                  @click="changeMonth(point.month)"
+                >{{ isMiss(point) ? '✕' : '✓' }}</button>
+                <div class="heat-sum" :class="{ bad: rowSummary(row.history).missMonths }">
+                  {{ rowSummary(row.history).text }}
+                </div>
+              </div>
+
+              <div class="heat-row is-total">
+                <div class="heat-name is-total">全辖区<small>当月未报</small></div>
+                <button
+                  v-for="point in monthly"
+                  :key="`total-${point.month}`"
+                  type="button"
+                  class="heat-cell is-total"
+                  :class="cellClass({ total: point.total, submitted: submittedOf(point), published: point.published })"
+                  :title="`全辖区 ${monthLabelOf(point.month)}：应报 ${point.total}，已报 ${submittedOf(point)}，未报 ${point.missing}`"
                   @click="changeMonth(point.month)"
                 >
-                  {{ cellGlyph(point) }}
+                  <template v-if="point.missing">{{ point.missing }}</template>
+                  <template v-else>—</template>
                 </button>
-              </template>
-              <button
-                v-for="point in monthly"
-                :key="`total-${point.month}`"
-                type="button"
-                class="heat-cell is-total"
-                :class="[cellClass({ total: point.total, submitted: submittedOf(point), published: point.published }), { on: point.month === month }]"
-                :title="`全辖区 ${monthLabelOf(point.month)}：应报 ${point.total}，已报 ${submittedOf(point)}，未报 ${point.missing}`"
-                @click="changeMonth(point.month)"
-              >
-                {{ point.missing ? point.missing : '✓' }}
-              </button>
+                <div class="heat-sum is-total" :class="{ bad: totalSummary.missMonths }">
+                  {{ totalSummary.text }}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -635,67 +650,89 @@ button.kpi:hover, button.kpi:focus-visible { border-color: #c2d3e8; box-shadow: 
 
 .legend { display: flex; align-items: center; gap: 12px; flex: none; margin: 0; padding: 0; list-style: none; color: #667085; font-size: 12px; }
 .legend li { display: flex; align-items: center; gap: 5px; }
-.legend i { display: grid; place-items: center; width: 19px; height: 19px; border-radius: 6px; color: #fff; font-size: 12px; font-style: normal; font-weight: 800; }
+.legend i { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 5px; font-size: 11px; font-style: normal; font-weight: 700; }
 
 /* ---------- 报送矩阵 ---------- */
-.heat-board { display: flex; gap: 10px; align-items: flex-start; }
-.heat-labels {
-  flex: none;
+/* 设计原则：大面积保持浅灰绿底，只有信息（✓/✕）有对比度；去渐变、去阴影、去悬浮放大，消除“按钮墙”感 */
+.heat-board { display: block; }
+.heat-scroll { overflow-x: auto; padding-block-end: 2px; }
+.heat-grid {
   display: grid;
-  grid-template-rows: 22px;
-  grid-auto-rows: 36px;
-  gap: 6px;
-  width: var(--label, 112px);
+  row-gap: 3px;
+  width: 100%;
+  min-width: calc(var(--label, 104px) + var(--cols, 12) * 34px + (var(--cols, 12) - 1) * 7px + 66px);
 }
-.heat-head { align-self: center; color: #98a2b3; font-size: 11.5px; letter-spacing: .3px; }
+.heat-row {
+  display: grid;
+  grid-template-columns: var(--label, 104px) repeat(var(--cols, 12), minmax(34px, 1fr)) 60px;
+  align-items: center;
+  column-gap: 7px;
+  padding-block: 2px;
+  border-radius: 8px;
+  transition: background-color .15s;
+}
+.heat-row.is-head { padding-block-end: 6px; }
+.heat-row.is-total { margin-block-start: 4px; padding-block-start: 6px; border-block-start: 1px solid #f0f2f6; border-radius: 0; }
+.heat-row:not(.is-head):hover { background: #f7f9fc; }
+.heat-row:not(.is-head):hover .heat-name { background: #f7f9fc; }
+
 .heat-name {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: 6px;
   min-width: 0;
+  height: 100%;
+  padding-inline-end: 8px;
+  background: #fff;
   color: #344054;
   font-size: 13px;
   font-weight: 500;
+  transition: background-color .15s;
 }
+.heat-name.is-head { color: #98a2b3; font-size: 11.5px; letter-spacing: .3px; }
 .heat-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .heat-name em { flex: none; padding-inline: 5px; border-radius: 5px; background: #f2f4f7; color: #98a2b3; font-size: 10.5px; font-style: normal; font-variant-numeric: tabular-nums; }
 .heat-name.is-total { color: #101828; font-weight: 700; }
 .heat-name.is-total small { margin-inline-start: 4px; color: #b6c0cd; font-size: 10.5px; font-weight: 500; }
 
-.heat-scroll { flex: 1 1 auto; min-width: 0; overflow-x: auto; padding-block-end: 2px; }
-.heat-months,
-.heat-cells {
-  display: grid;
-  grid-template-columns: repeat(var(--cols, 12), minmax(42px, 1fr));
-  gap: 6px;
-  min-width: calc(var(--cols, 12) * 42px + (var(--cols, 12) - 1) * 6px);
-}
-.heat-months { grid-auto-rows: 22px; align-items: center; }
-.heat-cells { grid-auto-rows: 36px; }
 .heat-month { color: #98a2b3; font-size: 12px; text-align: center; font-variant-numeric: tabular-nums; }
 .heat-month.running { color: #b6c0cd; }
 .heat-month.on { color: #0d3f74; font-weight: 700; box-shadow: 0 2.5px 0 0 #17549c; }
 
 .heat-cell {
-  height: 36px;
+  height: 30px;
   border: 0;
-  border-radius: 9px;
-  background: #f4f6fa;
-  color: #98a2b3;
-  font-size: 16px;
-  font-weight: 800;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
   line-height: 1;
   cursor: pointer;
-  transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
+  transition: filter .15s ease;
 }
-.heat-cell:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 6px 14px rgb(16 24 40 / 18%); filter: brightness(1.05); }
-.heat-cell:focus-visible { outline: 2px solid #17549c; outline-offset: 2px; }
-.heat-cell.on { box-shadow: inset 0 0 0 2px rgb(255 255 255 / 62%); }
-.heat-cell.is-total { font-size: 13px; font-variant-numeric: tabular-nums; }
+.heat-cell:hover { filter: brightness(.965); }
+.heat-cell:focus-visible { outline: 2px solid #17549c; outline-offset: 1px; }
+.heat-cell.is-total { font-size: 12px; font-variant-numeric: tabular-nums; }
 
-.cell-miss { background: linear-gradient(140deg, #f26a4f 0%, #de3a2b 100%); color: #fff; }
-.cell-wait { background: linear-gradient(135deg, #f7b955 0%, #e8930c 100%); color: #fff; }
-.cell-done { background: linear-gradient(135deg, #33b573 0%, #12805c 100%); color: #fff; }
+/* 已报齐：绿色 ✓；未报齐：弱化成浅灰 ✕，不再用红色块 */
+.cell-done { background: #e6f3ec; color: #12805c; }
+.cell-wait { background: #f0f7f3; color: #8bbfa3; }
+.cell-miss { background: #f2f4f7; color: #c4cad3; }
+/* 全辖区行保留“当月未报数”，用浅红文字提示数量，不占大面积色块 */
+.heat-row.is-total .cell-miss { background: #fdf4f2; color: #c0564f; font-weight: 600; }
+
+.heat-sum {
+  padding-inline-end: 2px;
+  color: #98a2b3;
+  font-size: 11.5px;
+  text-align: end;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.heat-sum.is-head { font-size: 11px; letter-spacing: .3px; }
+.heat-sum.bad { color: #b42318; font-weight: 600; }
 
 /* ---------- 场所角色时间线 ---------- */
 .timeline { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
