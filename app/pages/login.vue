@@ -70,16 +70,6 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
 <template>
   <section class="login-card" aria-labelledby="login-title">
     <aside class="login-intro">
-      <div class="intro-brand">
-        <span class="emblem" aria-hidden="true">
-          <svg viewBox="0 0 32 32" fill="none">
-            <path d="M16 3.6 27 7.4v7.9c0 6.4-4.4 11-11 13.1-6.6-2.1-11-6.7-11-13.1V7.4L16 3.6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
-            <path d="M11 15.6l3.4 3.4L21.2 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </span>
-        <span class="intro-brand-text">YISHUI&nbsp;·&nbsp;MSGK</span>
-      </div>
-
       <h1 id="login-title">沂水宗教码上公开管理系统</h1>
       <p class="intro-sub">统一管理 · 规范审核</p>
 
@@ -108,9 +98,9 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
       </ul>
 
       <svg class="intro-ornament" viewBox="0 0 400 400" fill="none" aria-hidden="true">
-        <circle cx="330" cy="70" r="120" stroke="currentColor" stroke-width="1" opacity=".3" />
-        <circle cx="330" cy="70" r="170" stroke="currentColor" stroke-width="1" opacity=".22" />
-        <circle cx="330" cy="70" r="220" stroke="currentColor" stroke-width="1" opacity=".15" />
+        <circle cx="350" cy="350" r="120" stroke="currentColor" stroke-width="1" opacity=".3" />
+        <circle cx="350" cy="350" r="170" stroke="currentColor" stroke-width="1" opacity=".22" />
+        <circle cx="350" cy="350" r="220" stroke="currentColor" stroke-width="1" opacity=".15" />
       </svg>
     </aside>
 
@@ -189,6 +179,7 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   background: linear-gradient(158deg, #0a3a6b 0%, #14508f 52%, #1a63b0 100%);
   display: flex;
   flex-direction: column;
+  justify-content: center;
 }
 .login-intro::before {
   content: '';
@@ -210,23 +201,9 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   pointer-events: none;
 }
 
-.intro-brand { position: relative; display: flex; align-items: center; gap: 12px; }
-.emblem {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid rgb(255 255 255 / 34%);
-  border-radius: 12px;
-  background: rgb(255 255 255 / 10%);
-  color: #fff;
-}
-.emblem svg { width: 26px; height: 26px; }
-.intro-brand-text { font-size: 12px; letter-spacing: 2.4px; color: rgb(255 255 255 / 72%); }
-
 .login-intro h1 {
   position: relative;
-  margin: auto 0 0;
+  margin: 0;
   font-size: clamp(23px, 2.1vw, 27px);
   font-weight: 700;
   letter-spacing: 1px;
@@ -244,7 +221,7 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   position: relative;
   display: flex;
   gap: 10px;
-  margin: 46px 0 0;
+  margin: 40px 0 0;
   padding: 0;
   list-style: none;
 }
@@ -264,9 +241,9 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
 
 .intro-ornament {
   position: absolute;
-  inset-block-start: -90px;
+  inset-block-end: -170px;
   inset-inline-end: -120px;
-  width: 400px;
+  width: 420px;
   color: #fff;
   pointer-events: none;
 }
