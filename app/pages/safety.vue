@@ -128,12 +128,12 @@ onMounted(() => {
         <el-table v-loading="loading" :data="list">
           <el-table-column type="index" label="序号" width="64" :index="rowIndex" />
           <el-table-column prop="title" label="安全标题" min-width="200" show-overflow-tooltip />
-          <el-table-column prop="venueNames" label="场所名称" min-width="180" show-overflow-tooltip><template #default="{ row }">{{ row.venueNames || '—' }}</template></el-table-column>
-          <el-table-column prop="authorName" label="编辑角色" width="110"><template #default="{ row }">{{ row.authorName || '—' }}</template></el-table-column>
-          <el-table-column label="状态" width="130">
+          <el-table-column prop="venueNames" label="场所名称" min-width="160" show-overflow-tooltip><template #default="{ row }">{{ row.venueNames || '—' }}</template></el-table-column>
+          <el-table-column prop="authorName" label="编辑角色" width="100"><template #default="{ row }">{{ row.authorName || '—' }}</template></el-table-column>
+          <el-table-column label="状态" width="110">
             <template #default="{ row }"><el-tag :type="REVIEW_TAG_TYPES[row.state]">{{ REVIEW_LABELS[row.state] }}</el-tag></template>
           </el-table-column>
-          <el-table-column prop="updatedAt" label="编辑时间" width="170"><template #default="{ row }">{{ row.updatedAt || '—' }}</template></el-table-column>
+          <el-table-column prop="updatedAt" label="编辑时间" width="160"><template #default="{ row }">{{ row.updatedAt || '—' }}</template></el-table-column>
           <el-table-column v-if="hasPerm('safety:publish')" label="是否公开" width="100">
             <template #default="{ row }">
               <el-tooltip content="审核通过后才能公开" :disabled="row.state === 'approved'" placement="top">
@@ -141,7 +141,7 @@ onMounted(() => {
               </el-tooltip>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="300" fixed="right">
+          <el-table-column label="操作" width="240" fixed="right" align="right">
             <template #default="{ row }">
               <TableActions>
                 <el-button size="small" type="primary" :aria-label="`查看并处理《${row.title}》`" @click="openDetail(row)">查看/处理</el-button>

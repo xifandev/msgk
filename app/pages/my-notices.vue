@@ -48,7 +48,7 @@ onMounted(load)
           <el-table-column prop="authorName" label="发布人" width="110"><template #default="{ row }">{{ row.authorName || '—' }}</template></el-table-column>
           <el-table-column prop="createdAt" label="发布时间" width="170" />
           <el-table-column prop="readAt" label="阅读时间" width="170"><template #default="{ row }">{{ row.readAt || '—' }}</template></el-table-column>
-          <el-table-column label="操作" width="150" fixed="right">
+          <el-table-column label="操作" width="130" fixed="right" align="right">
             <template #default="{ row }">
               <TableActions>
                 <el-button size="small" type="primary" :aria-label="`查看《${row.title}》详情`" @click="openNotice(row)">查看详情</el-button>

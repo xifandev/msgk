@@ -144,7 +144,7 @@ onMounted(load)
             <template #default="{ row }"><el-tag v-if="row.personnel_state" :type="REVIEW_TAG_TYPES[row.personnel_state]">{{ REVIEW_LABELS[row.personnel_state] }}</el-tag><span v-else class="muted">未填写</span></template>
           </el-table-column>
           <el-table-column prop="updated_at" label="更新时间" width="170" />
-          <el-table-column label="操作" width="260" fixed="right">
+          <el-table-column label="操作" width="210" fixed="right" align="right">
             <template #default="{ row }">
               <TableActions>
                 <el-button size="small" type="primary" plain :aria-label="`查看${row.name}的二维码`" @click="openQr(row)">二维码</el-button>

@@ -181,11 +181,11 @@ onMounted(() => {
           <el-table-column label="公开月份" width="110">
             <template #default="{ row }"><el-tag effect="plain">{{ row.bill_month }}</el-tag></template>
           </el-table-column>
-          <el-table-column label="收入" width="120" align="right"><template #default="{ row }">{{ formatMoney(row.income) }}</template></el-table-column>
-          <el-table-column label="支出" width="120" align="right"><template #default="{ row }">{{ formatMoney(row.expense) }}</template></el-table-column>
-          <el-table-column label="上月结余" width="120" align="right"><template #default="{ row }">{{ formatMoney(row.previous_balance) }}</template></el-table-column>
-          <el-table-column label="本月结余" width="120" align="right"><template #default="{ row }">{{ formatMoney(row.current_balance) }}</template></el-table-column>
-          <el-table-column label="状态" width="130"><template #default="{ row }"><el-tag :type="REVIEW_TAG_TYPES[row.state]">{{ REVIEW_LABELS[row.state] }}</el-tag></template></el-table-column>
+          <el-table-column label="收入" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.income) }}</template></el-table-column>
+          <el-table-column label="支出" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.expense) }}</template></el-table-column>
+          <el-table-column label="上月结余" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.previous_balance) }}</template></el-table-column>
+          <el-table-column label="本月结余" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.current_balance) }}</template></el-table-column>
+          <el-table-column label="状态" width="110"><template #default="{ row }"><el-tag :type="REVIEW_TAG_TYPES[row.state]">{{ REVIEW_LABELS[row.state] }}</el-tag></template></el-table-column>
           <el-table-column v-if="hasPerm('finance:publish')" label="公开" width="80">
             <template #default="{ row }">
               <el-tooltip content="审核通过后才能公开" :disabled="row.state === 'approved'" placement="top">
@@ -193,7 +193,7 @@ onMounted(() => {
               </el-tooltip>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="230" fixed="right">
+          <el-table-column label="操作" width="190" fixed="right" align="right">
             <template #default="{ row }">
               <TableActions>
                 <el-button v-if="['draft', 'rejected'].includes(row.state)" size="small" type="primary" :aria-label="`录入${row.venue_name}${row.bill_month}的收支明细`" @click="openBill(row)">录入明细</el-button>
@@ -241,7 +241,7 @@ onMounted(() => {
             </el-table-column>
             <el-table-column prop="summary" label="简要描述" min-width="140" />
             <el-table-column label="金额" width="120" align="right"><template #default="{ row }">{{ formatMoney(row.amount) }}</template></el-table-column>
-            <el-table-column label="操作" width="170">
+            <el-table-column label="操作" width="140" align="right">
               <template #default="{ row }">
                 <TableActions v-if="billEditable">
                   <el-button size="small" type="primary" :aria-label="`编辑明细${row.summary}`" @click="editItem(row)">编辑</el-button>

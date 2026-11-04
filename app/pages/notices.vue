@@ -108,7 +108,7 @@ onMounted(load)
           <el-table-column v-if="hasPerm('notices:publish')" label="状态" width="100">
             <template #default="{ row }"><el-switch v-model="row.published" :active-value="1" :inactive-value="0" inline-prompt active-text="发布" inactive-text="隐藏" :aria-label="`《${row.title}》发布状态`" @change="publish(row)" /></template>
           </el-table-column>
-          <el-table-column label="操作" width="190" fixed="right">
+          <el-table-column label="操作" width="160" fixed="right" align="right">
             <template #default="{ row }">
               <TableActions>
                 <el-button v-if="hasPerm('notices:edit')" size="small" type="primary" :aria-label="`编辑《${row.title}》`" @click="editNotice(row)">编辑</el-button>

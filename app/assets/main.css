@@ -48,7 +48,7 @@ img { max-width: 100%; }
 .status-text { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .table-region { max-width: 100%; overflow: auto; }
 /* 表格行内操作：一律使用带边框/底色的实体按钮，禁止纯文本链接式按钮 */
-.table-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.table-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
 .table-actions .el-button { margin: 0; }
 .table-actions .el-button.is-link,
 .table-actions .el-button.is-text { padding: 5px 11px; border: 1px solid var(--el-color-primary-light-5); background: var(--el-color-primary-light-9); }
@@ -58,6 +58,32 @@ img { max-width: 100%; }
 .empty-state { padding: 48px 20px; text-align: center; color: var(--muted); }
 .pagination { display: flex; justify-content: flex-end; margin-block-start: 20px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: inset(50%); white-space: nowrap; border: 0; }
+
+/* 弹窗：高度永不超过可视区，内容区独立滚动，底部操作按钮常驻可见 */
+.el-overlay-dialog { padding-block: 0; }
+.el-dialog {
+  --el-dialog-margin-top: 4vh;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 8vh);
+  overflow: hidden;
+  border-radius: 14px;
+}
+.el-dialog__header { flex: none; }
+.el-dialog__body { flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.el-dialog__footer { flex: none; border-block-start: 1px solid var(--line); background: var(--surface); }
+.dialog-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; }
+.dialog-actions .el-button { margin: 0; }
+
+/* 抽屉：宽度限制在可视区内，正文滚动 */
+.el-drawer { max-width: 100vw; }
+
+@media (max-width: 760px) {
+  .el-dialog { --el-dialog-margin-top: 3vh; max-height: calc(100dvh - 6vh); border-radius: 12px; }
+  .el-dialog__body { padding: 16px; }
+  .dialog-actions { justify-content: stretch; }
+  .dialog-actions .el-button { flex: 1 1 0; }
+}
 .rich-content { overflow-wrap: anywhere; }
 .rich-content img { height: auto; }
 
