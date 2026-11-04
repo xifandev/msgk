@@ -20,9 +20,23 @@ export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') throw createError({ statusCode: 405, message: '仅支持 GET 请求' })
   const input = getQuery(event)
   const venueId = positiveId(input.venueId, '场所ID')
-  const month = String(input.month ?? '').trim()
-  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+  const monthInput = String(input.month ?? '').trim()
+  if (monthInput && !/^\d{4}-(0[1-9]|1[0-2])$/.test(monthInput)) {
     throw createError({ statusCode: 400, message: '月份格式必须为 YYYY-MM' })
+  }
+
+  // 未指定月份时，回退到该场所最近一次对外公开的月份（小程序默认视图，不含未来月份）
+  let month = monthInput
+  if (!month) {
+    const latest = await queryOne<{ bill_month: string }>(
+      `SELECT bill_month FROM bills
+       WHERE venue_id = ? AND state = 'approved' AND published = 1
+         AND bill_month <= DATE_FORMAT(NOW(), '%Y-%m')
+       ORDER BY bill_month DESC LIMIT 1`,
+      [venueId]
+    )
+    if (!latest) return { month: '', bill: null, items: [] }
+    month = latest.bill_month
   }
 
   const bill = await queryOne<BillRow>(
@@ -30,13 +44,14 @@ export default defineEventHandler(async (event) => {
      FROM bills WHERE venue_id = ? AND bill_month = ? AND state = 'approved' AND published = 1`,
     [venueId, month]
   )
-  if (!bill) return { bill: null, items: [] }
+  if (!bill) return { month, bill: null, items: [] }
 
   const items = await query<BillItemRow>(
     'SELECT id, occurred_on, kind, summary, amount FROM bill_items WHERE bill_id = ? ORDER BY occurred_on ASC, id ASC',
     [bill.id]
   )
   return {
+    month,
     bill: {
       id: bill.id,
       venueId: bill.venue_id,

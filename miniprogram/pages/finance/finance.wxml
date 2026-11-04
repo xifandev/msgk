@@ -99,14 +99,14 @@
           </view>
 
           <view class="empty-card" wx:else>
-            <ms-empty description="本月暂无公开明细">
+            <ms-empty description="该月暂无公开明细">
               <text class="empty-card__hint">收支明细由场所按月报送，审核通过后公开</text>
             </ms-empty>
           </view>
         </block>
 
         <view class="empty-card" wx:elif="{{ monthLoaded && !bill }}">
-          <ms-empty description="本月暂无公开数据">
+          <ms-empty description="该月暂无公开数据">
             <text class="empty-card__hint">可切换月份查看历史公开记录</text>
           </ms-empty>
         </view>

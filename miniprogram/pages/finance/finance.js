@@ -1,9 +1,24 @@
 // pages/finance/finance.js
 const { get } = require('../../utils/request');
-const { formatDate, formatAmount, previousMonth } = require('../../utils/format');
+const { formatDate, formatAmount } = require('../../utils/format');
 const { getVenueId, redirectHome } = require('../../utils/venue');
 
 const WEEK = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+
+// 年份选择列：近 11 年，必要时扩展到目标年份
+function buildYearColumns(targetYear) {
+  const currentYear = new Date().getFullYear();
+  const end = Math.max(currentYear, Number(targetYear) || currentYear);
+  const yearColumns = [];
+  let yearDefaultIndex = 0;
+  for (let i = end - 10; i <= end; i++) {
+    yearColumns.push(`${i}`);
+    if (i === Number(targetYear)) {
+      yearDefaultIndex = yearColumns.length - 1;
+    }
+  }
+  return { yearColumns, yearDefaultIndex };
+}
 
 // 百分比取整，避免出现 NaN
 function percent(value, total) {
@@ -75,6 +90,7 @@ Page({
     this.setData({ monthLoaded: false });
     get('/api/public/finance/monthly', {
       venueId: this.data.venueId,
+      // 月份为空时由服务端解析为该场所最近一次对外公开的月份
       month: this.data.month,
     })
       .then((res) => {
@@ -88,7 +104,19 @@ Page({
           amountText: `${item.kind === 'expense' ? '-' : '+'}${formatAmount(item.amount)}`,
           date: formatDate(item.occurredOn),
         }));
-        this.setData({ bill, items, groups: this.groupByDay(items), monthLoaded: true });
+        const monthPatch = this.resolveMonth(res.month);
+        this.setData(
+          Object.assign(
+            { bill, items, groups: this.groupByDay(items), monthLoaded: true },
+            monthPatch
+          ),
+          () => {
+            // 年份跟随最新公开月份变化时，补齐已激活的年度页
+            if (monthPatch && monthPatch.year != null && this.data.active === 1) {
+              this.loadYearly();
+            }
+          }
+        );
       })
       .catch(() => {
         if (requestId !== this.monthlyRequestId) {
@@ -96,6 +124,31 @@ Page({
         }
         this.setData({ bill: null, items: [], groups: [], monthLoaded: true });
       });
+  },
+
+  // 服务端回传的实际月份 → 页面展示状态（月份、选择器定位、年度页年份）
+  resolveMonth(month) {
+    if (!month) {
+      return this.data.month ? null : { monthText: '暂无公开记录' };
+    }
+    if (month === this.data.month) {
+      return null;
+    }
+    const [y, m] = month.split('-');
+    const targetYear = Number(y);
+    const patch = {
+      month,
+      monthText: `${y}年${m}月`,
+      currentDate: new Date(targetYear, Number(m) - 1, 1).getTime(),
+    };
+    if (targetYear !== this.data.year) {
+      const columns = buildYearColumns(targetYear);
+      patch.year = targetYear;
+      patch.yearColumns = columns.yearColumns;
+      patch.yearDefaultIndex = columns.yearDefaultIndex;
+      patch.pendingYearIndex = columns.yearDefaultIndex;
+    }
+    return patch;
   },
 
   // 结余卡：金额、环比、收支占比
@@ -296,33 +349,20 @@ Page({
       return;
     }
 
-    const month = previousMonth();
-    const [y, m] = month.split('-');
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const targetYear = Number(y);
-    const yearColumns = [];
-    let yearDefaultIndex = 0;
-    for (let i = currentYear - 10; i <= currentYear; i++) {
-      yearColumns.push(`${i}`);
-      if (i === targetYear) {
-        yearDefaultIndex = yearColumns.length - 1;
-      }
-    }
-
-    // 选择器默认定位到当前展示月份
-    const pickerDate = new Date(Number(y), Number(m) - 1, 1).getTime();
+    // 默认视图由服务端解析为该场所最近一次对外公开的月份，年度页年份随之对齐
+    const currentYear = new Date().getFullYear();
+    const columns = buildYearColumns(currentYear);
 
     this.setData(
       {
         venueId,
-        month,
-        monthText: `${y}年${m}月`,
-        currentDate: pickerDate,
-        year: targetYear,
-        yearColumns,
-        yearDefaultIndex,
-        pendingYearIndex: yearDefaultIndex,
+        month: '',
+        monthText: '',
+        currentDate: Date.now(),
+        year: currentYear,
+        yearColumns: columns.yearColumns,
+        yearDefaultIndex: columns.yearDefaultIndex,
+        pendingYearIndex: columns.yearDefaultIndex,
       },
       () => this.loadMonthly()
     );
