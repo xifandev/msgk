@@ -1,84 +1,64 @@
 // pages/venue-select/venue-select.js
-// 场所选择独立页：沉浸式页头 + 搜索 + 当前场所 + 最近选择 + 乡镇分组列表 + 索引导航
+// 场所选择独立页：沉浸式页头 + 搜索 + 乡镇分组列表 + 右侧索引导航
 // 选择后写入本地存储 cid 并返回首页，首页 onShow 同步刷新
 const { get } = require('../../utils/request');
 
-const RECENT_KEY = 'ms_recent_venues';
-const RECENT_MAX = 6;
 const SEARCH_LIMIT = 50;
 
 Page({
   data: {
+    // 状态栏高度：自定义导航栏下自行留出安全区
+    statusBarHeight: 20,
     loading: true,
     loadError: false,
-    // 搜索
     keyword: '',
     results: [],
-    // 分组数据
     sections: [],
     rail: [],
     total: 0,
     townshipCount: 0,
-    // 当前场所 / 最近选择
-    current: null,
-    recent: [],
-    activeRail: 0,
+    activeRail: -1,
   },
 
   onLoad() {
+    const info = typeof wx.getWindowInfo === 'function' ? wx.getWindowInfo() : wx.getSystemInfoSync();
     this.venueList = [];
+    this.setData({ statusBarHeight: (info && info.statusBarHeight) || 20 });
     this.load();
   },
 
-  // 拉取场所列表并组装分组、索引、当前场所与最近选择
+  // 拉取场所列表并组装分组与索引
   load() {
     this.setData({ loading: true, loadError: false });
     get('/api/public/venues', {}, { loading: false })
       .then((res) => {
-        const list = res.list || [];
-        this.venueList = list;
-
         const sections = (res.tree || []).map((group, index) => {
           const children = (group.children || [])
             .slice()
             .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
-            .map((v) => ({ id: v.id, name: v.name, township: v.township }));
+            .map((v) => ({
+              id: v.id,
+              // 树节点用 text 承载名称，兼容 name 字段
+              name: v.name || v.text || '',
+              township: v.township || group.text || '',
+            }));
           return { id: 'sec-' + index, text: group.text, count: children.length, children };
         });
 
-        const rail = sections.map((s, i) => ({ index: i, label: s.text.slice(0, 1) }));
-
-        const cid = String(wx.getStorageSync('cid') || '');
-        const current = cid ? list.find((v) => String(v.id) === cid) || null : null;
+        this.venueList = [];
+        sections.forEach((s) => s.children.forEach((c) => this.venueList.push(c)));
 
         this.setData({
           loading: false,
           sections,
-          rail,
-          total: list.length,
+          rail: sections.map((s, i) => ({ index: i, label: shortLabel(s.text) })),
+          total: this.venueList.length,
           townshipCount: sections.length,
-          current: current ? { id: current.id, name: current.name, township: current.township } : null,
-          recent: this.buildRecent(list),
         });
       })
       .catch(() => {
         this.setData({ loading: false, loadError: true });
       });
-  },
-
-  // 最近选择：按存储顺序解析成场所对象，最多 RECENT_MAX 个
-  buildRecent(list) {
-    const raw = wx.getStorageSync(RECENT_KEY);
-    if (!Array.isArray(raw) || raw.length === 0) return [];
-    const map = {};
-    list.forEach((v) => {
-      map[String(v.id)] = v;
-    });
-    return raw
-      .map((id) => map[String(id)])
-      .filter(Boolean)
-      .slice(0, RECENT_MAX)
-      .map((v) => ({ id: v.id, name: v.name, township: v.township }));
   },
 
   // 搜索：名称或乡镇模糊匹配，命中片段高亮
@@ -91,7 +71,7 @@ Page({
     const results = (this.venueList || [])
       .filter((v) => v.name.indexOf(keyword) > -1 || v.township.indexOf(keyword) > -1)
       .slice(0, SEARCH_LIMIT)
-      .map((v) => ({ id: v.id, township: v.township, segs: splitHighlight(v.name, keyword) }));
+      .map((v) => ({ id: v.id, name: v.name, township: v.township, segs: splitHighlight(v.name, keyword) }));
     this.setData({ keyword, results });
   },
 
@@ -99,7 +79,7 @@ Page({
     this.setData({ keyword: '', results: [] });
   },
 
-  // 选择场所：写入存储、记录最近选择并返回
+  // 选择场所：写入 cid 并返回
   onPick(e) {
     const id = e.currentTarget.dataset.id;
     if (id == null) {
@@ -112,11 +92,6 @@ Page({
 
     wx.vibrateShort({ type: 'light' });
     wx.setStorageSync('cid', String(id));
-
-    const raw = (wx.getStorageSync(RECENT_KEY) || []).filter((x) => x !== String(id));
-    raw.unshift(String(id));
-    wx.setStorageSync(RECENT_KEY, raw.slice(0, RECENT_MAX));
-
     wx.showToast({ title: '已选择该场所', icon: 'success', duration: 500 });
     setTimeout(() => {
       wx.navigateBack({
@@ -139,6 +114,11 @@ Page({
     });
   },
 });
+
+// 索引标签：去掉“镇 / 乡”，保留“街道”
+function shortLabel(text) {
+  return String(text || '').replace(/[镇乡]$/, '');
+}
 
 // 名称按关键词拆成高亮片段
 function splitHighlight(name, keyword) {

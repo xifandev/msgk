@@ -1,5 +1,5 @@
 /* pages/venue-select/venue-select.wxss */
-/* 场所选择独立页：沉浸式红渐变页头 + 悬浮搜索卡 + 分组卡片列表 */
+/* 场所选择独立页：沉浸式红渐变页头 + 悬浮搜索卡 + 分组列表 + 右侧乡镇索引 */
 page {
   background-color: #f1f2f4;
 }
@@ -12,10 +12,9 @@ page {
 /* ---------- 页头 ---------- */
 .hero {
   position: relative;
-  padding-top: calc(env(safe-area-inset-top) + 20rpx);
   padding-left: 40rpx;
   padding-right: 40rpx;
-  padding-bottom: 130rpx;
+  padding-bottom: 110rpx;
   background: linear-gradient(135deg, #c00d22 0%, #d31027 45%, #ea384d 100%);
   overflow: hidden;
 }
@@ -44,7 +43,7 @@ page {
 .hero__mark {
   position: absolute;
   right: 44rpx;
-  bottom: 24rpx;
+  bottom: 20rpx;
   pointer-events: none;
 }
 
@@ -52,7 +51,7 @@ page {
   display: flex;
   align-items: center;
   height: 64rpx;
-  margin-bottom: 30rpx;
+  margin-bottom: 26rpx;
 }
 
 .hero__back {
@@ -91,7 +90,7 @@ page {
   z-index: 2;
   display: flex;
   align-items: center;
-  margin: -64rpx 32rpx 0;
+  margin: -56rpx 32rpx 0;
   height: 92rpx;
   padding: 0 28rpx;
   border-radius: 46rpx;
@@ -122,144 +121,17 @@ page {
   justify-content: center;
 }
 
-/* ---------- 当前场所 ---------- */
-.current-card {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  margin: 28rpx 32rpx 0;
-  padding: 30rpx 28rpx;
-  border-radius: 28rpx;
-  background: linear-gradient(135deg, #fff7f5 0%, #ffffff 45%);
-  border: 1rpx solid rgba(211, 16, 39, 0.14);
-  box-shadow: 0 8rpx 24rpx rgba(211, 16, 39, 0.06);
-}
-
-.current-card__avatar {
-  flex-shrink: 0;
-  width: 88rpx;
-  height: 88rpx;
-  border-radius: 26rpx;
-  background: linear-gradient(135deg, #d31027, #ea384d);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.current-card__body {
-  flex: 1;
-  min-width: 0;
-  margin: 0 20rpx;
-}
-
-.current-card__label {
-  font-size: 22rpx;
-  color: #969799;
-  letter-spacing: 2rpx;
-}
-
-.current-card__name {
-  margin-top: 6rpx;
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #1f2329;
-  line-height: 1.4;
-  word-break: break-all;
-}
-
-.current-card__town {
-  display: flex;
-  align-items: center;
-  margin-top: 8rpx;
-  font-size: 24rpx;
-  color: #969799;
-}
-
-.current-card__town-icon {
-  display: flex;
-  margin-right: 6rpx;
-}
-
-.current-card__tag {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  padding: 10rpx 20rpx;
-  border-radius: 999rpx;
-  background: rgba(211, 16, 39, 0.08);
-  color: #d31027;
-  font-size: 24rpx;
-}
-
-.current-card__tag text {
-  margin-left: 6rpx;
-}
-
-/* ---------- 最近选择 ---------- */
-.recent {
-  margin-top: 32rpx;
-  padding-left: 40rpx;
-}
-
-.recent__title {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #646566;
-  margin-bottom: 16rpx;
-}
-
-.recent__scroll {
-  width: 100%;
-  white-space: nowrap;
-}
-
-.recent__chips {
-  display: inline-flex;
-  padding-right: 40rpx;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  max-width: 330rpx;
-  padding: 14rpx 24rpx;
-  margin-right: 16rpx;
-  border-radius: 999rpx;
-  background-color: #ffffff;
-  border: 1rpx solid #ebedf0;
-}
-
-.chip--hover {
-  background-color: #f7f8fa;
-}
-
-.chip__icon {
-  display: flex;
-  margin-right: 8rpx;
-  flex-shrink: 0;
-}
-
-.chip__name {
-  font-size: 26rpx;
-  color: #323233;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 /* ---------- 乡镇分组 ---------- */
 .section {
-  margin-top: 36rpx;
+  margin-top: 34rpx;
 }
 
 .section__head {
   position: sticky;
-  top: 0;
   z-index: 5;
   display: flex;
   align-items: center;
-  padding: 10rpx 40rpx 14rpx;
+  padding: 12rpx 40rpx 14rpx;
   background-color: #f1f2f4;
 }
 
@@ -324,10 +196,6 @@ page {
   justify-content: center;
 }
 
-.venue__avatar.is-on {
-  background: linear-gradient(135deg, #d31027, #ea384d);
-}
-
 .venue__body {
   flex: 1;
   min-width: 0;
@@ -341,11 +209,6 @@ page {
   word-break: break-all;
 }
 
-.venue.is-active .venue__name {
-  color: #d31027;
-  font-weight: 600;
-}
-
 .venue__town {
   display: flex;
   align-items: center;
@@ -357,11 +220,6 @@ page {
 .venue__town-icon {
   display: flex;
   margin-right: 6rpx;
-}
-
-.venue__check {
-  flex-shrink: 0;
-  margin-left: 12rpx;
 }
 
 /* 搜索命中高亮 */
@@ -415,32 +273,34 @@ page {
   color: #c3c6cb;
 }
 
-/* ---------- 右侧索引导航 ---------- */
+/* ---------- 右侧乡镇索引 ---------- */
 .rail {
   position: fixed;
-  right: 10rpx;
-  top: 42%;
+  right: 8rpx;
+  top: 46%;
   transform: translateY(-50%);
   z-index: 20;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10rpx 6rpx;
+  padding: 8rpx 4rpx;
   border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.88);
   box-shadow: 0 4rpx 16rpx rgba(31, 35, 41, 0.10);
 }
 
 .rail__item {
-  width: 44rpx;
-  height: 44rpx;
-  margin: 2rpx 0;
-  border-radius: 50%;
+  height: 46rpx;
+  margin: 1rpx 0;
+  padding: 0 12rpx;
+  border-radius: 999rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 20rpx;
+  line-height: 1;
   color: #646566;
+  white-space: nowrap;
 }
 
 .rail__item.is-active {

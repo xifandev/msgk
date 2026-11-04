@@ -1,11 +1,11 @@
 <view class="page">
 
-  <!-- 沉浸式页头 -->
-  <view class="hero">
+  <!-- 沉浸式页头：按状态栏高度留出安全区 -->
+  <view class="hero" style="padding-top:{{ statusBarHeight + 10 }}px">
     <view class="hero__glow hero__glow--one"></view>
     <view class="hero__glow hero__glow--two"></view>
     <view class="hero__mark">
-      <ms-icon name="building" size="160rpx" color="rgba(255,255,255,0.14)" />
+      <ms-icon name="building" size="150rpx" color="rgba(255,255,255,0.13)" />
     </view>
 
     <view class="hero__nav">
@@ -68,17 +68,17 @@
     </view>
     <view wx:else class="result-list">
       <view
-        class="venue {{ item.id == current.id ? 'is-active' : '' }}"
+        class="venue"
         wx:for="{{ results }}"
         wx:key="id"
         data-id="{{ item.id }}"
         bind:tap="onPick"
         hover-class="venue--hover"
         aria-role="button"
-        aria-label="选择场所"
+        aria-label="选择场所 {{ item.name }}"
       >
-        <view class="venue__avatar {{ item.id == current.id ? 'is-on' : '' }}">
-          <ms-icon name="building" size="34rpx" color="{{ item.id == current.id ? '#ffffff' : '#d31027' }}" />
+        <view class="venue__avatar">
+          <ms-icon name="building" size="34rpx" color="#d31027" />
         </view>
         <view class="venue__body">
           <view class="venue__name">
@@ -91,72 +91,26 @@
             <text>{{ item.township }}</text>
           </view>
         </view>
-        <view wx:if="{{ item.id == current.id }}" class="venue__check">
-          <ms-icon name="checked" size="34rpx" color="#d31027" />
-        </view>
       </view>
       <view class="list-end" wx:if="{{ results.length >= 50 }}">仅显示前 50 条，请细化关键词</view>
     </view>
   </block>
 
-  <!-- 浏览模式 -->
+  <!-- 浏览模式：按乡镇分组的场所列表 -->
   <block wx:else>
-
-    <!-- 当前场所 -->
-    <view class="current-card" wx:if="{{ current }}">
-      <view class="current-card__avatar">
-        <ms-icon name="building" size="38rpx" color="#ffffff" />
-      </view>
-      <view class="current-card__body">
-        <view class="current-card__label">当前使用</view>
-        <view class="current-card__name">{{ current.name }}</view>
-        <view class="current-card__town">
-          <view class="current-card__town-icon"><ms-icon name="location" size="22rpx" color="#ea8f95" /></view>
-          <text>{{ current.township }}</text>
-        </view>
-      </view>
-      <view class="current-card__tag">
-        <ms-icon name="passed" size="24rpx" color="#d31027" />
-        <text>已选</text>
-      </view>
-    </view>
-
-    <!-- 最近选择 -->
-    <view class="recent" wx:if="{{ recent.length > 0 }}">
-      <view class="recent__title">最近选择</view>
-      <scroll-view class="recent__scroll" scroll-x>
-        <view class="recent__chips">
-          <view
-            class="chip"
-            wx:for="{{ recent }}"
-            wx:key="id"
-            data-id="{{ item.id }}"
-            bind:tap="onPick"
-            hover-class="chip--hover"
-            aria-role="button"
-            aria-label="选择最近场所 {{ item.name }}"
-          >
-            <view class="chip__icon"><ms-icon name="location" size="22rpx" color="#d31027" /></view>
-            <text class="chip__name">{{ item.name }}</text>
-          </view>
-        </view>
-      </scroll-view>
-    </view>
-
-    <!-- 乡镇分组列表 -->
     <view wx:if="{{ sections.length === 0 }}" class="state">
       <ms-empty description="暂无场所数据" />
     </view>
 
     <view wx:for="{{ sections }}" wx:key="id" wx:for-item="group" class="section">
-      <view class="section__head" id="{{ group.id }}">
+      <view class="section__head" id="{{ group.id }}" style="top:{{ statusBarHeight }}px">
         <view class="section__dot"></view>
         <text class="section__name">{{ group.text }}</text>
         <text class="section__count">{{ group.count }} 个场所</text>
       </view>
       <view class="section__body">
         <view
-          class="venue {{ v.id == current.id ? 'is-active' : '' }}"
+          class="venue"
           wx:for="{{ group.children }}"
           wx:for-item="v"
           wx:key="id"
@@ -166,8 +120,8 @@
           aria-role="button"
           aria-label="选择场所 {{ v.name }}"
         >
-          <view class="venue__avatar {{ v.id == current.id ? 'is-on' : '' }}">
-            <ms-icon name="building" size="34rpx" color="{{ v.id == current.id ? '#ffffff' : '#d31027' }}" />
+          <view class="venue__avatar">
+            <ms-icon name="building" size="34rpx" color="#d31027" />
           </view>
           <view class="venue__body">
             <view class="venue__name">{{ v.name }}</view>
@@ -176,9 +130,6 @@
               <text>{{ v.township }}</text>
             </view>
           </view>
-          <view wx:if="{{ v.id == current.id }}" class="venue__check">
-            <ms-icon name="checked" size="34rpx" color="#d31027" />
-          </view>
         </view>
       </view>
     </view>
@@ -186,7 +137,7 @@
     <view class="list-end" wx:if="{{ sections.length > 0 }}">— 已展示全部场所 —</view>
   </block>
 
-  <!-- 乡镇索引（右侧快捷导航） -->
+  <!-- 乡镇索引（右侧快捷导航，显示乡镇全称） -->
   <view class="rail" wx:if="{{ !keyword && !loading && sections.length > 0 }}">
     <view
       class="rail__item {{ activeRail === index ? 'is-active' : '' }}"
@@ -195,7 +146,7 @@
       data-index="{{ index }}"
       bind:tap="onRailTap"
       aria-role="button"
-      aria-label="跳转到分组 {{ item.label }}"
+      aria-label="跳转到 {{ item.label }}"
     >{{ item.label }}</view>
   </view>
 </view>
