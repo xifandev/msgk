@@ -8,7 +8,7 @@ let client: InstanceType<typeof Dysmsapi> | null = null
 
 export async function sendSmsCode(phone: string, code: string) {
   const config = useRuntimeConfig()
-  if (config.smsMock === '1') {
+  if (String(config.smsMock) === '1') {
     console.log(`[sms:mock] phone=${phone.slice(0, 3)}****${phone.slice(-4)}`)
     return
   }

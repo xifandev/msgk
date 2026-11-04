@@ -32,6 +32,6 @@ export default defineEventHandler(async (event) => {
   }
   await execute('DELETE FROM login_codes WHERE expires_at < DATE_SUB(NOW(), INTERVAL 1 DAY) OR used_at < DATE_SUB(NOW(), INTERVAL 1 DAY)')
   const response: Record<string, unknown> = { ok: true, cooldown: 60, message: '如果账号已开通，验证码将发送到该手机号' }
-  if (useRuntimeConfig().smsMock === '1') response.devCode = created.code
+  if (String(useRuntimeConfig().smsMock) === '1') response.devCode = created.code
   return response
 })

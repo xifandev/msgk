@@ -43,7 +43,7 @@
 --     一律落入 role_id=3（场所管理员）占位，并在第 8 节列出清单，必须人工
 --     逐个改派角色，不要视为已正确映射。
 --   金额：旧 mingxi.jine、zhangdan.shouru/zhichu/shangyue_jieyu/
---     benyue_jieyu 按 DECIMAL(14,2) 转换，空值按 0 处理。
+--     benyue_jieyu 按 DECIMAL(14,2) 转换，空值或 NaN 等无法识别的结余按 0 处理。
 --   日期：旧库时间列多为字符串，凡匹配 YYYY-MM-DD[ hh:mm:ss] 前缀的转为
 --     DATETIME/DATE，空串/NULL/无法识别的一律置 NULL（created_at 除外，
 --     置 NULL 会破坏审计，改用 NOW() 或账单月首日兜底并注明）。
@@ -107,7 +107,7 @@ FROM msgk_legacy.changsuo c;
 -- 第 2 节：管理员 admin → admins
 -- 列映射：name(手机号)→phone、myname→name、rid→role_id、danwei→organization、
 -- other→note、status(200 启用)→status(1/0)、cids(JSON)→venue_ids、
--- tongzhi→notice_enabled、last_login_time→last_login_at。
+-- notice_enabled 默认启用、last_login_time→last_login_at。
 -- 主键处理：新库种子超管已占用 id=1，与旧 aid=1 冲突，分三步处理：
 --   A. 手机号已存在于新库的账号：不重复插入，旧 aid 映射到现有 id；
 --   B. 旧 aid 未被占用的：保留旧主键插入；
@@ -126,7 +126,7 @@ CREATE TEMPORARY TABLE tmp_admin_map (
 INSERT INTO tmp_admin_map (old_aid, new_id)
 SELECT a.aid, n.id
 FROM msgk_legacy.admin a
-JOIN admins n ON n.phone = a.name;
+JOIN admins n ON n.phone = a.name COLLATE utf8mb4_unicode_ci;
 
 -- 2.B 保留旧主键插入（aid 未冲突、手机号未迁移过；同手机号多条取 aid 最小者）
 INSERT INTO admins (id, phone, name, role_id, organization, note, status,
@@ -141,7 +141,7 @@ SELECT
   CASE WHEN CAST(a.status AS UNSIGNED) IN (1, 200) THEN 1 ELSE 0 END,
   CASE WHEN a.rid IN (1, 999) THEN 1 ELSE 0 END,
   CASE WHEN JSON_VALID(a.cids) THEN a.cids ELSE JSON_ARRAY() END,
-  CASE WHEN CAST(COALESCE(a.tongzhi, '1') AS UNSIGNED) = 0 THEN 0 ELSE 1 END,
+  1,
   CASE WHEN a.last_login_time REGEXP '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
        THEN CAST(a.last_login_time AS DATETIME) ELSE NULL END,
   NOW()
@@ -150,16 +150,15 @@ FROM (
   FROM msgk_legacy.admin t
 ) a
 WHERE a.aid = a.min_aid_per_phone
-  AND NOT EXISTS (SELECT 1 FROM tmp_admin_map m WHERE m.old_aid = a.aid)
+  AND NOT EXISTS (SELECT 1 FROM (SELECT old_aid FROM tmp_admin_map) AS m WHERE m.old_aid = a.aid)
   AND NOT EXISTS (SELECT 1 FROM admins n WHERE n.id = a.aid)
-  AND NOT EXISTS (SELECT 1 FROM admins n WHERE n.phone = a.name);
+  AND NOT EXISTS (SELECT 1 FROM admins n WHERE n.phone = a.name COLLATE utf8mb4_unicode_ci);
 
 -- 2.B 映射补齐
-INSERT INTO tmp_admin_map (old_aid, new_id)
+INSERT IGNORE INTO tmp_admin_map (old_aid, new_id)
 SELECT a.aid, n.id
 FROM msgk_legacy.admin a
-JOIN admins n ON n.phone = a.name
-WHERE NOT EXISTS (SELECT 1 FROM tmp_admin_map m WHERE m.old_aid = a.aid);
+JOIN admins n ON n.phone = a.name COLLATE utf8mb4_unicode_ci;
 
 -- 2.C 主键冲突（典型：旧 aid=1 与种子超管）且手机号未迁移的账号，平移主键
 SET @admin_id_offset := GREATEST(
@@ -179,7 +178,7 @@ SELECT
   CASE WHEN CAST(a.status AS UNSIGNED) IN (1, 200) THEN 1 ELSE 0 END,
   CASE WHEN a.rid IN (1, 999) THEN 1 ELSE 0 END,
   CASE WHEN JSON_VALID(a.cids) THEN a.cids ELSE JSON_ARRAY() END,
-  CASE WHEN CAST(COALESCE(a.tongzhi, '1') AS UNSIGNED) = 0 THEN 0 ELSE 1 END,
+  1,
   CASE WHEN a.last_login_time REGEXP '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
        THEN CAST(a.last_login_time AS DATETIME) ELSE NULL END,
   NOW()
@@ -188,12 +187,11 @@ FROM (
   FROM msgk_legacy.admin t
 ) a
 WHERE a.aid = a.min_aid_per_phone
-  AND NOT EXISTS (SELECT 1 FROM tmp_admin_map m WHERE m.old_aid = a.aid);
+  AND NOT EXISTS (SELECT 1 FROM (SELECT old_aid FROM tmp_admin_map) AS m WHERE m.old_aid = a.aid);
 
-INSERT INTO tmp_admin_map (old_aid, new_id)
+INSERT IGNORE INTO tmp_admin_map (old_aid, new_id)
 SELECT a.aid, @admin_id_offset + a.aid
-FROM msgk_legacy.admin a
-WHERE NOT EXISTS (SELECT 1 FROM tmp_admin_map m WHERE m.old_aid = a.aid);
+FROM msgk_legacy.admin a;
 
 -- ============================================================================
 -- 第 3 节：场所介绍 jieshao → venue_profiles（保留 jid → id）
@@ -288,7 +286,6 @@ SELECT
         'position', COALESCE(jt.zhiwu, ''),
         'phone',    COALESCE(jt.tel, '')
       )
-      ORDER BY CAST(COALESCE(NULLIF(jt.paixu, ''), '0') AS UNSIGNED)
     )
     FROM JSON_TABLE(
       CASE WHEN JSON_VALID(r.neirong) THEN r.neirong ELSE '[]' END,
@@ -470,8 +467,10 @@ SELECT
        ELSE '1970-01' END, -- 异常格式兜底并占位，需人工修正（正常数据不会出现）
   CAST(COALESCE(NULLIF(z.shouru, ''), '0') AS DECIMAL(14,2)),
   CAST(COALESCE(NULLIF(z.zhichu, ''), '0') AS DECIMAL(14,2)),
-  CAST(COALESCE(NULLIF(z.shangyue_jieyu, ''), '0') AS DECIMAL(14,2)),
-  CAST(COALESCE(NULLIF(z.benyue_jieyu, ''), '0') AS DECIMAL(14,2)),
+  CASE WHEN TRIM(COALESCE(z.shangyue_jieyu, '')) REGEXP '^-?[0-9]+(\\.[0-9]+)?$'
+       THEN CAST(TRIM(z.shangyue_jieyu) AS DECIMAL(14,2)) ELSE 0 END,
+  CASE WHEN TRIM(COALESCE(z.benyue_jieyu, '')) REGEXP '^-?[0-9]+(\\.[0-9]+)?$'
+       THEN CAST(TRIM(z.benyue_jieyu) AS DECIMAL(14,2)) ELSE 0 END,
   CASE z.state
     WHEN '正在编辑'   THEN 'draft'
     WHEN '待镇级审核' THEN 'pending_town'
