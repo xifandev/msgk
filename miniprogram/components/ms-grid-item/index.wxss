@@ -1,0 +1,14 @@
+.ms-grid-item {
+  display: flex;
+  flex-direction: var(--ms-grid-direction, column);
+  align-items: center;
+  justify-content: center;
+  padding: 26rpx 8rpx;
+  box-sizing: border-box;
+  color: #323233;
+  font-size: 28rpx;
+}
+
+.ms-grid-item--hover {
+  background-color: #f7f8fa;
+}

@@ -1,0 +1,22 @@
+.ms-cell-group {
+  position: relative;
+  background-color: #fff;
+}
+
+.ms-cell-group--inset {
+  margin: 0 32rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.ms-cell-group--border {
+  border-top: 1rpx solid #ebedf0;
+  border-bottom: 1rpx solid #ebedf0;
+}
+
+.ms-cell-group__title {
+  padding: 32rpx 32rpx 16rpx;
+  font-size: 28rpx;
+  color: #969799;
+  line-height: 1.4;
+}

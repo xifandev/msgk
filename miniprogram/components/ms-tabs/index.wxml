@@ -1,0 +1,18 @@
+<view class="ms-tabs">
+  <view class="ms-tabs__nav {{ scrollable ? 'is-scrollable' : '' }}">
+    <view
+      wx:for="{{ titles }}"
+      wx:key="index"
+      class="ms-tabs__item {{ active === index ? 'is-active' : '' }}"
+      style="{{ active === index ? 'color:' + color : '' }}"
+      data-index="{{ index }}"
+      bind:tap="onTapTitle"
+    >
+      <text class="ms-tabs__text {{ ellipsis ? 'is-ellipsis' : '' }}">{{ item }}</text>
+      <view class="ms-tabs__line" wx:if="{{ active === index }}" style="background-color: {{ color }}; width: {{ lineWidth }}"></view>
+    </view>
+  </view>
+  <view class="ms-tabs__body" bind:touchstart="onTouchStart" bind:touchend="onTouchEnd">
+    <slot></slot>
+  </view>
+</view>

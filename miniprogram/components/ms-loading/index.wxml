@@ -1,0 +1,5 @@
+<view class="ms-loading">
+  <view class="ms-loading__spinner" style="width:{{ size }};height:{{ size }};border-color:{{ color }} rgba(0,0,0,0.08) rgba(0,0,0,0.08);"></view>
+  <view class="ms-loading__text" wx:if="{{ text }}" style="color:{{ color }}">{{ text }}</view>
+  <slot></slot>
+</view>

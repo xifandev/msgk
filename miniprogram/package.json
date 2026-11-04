@@ -2,11 +2,5 @@
   "name": "msgk-miniprogram",
   "version": "2.0.0",
   "private": true,
-  "description": "码上公开微信小程序（纯公开查询版）",
-  "scripts": {
-    "build:npm": "node scripts/build-npm.mjs"
-  },
-  "dependencies": {
-    "@vant/weapp": "^1.11.7"
-  }
+  "description": "码上公开微信小程序（纯公开查询版，UI 组件全部原生自研，无第三方组件库）"
 }

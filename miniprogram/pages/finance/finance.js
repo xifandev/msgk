@@ -9,6 +9,8 @@ Page({
   yearlyRequestId: 0,
 
   data: {
+    // 当前标签页索引：0 月度收支 / 1 年度收支
+    active: 0,
     venueId: '',
 
     // --------- 月度 ---------
@@ -33,17 +35,6 @@ Page({
     yearColumns: [],
     yearDefaultIndex: 0,
     pendingYearIndex: 0,
-
-    // 月份选择器显示文案
-    monthFormatter(type, value) {
-      if (type === 'year') {
-        return `${value}年`;
-      }
-      if (type === 'month') {
-        return `${value}月`;
-      }
-      return value;
-    },
   },
 
   // ------------------- 月度 -------------------
@@ -90,12 +81,15 @@ Page({
     this.setData({ monthPickerShow: false });
   },
 
+  // 年月选择器滚动时同步当前时间戳
   onMonthInput(e) {
-    this.setData({ currentDate: e.detail });
+    this.setData({ currentDate: e.detail.value });
   },
 
-  confirmMonth() {
-    const d = new Date(this.data.currentDate);
+  confirmMonth(e) {
+    // ms-datetime-picker 确认事件携带所选时间戳
+    const timestamp = e.detail && e.detail.value ? e.detail.value : this.data.currentDate;
+    const d = new Date(timestamp);
     const year = d.getFullYear();
     const month = `0${d.getMonth() + 1}`.slice(-2);
     this.setData(
@@ -157,16 +151,20 @@ Page({
     this.setData({ yearPickerShow: false });
   },
 
+  // 年份滚动选中
   onYearChange(e) {
     this.setData({ pendingYearIndex: e.detail.index });
   },
 
-  confirmYear() {
-    const year = Number(this.data.yearColumns[this.data.pendingYearIndex]);
+  confirmYear(e) {
+    // ms-picker 确认事件携带选中索引
+    const index = e.detail && e.detail.index != null ? e.detail.index : this.data.pendingYearIndex;
+    const year = Number(this.data.yearColumns[index]);
     this.setData(
       {
         year,
-        yearDefaultIndex: this.data.pendingYearIndex,
+        yearDefaultIndex: index,
+        pendingYearIndex: index,
         yearPickerShow: false,
         months: [],
         totals: null,
@@ -215,8 +213,11 @@ Page({
     );
   },
 
+  // 切换标签页：ms-tabs 为受控组件，需同步 active
   onTabChange(e) {
-    if (e.detail.title === '年度收支') {
+    const index = e.detail.index;
+    this.setData({ active: index });
+    if (index === 1) {
       this.loadYearly();
     }
   },

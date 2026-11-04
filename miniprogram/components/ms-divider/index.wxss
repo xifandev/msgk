@@ -1,0 +1,18 @@
+.ms-divider {
+  display: flex;
+  align-items: center;
+  margin: 16rpx 32rpx;
+}
+
+.ms-divider__line {
+  flex: 1;
+  height: 1rpx;
+  background-color: #ebedf0;
+  transform: scaleY(0.5);
+}
+
+.ms-divider__text {
+  padding: 0 24rpx;
+  font-size: 24rpx;
+  color: #969799;
+}

@@ -1,0 +1,3 @@
+<view class="ms-grid {{ border ? 'ms-grid--border' : '' }}" style="grid-template-columns: repeat({{ columnNum }}, 1fr); --ms-grid-direction: {{ direction === 'horizontal' ? 'row' : 'column' }}">
+  <slot></slot>
+</view>

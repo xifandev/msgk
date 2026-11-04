@@ -1,20 +1,42 @@
+<!-- 场所安全动态：按旧版 anquan 页 1:1 还原，vant 已全部替换为 ms-* 自研组件 -->
 <view class="corner-icon">
-  <van-icon name="bulb-o" />
+  <ms-icon name="bulb-o" size="180rpx" color="rgba(255,255,255,0.75)" />
 </view>
+
 <page-main title="场所安全动态" title1="安全无小事" title2="责任重于山" bind:chudi="onScrollLower">
-  <van-cell-group wx:if="{{ loaded && list.length === 0 }}">
-    <van-empty description="暂无安全文章" />
-  </van-cell-group>
-  <van-cell-group wx:else>
-    <van-cell wx:for="{{ list }}" wx:key="id">
-      <view slot="title" class="news-item" bind:tap="openArticle" data-id="{{ item.id }}">
-        <view class="news-title">{{ item.title }}</view>
-        <view class="news-time">{{ item.date }}</view>
+  <!-- 有数据：文章列表 -->
+  <ms-cell-group wx:if="{{ list.length > 0 }}">
+    <ms-cell
+      wx:for="{{ list }}"
+      wx:key="id"
+      bind:click="openArticle"
+      data-id="{{ item.id }}"
+    >
+      <view slot="title">
+        <view class="news_box">
+          <view class="news_item">
+            <view class="news_content">
+              <view class="news_title">{{ item.title }}</view>
+              <view class="news_time">
+                <text>{{ item.date }}</text>
+              </view>
+            </view>
+          </view>
+        </view>
       </view>
-    </van-cell>
-    <view class="load-status" wx:if="{{ list.length > 0 }}">
+    </ms-cell>
+    <!-- 底部加载状态 -->
+    <view class="load-status">
       <text wx:if="{{ isLoading }}">正在加载...</text>
       <text wx:elif="{{ noMoreData }}">已加载全部内容</text>
     </view>
-  </van-cell-group>
+  </ms-cell-group>
+  <!-- 首次加载中 -->
+  <view class="loading-box" wx:elif="{{ !loaded }}">
+    <ms-loading />
+  </view>
+  <!-- 无数据空态 -->
+  <ms-cell-group wx:else>
+    <ms-empty description="暂无安全文章" />
+  </ms-cell-group>
 </page-main>

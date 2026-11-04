@@ -1,0 +1,63 @@
+.ms-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 32rpx;
+  box-sizing: border-box;
+}
+
+.ms-empty__image {
+  position: relative;
+  width: 200rpx;
+  height: 150rpx;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.ms-empty__sheet {
+  position: relative;
+  z-index: 2;
+  width: 140rpx;
+  height: 112rpx;
+  background-color: #fff;
+  border: 1rpx solid #e5e6e8;
+  border-radius: 8rpx;
+  padding: 20rpx 16rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  box-shadow: 0 6rpx 14rpx rgba(0, 0, 0, 0.04);
+}
+
+.ms-empty__line {
+  height: 8rpx;
+  border-radius: 4rpx;
+  background-color: #e5e6e8;
+  margin-bottom: 10rpx;
+}
+
+.ms-empty__line--short {
+  width: 60%;
+}
+
+.ms-empty__base {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 46rpx;
+  background: linear-gradient(180deg, #f2f3f5 0%, #e9eaec 100%);
+  border-radius: 8rpx 8rpx 6rpx 6rpx;
+  z-index: 1;
+}
+
+.ms-empty__desc {
+  margin-top: 28rpx;
+  font-size: 26rpx;
+  color: #969799;
+  line-height: 1.5;
+  text-align: center;
+}

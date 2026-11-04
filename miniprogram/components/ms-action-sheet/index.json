@@ -1,0 +1,7 @@
+{
+  "component": true,
+  "usingComponents": {
+    "ms-popup": "/components/ms-popup/index",
+    "ms-icon": "/components/ms-icon/index"
+  }
+}

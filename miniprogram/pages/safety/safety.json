@@ -1,10 +1,11 @@
 {
   "usingComponents": {
     "page-main": "/components/page-main/page-main",
-    "van-cell": "@vant/weapp/cell/index",
-    "van-cell-group": "@vant/weapp/cell-group/index",
-    "van-empty": "@vant/weapp/empty/index",
-    "van-icon": "@vant/weapp/icon/index"
+    "ms-cell-group": "/components/ms-cell-group/index",
+    "ms-cell": "/components/ms-cell/index",
+    "ms-icon": "/components/ms-icon/index",
+    "ms-empty": "/components/ms-empty/index",
+    "ms-loading": "/components/ms-loading/index"
   },
   "disableScroll": true
 }

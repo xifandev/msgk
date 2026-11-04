@@ -1,0 +1,4 @@
+<view class="ms-cell-group {{ inset ? 'ms-cell-group--inset' : '' }} {{ border ? 'ms-cell-group--border' : '' }}">
+  <view class="ms-cell-group__title" wx:if="{{ title }}">{{ title }}</view>
+  <slot></slot>
+</view>

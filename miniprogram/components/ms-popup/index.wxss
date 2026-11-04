@@ -1,0 +1,88 @@
+.ms-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.ms-popup__mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  transition: opacity 0.26s ease;
+}
+
+.ms-popup__mask.is-visible {
+  opacity: 1;
+}
+
+.ms-popup__panel {
+  position: absolute;
+  background-color: #fff;
+  transition: transform 0.26s ease, opacity 0.26s ease;
+  box-sizing: border-box;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.ms-popup__panel.is-round {
+  border-radius: 32rpx 32rpx 0 0;
+}
+
+/* 底部弹出 */
+.ms-popup__panel--bottom {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transform: translate3d(0, 100%, 0);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.ms-popup__panel--bottom.is-visible {
+  transform: translate3d(0, 0, 0);
+}
+
+/* 居中弹出 */
+.ms-popup__panel--center {
+  top: 50%;
+  left: 50%;
+  width: 86%;
+  transform: translate3d(-50%, -50%, 0) scale(0.92);
+  opacity: 0;
+  border-radius: 20rpx;
+}
+
+.ms-popup__panel--center.is-visible {
+  transform: translate3d(-50%, -50%, 0) scale(1);
+  opacity: 1;
+}
+
+/* 顶部弹出 */
+.ms-popup__panel--top {
+  left: 0;
+  right: 0;
+  top: 0;
+  transform: translate3d(0, -100%, 0);
+}
+
+.ms-popup__panel--top.is-visible {
+  transform: translate3d(0, 0, 0);
+}
+
+/* 右侧弹出 */
+.ms-popup__panel--right {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 70%;
+  transform: translate3d(100%, 0, 0);
+}
+
+.ms-popup__panel--right.is-visible {
+  transform: translate3d(0, 0, 0);
+}

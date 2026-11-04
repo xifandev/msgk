@@ -1,0 +1,17 @@
+<view class="ms-picker">
+  <view class="ms-picker__toolbar" wx:if="{{ showToolbar }}">
+    <view class="ms-picker__btn" bind:tap="onCancel" hover-class="ms-picker__btn--hover">取消</view>
+    <view class="ms-picker__btn ms-picker__btn--confirm" bind:tap="onConfirm" hover-class="ms-picker__btn--hover">确认</view>
+  </view>
+  <picker-view class="ms-picker__view" value="{{ pickerValue }}" bindchange="onChange" indicator-style="height: 88rpx;">
+    <picker-view-column>
+      <view class="ms-picker__item" wx:for="{{ years }}" wx:key="index">{{ item }}</view>
+    </picker-view-column>
+    <picker-view-column>
+      <view class="ms-picker__item" wx:for="{{ months }}" wx:key="index">{{ item }}</view>
+    </picker-view-column>
+    <picker-view-column wx:if="{{ isDate }}">
+      <view class="ms-picker__item" wx:for="{{ days }}" wx:key="index">{{ item }}</view>
+    </picker-view-column>
+  </picker-view>
+</view>

@@ -1,0 +1,27 @@
+.ms-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx 0;
+}
+
+.ms-loading__spinner {
+  border-width: 4rpx;
+  border-style: solid;
+  border-radius: 50%;
+  animation: ms-rotate 0.8s linear infinite;
+}
+
+.ms-loading__text {
+  margin-left: 16rpx;
+  font-size: 28rpx;
+}
+
+@keyframes ms-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

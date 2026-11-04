@@ -1,0 +1,51 @@
+.ms-picker {
+  background-color: #fff;
+}
+
+.ms-picker__toolbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 88rpx;
+  padding: 0 32rpx;
+  border-bottom: 1rpx solid #ebedf0;
+}
+
+.ms-picker__title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #323233;
+  pointer-events: none;
+}
+
+.ms-picker__btn {
+  font-size: 30rpx;
+  color: #646566;
+  padding: 8rpx 0;
+}
+
+.ms-picker__btn--confirm {
+  color: #d31027;
+}
+
+.ms-picker__btn--hover {
+  opacity: 0.6;
+}
+
+.ms-picker__view {
+  height: 440rpx;
+  width: 100%;
+}
+
+.ms-picker__item {
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  font-size: 32rpx;
+  color: #323233;
+}

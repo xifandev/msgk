@@ -1,0 +1,74 @@
+.ms-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 24rpx 32rpx;
+  font-size: 30rpx;
+  color: #323233;
+  line-height: 1.4;
+  background-color: #fff;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.ms-cell--border::after {
+  content: '';
+  position: absolute;
+  left: 32rpx;
+  right: 0;
+  bottom: 0;
+  height: 1rpx;
+  background-color: #ebedf0;
+  transform: scaleY(0.5);
+}
+
+.ms-cell--hover {
+  background-color: #f7f8fa;
+}
+
+.ms-cell__icon {
+  display: flex;
+  align-items: center;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+.ms-cell__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ms-cell__title {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.ms-cell__label {
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  color: #969799;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.ms-cell__extra {
+  margin-top: 8rpx;
+}
+
+.ms-cell__value {
+  flex-shrink: 0;
+  margin-left: 16rpx;
+  color: #969799;
+  font-size: 28rpx;
+  text-align: right;
+  max-width: 60%;
+  word-break: break-all;
+}
+
+.ms-cell__link {
+  margin-left: 12rpx;
+}

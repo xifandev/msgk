@@ -1,55 +1,45 @@
-.list-gap {
-  height: 20rpx;
-}
+/* 人员公开页（沿用旧版类名与数值，px/rpx 单位与旧版一致） */
 
-.member-box {
-  display: flex;
-  align-items: flex-start;
-}
-
-.avatar {
-  width: 110rpx;
-  height: 110rpx;
-  border-radius: 50%;
+/* 头像：旧版宽 190rpx / 圆角 10px，新版固定宽高 + aspectFill */
+.touxiang {
+  width: 190rpx;
+  height: 190rpx;
+  border-radius: 10px;
   flex-shrink: 0;
-  margin-right: 24rpx;
 }
 
-.avatar-fallback {
+/* 无头像时灰底占位 */
+.touxiang--fallback {
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: #f2f3f5;
 }
 
-.member-info {
+.box {
   display: flex;
-  flex-direction: column;
+  justify-items: center;
+  align-items: center;
 }
 
-.member-name {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #323233;
+.name {
+  margin-left: 15px;
+  font-size: 20px;
+  font-weight: bolder;
+  margin-bottom: 5px;
+  margin-top: 5px;
 }
 
-.member-gender {
-  font-size: 24rpx;
-  font-weight: normal;
-  color: #969799;
-  margin-left: 12rpx;
+.zhiwu {
+  margin-left: 15px;
+  font-size: 15px;
+  color: #999;
+  overflow: hidden;
 }
 
-.member-role {
-  margin-top: 8rpx;
-  font-size: 26rpx;
-  color: #646566;
-  display: flex;
-  gap: 20rpx;
-}
-
-.member-phone {
-  margin-top: 8rpx;
-  font-size: 26rpx;
-  color: #1989fa;
+.zhiwei {
+  margin-left: 15px;
+  font-size: 15px;
+  color: #999;
+  overflow: hidden;
 }

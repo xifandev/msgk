@@ -1,10 +1,10 @@
 {
   "usingComponents": {
     "page-main": "/components/page-main/page-main",
-    "van-cell": "@vant/weapp/cell/index",
-    "van-empty": "@vant/weapp/empty/index",
-    "van-tab": "@vant/weapp/tab/index",
-    "van-tabs": "@vant/weapp/tabs/index"
+    "ms-cell": "/components/ms-cell/index",
+    "ms-empty": "/components/ms-empty/index",
+    "ms-tabs": "/components/ms-tabs/index",
+    "ms-loading": "/components/ms-loading/index"
   },
   "disableScroll": true
 }

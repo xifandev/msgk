@@ -1,144 +1,172 @@
 <page-main title="财务公开" title1="收支公开透明化" title2="阳光监督新举措">
-  <view class="tab-gap"></view>
-  <van-tabs animated swipeable bind:change="onTabChange">
-    <van-tab title="月度收支">
-      <view class="tab-box">
-        <view class="select-time" bind:tap="openMonthPicker">
-          <text>{{ monthText }}</text>
-          <van-icon name="play" class="select-time-icon" />
-        </view>
+  <view style="height:20rpx"></view>
+  <ms-tabs tabs="{{ ['月度收支','年度收支'] }}" active="{{ active }}" animated swipeable bind:change="onTabChange">
+    <!-- 月度收支 -->
+    <view wx:if="{{ active === 0 }}" class="tab-box">
+      <view class="select-time" bind:tap="openMonthPicker">
+        <text>{{ monthText }}</text>
+        <ms-icon name="play" size="24rpx" color="#333" class="select-time-icon" />
+      </view>
 
-        <block wx:if="{{ monthLoaded && bill }}">
-          <van-cell-group title="收支统计">
-            <van-grid direction="horizontal" column-num="2">
-              <van-grid-item use-slot>
-                <view class="stat-title">本月结余</view>
-                <view class="stat-money">
+      <view wx:if="{{ monthLoaded && bill }}">
+        <ms-cell-group title="收支统计">
+          <ms-grid column-num="2" direction="horizontal">
+            <ms-grid-item>
+              <view>
+                <view class="tongji-title">本月结余</view>
+                <view class="tongji-money">
                   <text>{{ bill.currentBalance }}</text>
-                  <text class="stat-unit">元</text>
+                  <text>元</text>
                 </view>
-              </van-grid-item>
-              <van-grid-item use-slot>
-                <view class="stat-title">上月结余</view>
-                <view class="stat-money">
+              </view>
+            </ms-grid-item>
+            <ms-grid-item>
+              <view>
+                <view class="tongji-title">上月结余</view>
+                <view class="tongji-money">
                   <text>{{ bill.previousBalance }}</text>
-                  <text class="stat-unit">元</text>
+                  <text>元</text>
                 </view>
-              </van-grid-item>
-              <van-grid-item use-slot>
-                <view class="stat-title">本月总收入</view>
-                <view class="stat-money">
+              </view>
+            </ms-grid-item>
+            <ms-grid-item>
+              <view>
+                <view class="tongji-title">本月总收入</view>
+                <view class="tongji-money">
                   <text>{{ bill.income }}</text>
-                  <text class="stat-unit">元</text>
+                  <text>元</text>
                 </view>
-              </van-grid-item>
-              <van-grid-item use-slot>
-                <view class="stat-title">本月总支出</view>
-                <view class="stat-money">
+              </view>
+            </ms-grid-item>
+            <ms-grid-item>
+              <view>
+                <view class="tongji-title">本月总支出</view>
+                <view class="tongji-money">
                   <text>{{ bill.expense }}</text>
-                  <text class="stat-unit">元</text>
+                  <text>元</text>
                 </view>
-              </van-grid-item>
-            </van-grid>
-          </van-cell-group>
+              </view>
+            </ms-grid-item>
+          </ms-grid>
+        </ms-cell-group>
 
-          <van-cell-group title="收支明细">
-            <van-empty wx:if="{{ items.length === 0 }}" description="本月暂无收支明细" />
-            <van-cell wx:for="{{ items }}" wx:key="id">
-              <view slot="icon" class="type-badge {{ item.kind === 'expense' ? 'type-expense' : 'type-income' }}">
-                <text class="type-text">{{ item.kindText }}</text>
+        <ms-cell-group title="收支明细">
+          <ms-empty wx:if="{{ items.length === 0 }}" description="本月暂无公开数据" />
+          <ms-cell wx:for="{{ items }}" wx:key="id" use-icon-slot="{{ true }}">
+            <view slot="icon" class="type-badge {{ item.kind === 'expense' ? 'type-zhichu' : 'type-shouru' }}">
+              <text class="type-text">{{ item.kindText }}</text>
+            </view>
+            <view slot="title" class="shouru-box">
+              <view>
+                <view class="shouru-zhaiyao">{{ item.summary }}</view>
+                <view class="shouru-time">{{ item.date }}</view>
               </view>
-              <view slot="title" class="item-box">
-                <view>
-                  <view class="item-summary">{{ item.summary }}</view>
-                  <view class="item-time">{{ item.date }}</view>
-                </view>
-                <view class="item-money {{ item.kind === 'expense' ? 'money-expense' : 'money-income' }}">{{ item.amountText }}</view>
-              </view>
-            </van-cell>
-          </van-cell-group>
-        </block>
-        <van-empty wx:elif="{{ monthLoaded && !bill }}" description="本月暂无公开数据" />
+              <view class="shouru-money {{ item.kind === 'expense' ? 'money-zhichu' : 'money-shouru' }}">{{ item.amountText }}</view>
+            </view>
+          </ms-cell>
+        </ms-cell-group>
       </view>
-    </van-tab>
 
-    <van-tab title="年度收支">
-      <view class="tab-box">
-        <view class="select-time" bind:tap="openYearPicker">
-          <text>{{ year }}年</text>
-          <van-icon name="play" class="select-time-icon" />
-        </view>
+      <view wx:elif="{{ monthLoaded && !bill }}" class="yuewushuju">
+        <ms-empty description="本月暂无公开数据" />
+      </view>
+    </view>
 
-        <block wx:if="{{ yearLoaded && months.length > 0 }}">
-          <van-cell-group title="收支统计" wx:if="{{ totals }}">
-            <van-grid direction="horizontal" column-num="2">
-              <van-grid-item use-slot>
-                <view class="stat-title">本年总收入</view>
-                <view class="stat-money">
+    <!-- 年度收支 -->
+    <view wx:if="{{ active === 1 }}" class="tab-box">
+      <view class="select-time" bind:tap="openYearPicker">
+        <text>{{ year }}年</text>
+        <ms-icon name="play" size="24rpx" color="#333" class="select-time-icon" />
+      </view>
+
+      <view wx:if="{{ yearLoaded && months.length > 0 }}">
+        <ms-cell-group title="收支统计" wx:if="{{ totals }}">
+          <ms-grid column-num="2" direction="horizontal">
+            <ms-grid-item>
+              <view>
+                <view class="tongji-title">本年总收入</view>
+                <view class="tongji-money">
                   <text>{{ totals.income }}</text>
-                  <text class="stat-unit">元</text>
+                  <text>元</text>
                 </view>
-              </van-grid-item>
-              <van-grid-item use-slot>
-                <view class="stat-title">本年总支出</view>
-                <view class="stat-money">
-                  <text>{{ totals.expense }}</text>
-                  <text class="stat-unit">元</text>
-                </view>
-              </van-grid-item>
-            </van-grid>
-          </van-cell-group>
-
-          <van-cell-group title="月度明细">
-            <van-cell wx:for="{{ months }}" wx:key="month" use-label-slot>
-              <view slot="title" class="month-title">{{ item.monthText }}</view>
-              <view slot="label">
-                <van-grid direction="horizontal" column-num="2">
-                  <van-grid-item use-slot>
-                    <view class="stat-title">收入</view>
-                    <view class="stat-money">
-                      <text>{{ item.income }}</text>
-                      <text class="stat-unit">元</text>
-                    </view>
-                  </van-grid-item>
-                  <van-grid-item use-slot>
-                    <view class="stat-title">支出</view>
-                    <view class="stat-money">
-                      <text>{{ item.expense }}</text>
-                      <text class="stat-unit">元</text>
-                    </view>
-                  </van-grid-item>
-                  <van-grid-item use-slot>
-                    <view class="stat-title">上月结余</view>
-                    <view class="stat-money">
-                      <text>{{ item.previousBalance }}</text>
-                      <text class="stat-unit">元</text>
-                    </view>
-                  </van-grid-item>
-                  <van-grid-item use-slot>
-                    <view class="stat-title">本月结余</view>
-                    <view class="stat-money">
-                      <text>{{ item.currentBalance }}</text>
-                      <text class="stat-unit">元</text>
-                    </view>
-                  </van-grid-item>
-                </van-grid>
               </view>
-            </van-cell>
-          </van-cell-group>
-        </block>
-        <van-empty wx:elif="{{ yearLoaded && months.length === 0 }}" description="本年暂无公开数据" />
+            </ms-grid-item>
+            <ms-grid-item>
+              <view>
+                <view class="tongji-title">本年总支出</view>
+                <view class="tongji-money">
+                  <text>{{ totals.expense }}</text>
+                  <text>元</text>
+                </view>
+              </view>
+            </ms-grid-item>
+          </ms-grid>
+        </ms-cell-group>
+
+        <ms-cell-group title="月度明细">
+          <ms-empty wx:if="{{ months.length === 0 }}" description="暂无明细" />
+          <ms-cell wx:for="{{ months }}" wx:key="month" use-label-slot="{{ true }}" class="tab-box-yuedu">
+            <view slot="title">
+              <text class="yuedu-title">{{ item.monthText }}</text>
+            </view>
+            <view slot="label" class="shouru-box">
+              <ms-icon name="balance-list" size="50rpx" color="#07C060" />
+              <ms-grid column-num="2" direction="horizontal">
+                <ms-grid-item>
+                  <view>
+                    <view class="tongji-title">收入</view>
+                    <view class="tongji-money">
+                      <text>{{ item.income }}</text>
+                      <text>元</text>
+                    </view>
+                  </view>
+                </ms-grid-item>
+                <ms-grid-item>
+                  <view>
+                    <view class="tongji-title">支出</view>
+                    <view class="tongji-money">
+                      <text>{{ item.expense }}</text>
+                      <text>元</text>
+                    </view>
+                  </view>
+                </ms-grid-item>
+                <ms-grid-item>
+                  <view>
+                    <view class="tongji-title">上月结余</view>
+                    <view class="tongji-money">
+                      <text>{{ item.previousBalance }}</text>
+                      <text>元</text>
+                    </view>
+                  </view>
+                </ms-grid-item>
+                <ms-grid-item>
+                  <view>
+                    <view class="tongji-title">本月结余</view>
+                    <view class="tongji-money">
+                      <text>{{ item.currentBalance }}</text>
+                      <text>元</text>
+                    </view>
+                  </view>
+                </ms-grid-item>
+              </ms-grid>
+            </view>
+          </ms-cell>
+        </ms-cell-group>
       </view>
-    </van-tab>
-  </van-tabs>
+
+      <view wx:elif="{{ yearLoaded && months.length === 0 }}" class="yuewushuju">
+        <ms-empty description="本年暂无公开数据" />
+      </view>
+    </view>
+  </ms-tabs>
 </page-main>
 
 <!-- 选择年月 -->
-<van-action-sheet show="{{ monthPickerShow }}" title="选择年月" bind:close="closeMonthPicker">
-  <van-datetime-picker type="year-month" value="{{ currentDate }}" min-date="{{ minDate }}" max-date="{{ maxDate }}" formatter="{{ monthFormatter }}" bind:input="onMonthInput" bind:confirm="confirmMonth" bind:cancel="closeMonthPicker" />
-</van-action-sheet>
+<ms-action-sheet show="{{ monthPickerShow }}" title="选择年月" bind:close="closeMonthPicker">
+  <ms-datetime-picker type="year-month" value="{{ currentDate }}" min-date="{{ minDate }}" max-date="{{ maxDate }}" bind:input="onMonthInput" bind:confirm="confirmMonth" bind:cancel="closeMonthPicker" />
+</ms-action-sheet>
 
 <!-- 选择年份 -->
-<van-action-sheet show="{{ yearPickerShow }}" title="选择年份" bind:close="closeYearPicker">
-  <van-picker show-toolbar columns="{{ yearColumns }}" default-index="{{ yearDefaultIndex }}" bind:change="onYearChange" bind:confirm="confirmYear" bind:cancel="closeYearPicker" />
-</van-action-sheet>
+<ms-action-sheet show="{{ yearPickerShow }}" title="选择年份" bind:close="closeYearPicker">
+  <ms-picker columns="{{ yearColumns }}" default-index="{{ yearDefaultIndex }}" bind:confirm="confirmYear" bind:cancel="closeYearPicker" bind:change="onYearChange" />
+</ms-action-sheet>

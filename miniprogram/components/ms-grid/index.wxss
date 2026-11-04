@@ -1,0 +1,10 @@
+.ms-grid {
+  display: grid;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ms-grid--border {
+  border-top: 1rpx solid #ebedf0;
+  border-bottom: 1rpx solid #ebedf0;
+}

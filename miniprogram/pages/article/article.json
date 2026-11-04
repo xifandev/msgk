@@ -1,6 +1,6 @@
 {
   "usingComponents": {
-    "van-empty": "@vant/weapp/empty/index"
+    "ms-empty": "/components/ms-empty/index"
   },
   "navigationBarTitleText": "",
   "navigationBarBackgroundColor": "#f8f8fa",

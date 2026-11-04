@@ -30,10 +30,4 @@ npm run build
 
 小程序不包含登录、管理员验证和财务写入功能。后台管理员通过手机号短信验证码登录。
 
-小程序首次运行需在 `miniprogram/` 下安装依赖并构建 npm 包（`miniprogram_npm/` 不入库）：
-
-```bash
-cd miniprogram
-npm install
-npm run build:npm   # 等价于开发者工具的「工具 - 构建 npm」
-```
+小程序 UI 全部使用原生组件与 `miniprogram/components/ms-*` 自研组件，不依赖任何第三方组件库，也不需要在开发者工具里执行「构建 npm」，用开发者工具直接打开 `miniprogram/` 即可运行。

@@ -1,7 +1,6 @@
 {
   "component": true,
   "usingComponents": {
-    "van-cell-group": "@vant/weapp/cell-group/index",
-    "van-icon": "@vant/weapp/icon/index"
+    "ms-icon": "/components/ms-icon/index"
   }
 }

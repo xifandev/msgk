@@ -1,0 +1,13 @@
+<view class="ms-empty">
+  <view class="ms-empty__image">
+    <view class="ms-empty__sheet">
+      <view class="ms-empty__line"></view>
+      <view class="ms-empty__line"></view>
+      <view class="ms-empty__line ms-empty__line--short"></view>
+      <view class="ms-empty__line"></view>
+    </view>
+    <view class="ms-empty__base"></view>
+  </view>
+  <view class="ms-empty__desc">{{ description }}</view>
+  <slot></slot>
+</view>

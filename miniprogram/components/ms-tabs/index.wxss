@@ -1,0 +1,65 @@
+.ms-tabs {
+  width: 100%;
+  background-color: #fff;
+}
+
+.ms-tabs__nav {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  height: 88rpx;
+  background-color: #fff;
+  border-bottom: 1rpx solid #ebedf0;
+}
+
+.ms-tabs__nav.is-scrollable {
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ms-tabs__item {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12rpx;
+  font-size: 28rpx;
+  color: #646566;
+}
+
+.ms-tabs__nav.is-scrollable .ms-tabs__item {
+  flex: none;
+  min-width: 160rpx;
+  padding: 0 24rpx;
+}
+
+.ms-tabs__item.is-active {
+  font-weight: 500;
+}
+
+.ms-tabs__text {
+  line-height: 1.4;
+}
+
+.ms-tabs__text.is-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ms-tabs__line {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  height: 6rpx;
+  border-radius: 6rpx;
+  transform: translateX(-50%);
+  transition: width 0.2s ease;
+}
+
+.ms-tabs__body {
+  position: relative;
+}

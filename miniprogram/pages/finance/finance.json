@@ -1,17 +1,16 @@
 {
   "usingComponents": {
     "page-main": "/components/page-main/page-main",
-    "van-tab": "@vant/weapp/tab/index",
-    "van-tabs": "@vant/weapp/tabs/index",
-    "van-icon": "@vant/weapp/icon/index",
-    "van-grid": "@vant/weapp/grid/index",
-    "van-grid-item": "@vant/weapp/grid-item/index",
-    "van-cell": "@vant/weapp/cell/index",
-    "van-cell-group": "@vant/weapp/cell-group/index",
-    "van-action-sheet": "@vant/weapp/action-sheet/index",
-    "van-datetime-picker": "@vant/weapp/datetime-picker/index",
-    "van-empty": "@vant/weapp/empty/index",
-    "van-picker": "@vant/weapp/picker/index"
+    "ms-icon": "/components/ms-icon/index",
+    "ms-tabs": "/components/ms-tabs/index",
+    "ms-cell": "/components/ms-cell/index",
+    "ms-cell-group": "/components/ms-cell-group/index",
+    "ms-grid": "/components/ms-grid/index",
+    "ms-grid-item": "/components/ms-grid-item/index",
+    "ms-empty": "/components/ms-empty/index",
+    "ms-action-sheet": "/components/ms-action-sheet/index",
+    "ms-datetime-picker": "/components/ms-datetime-picker/index",
+    "ms-picker": "/components/ms-picker/index"
   },
   "disableScroll": true
 }

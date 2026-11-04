@@ -1,12 +1,4 @@
-.tab-gap {
-  height: 10px;
-}
-
-.news-box {
-  display: flex;
-  align-items: center;
-}
-
+/* ---------- 书本卡片（旧版 1:1，青蓝色渐变） ---------- */
 .book {
   width: 125rpx;
   height: 146rpx;
@@ -16,12 +8,10 @@
   color: #fff;
   padding: 20rpx;
   border-radius: 8px;
-  background: linear-gradient(to bottom, #ea384d, #b31217);
+  background: linear-gradient(to bottom, #4dd9f4, #2db8e3);
+  /* 旧版为 content-box（全局样式是 border-box），显式还原尺寸计算方式 */
+  box-sizing: content-box;
   flex-shrink: 0;
-}
-
-.book-top {
-  width: 100%;
 }
 
 .book-title {
@@ -29,7 +19,7 @@
   width: 100%;
   overflow: hidden;
   text-align: center;
-  font-size: 26rpx;
+  font-size: 30rpx;
   font-weight: bold;
   display: flex;
   justify-content: center;
@@ -38,11 +28,40 @@
 }
 
 .book-title-icon {
-  margin-right: 6rpx;
+  margin-right: 8rpx;
 }
 
-.book-bottom {
+.book-top {
   width: 100%;
+}
+
+.book-miaoshu {
+  width: 100%;
+  padding-left: 8rpx;
+  font-size: 20rpx;
+  margin-top: 6px;
+  background: linear-gradient(to right, #2eb3db, transparent);
+}
+
+.book-hengtiao {
+  background-color: white;
+  height: 15rpx;
+  width: 170rpx;
+  margin-bottom: 6rpx;
+  margin-left: 3rpx;
+  border-radius: 10px;
+}
+
+.book-fangkuai {
+  width: 25rpx;
+  height: 25rpx;
+  background: rgba(255, 255, 255, 0.5);
+  margin-left: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  /* 倾斜 45° */
+  transform: rotate(45deg);
+  opacity: 1;
 }
 
 .book-tuxing {
@@ -50,41 +69,67 @@
   justify-content: center;
 }
 
-.book-fangkuai {
-  width: 25rpx;
-  height: 25rpx;
-  background: rgba(255, 255, 255, 0.5);
-  margin: 10rpx 10rpx;
-  transform: rotate(45deg);
-}
-
 .book-fangkuai:nth-of-type(1) {
+  /* 透明度 30% */
   opacity: 0.3;
 }
 
 .book-fangkuai:nth-of-type(2) {
+  /* 透明度 50% */
   opacity: 0.5;
 }
 
-.book-hengtiao {
-  background-color: #fff;
-  height: 15rpx;
-  width: 125rpx;
-  border-radius: 10px;
+.book-fangkuai:nth-of-type(3) {
+  opacity: 1;
 }
 
-.news-title {
+.book-bottom {
+  width: 100%;
+}
+
+/* ---------- 右侧文字（旧版 1:1） ---------- */
+.news_box {
+  display: flex;
+  align-items: center;
+}
+
+.news_item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  justify-items: center;
+  align-content: center;
+  margin-left: 10px;
+}
+
+.news_content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.news_time {
+  color: #b9b9b9;
+  font-size: 14px;
+}
+
+.news_title {
+  width: 100%;
   font-size: 28rpx;
-  font-weight: 500;
   max-height: 85rpx;
+  margin-bottom: 10px;
   overflow: hidden;
   color: #3b3a39;
-  margin-left: 24rpx;
 }
 
-.news-time {
-  color: #b9b9b9;
-  font-size: 26rpx;
-  margin-top: 12rpx;
-  margin-left: 24rpx;
+/* ---------- 标签页与加载态 ---------- */
+.tab-gap {
+  height: 10px;
+}
+
+.loading-box {
+  display: flex;
+  justify-content: center;
+  padding: 100rpx 0;
 }

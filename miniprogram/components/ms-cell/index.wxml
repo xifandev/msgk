@@ -1,0 +1,24 @@
+<view class="ms-cell {{ border ? 'ms-cell--border' : '' }} {{ clickable || isLink ? 'ms-cell--clickable' : '' }}" hover-class="{{ clickable || isLink ? 'ms-cell--hover' : 'none' }}" bind:tap="onTap">
+  <view class="ms-cell__icon" wx:if="{{ icon || useIconSlot }}">
+    <slot name="icon"></slot>
+    <ms-icon wx:if="{{ icon }}" name="{{ icon }}" size="36rpx" color="{{ iconColor }}" />
+  </view>
+  <view class="ms-cell__body">
+    <view class="ms-cell__title">
+      <slot name="title"></slot>
+      <text wx:if="{{ title }}">{{ title }}</text>
+    </view>
+    <view class="ms-cell__label" wx:if="{{ label }}">
+      <slot name="label"></slot>
+      <text>{{ label }}</text>
+    </view>
+    <view class="ms-cell__label" wx:if="{{ useLabelSlot }}">
+      <slot name="label"></slot>
+    </view>
+  </view>
+  <view class="ms-cell__value">
+    <slot name="value"></slot>
+    <text wx:if="{{ value }}">{{ value }}</text>
+  </view>
+  <ms-icon wx:if="{{ isLink }}" class="ms-cell__link" name="arrow" size="28rpx" color="#c8c9cc" />
+</view>

@@ -1,0 +1,5 @@
+<view class="ms-divider {{ text ? 'ms-divider--with-text' : '' }}">
+  <view class="ms-divider__line"></view>
+  <view class="ms-divider__text" wx:if="{{ text }}">{{ text }}</view>
+  <view class="ms-divider__line" wx:if="{{ text }}"></view>
+</view>

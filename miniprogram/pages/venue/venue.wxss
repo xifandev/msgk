@@ -1,11 +1,7 @@
-.summary {
-  padding: 30rpx 40rpx;
-  font-size: 32rpx;
-  line-height: 1.9;
-  background-color: #f7f8fa;
-  color: #323233;
-}
-
-.tab-gap {
-  height: 20rpx;
+/* 场所简介区块（沿用旧版 .jianjie，单位保持 px） */
+.jianjie {
+  padding: 15px 20px;
+  font-size: 16px;
+  /* 设置一个便于阅读的背景 */
+  background-color: #f5f5f5;
 }

@@ -1,110 +1,115 @@
-.tab-gap {
-  height: 20rpx;
-}
-
+/* ---------- 标签页内容区：旧版灰底 ---------- */
 .tab-box {
-  padding-bottom: 20rpx;
+  background-color: #f8f7f7;
 }
 
+/* ---------- 年/月选择行 ---------- */
 .select-time {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 34rpx;
-  font-weight: bold;
-  color: #323233;
-  padding: 24rpx 0;
+  padding: 0 30rpx;
+  padding-top: 50rpx;
+  padding-bottom: 20rpx;
+  font-size: 33rpx;
+  color: #333;
+  background-color: #fff;
+  border-radius: 10rpx;
 }
 
 .select-time-icon {
+  /* 旋转 */
   transform: rotate(90deg);
-  margin-left: 10rpx;
-  color: #d31027;
-}
-
-.stat-title {
-  font-size: 26rpx;
-  color: #646566;
-}
-
-.stat-money {
-  margin-top: 8rpx;
-  font-size: 34rpx;
-  font-weight: bold;
-  color: #323233;
-}
-
-.stat-unit {
-  font-size: 22rpx;
-  font-weight: normal;
-  color: #969799;
+  margin-top: -2px;
   margin-left: 6rpx;
 }
 
+/* ---------- 统计块 ---------- */
+.tongji-title {
+  font-size: 30rpx;
+  color: #333;
+}
+
+.tongji-money {
+  font-size: 30rpx;
+  color: #7b7b7b;
+}
+
+/* ---------- 月度明细 ---------- */
+.shouru-zhaiyao {
+  font-size: 30rpx;
+}
+
+.shouru-time {
+  font-size: 26rpx;
+  color: #999;
+}
+
+.shouru-box {
+  margin-left: 3px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 收支类型标签 */
 .type-badge {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 12rpx;
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 20rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 20rpx;
-  align-self: center;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
+  /* ms-cell 图标列自带 24rpx 右间距，这里不再重复留白，保持旧版 24rpx 间距 */
+  margin-right: 0;
+  flex-shrink: 0;
 }
 
-.type-income {
-  background-color: rgba(7, 192, 96, 0.12);
+.type-shouru {
+  background: linear-gradient(135deg, #07C060 0%, #00B894 100%);
 }
 
-.type-expense {
-  background-color: rgba(211, 16, 39, 0.1);
+.type-zhichu {
+  background: linear-gradient(135deg, #EFC104 0%, #F39C12 100%);
 }
 
 .type-text {
-  font-size: 24rpx;
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
 }
 
-.type-income .type-text {
-  color: #07c060;
-}
-
-.type-expense .type-text {
-  color: #d31027;
-}
-
-.item-box {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.item-summary {
+.shouru-money {
   font-size: 30rpx;
   font-weight: 500;
-  color: #3b3a39;
 }
 
-.item-time {
-  font-size: 24rpx;
-  color: #b9b9b9;
-  margin-top: 8rpx;
+.money-shouru {
+  color: #00BA88;
 }
 
-.item-money {
-  font-size: 32rpx;
-  font-weight: bold;
+.money-zhichu {
+  color: #EFBA09;
 }
 
-.money-income {
-  color: #07c060;
+/* ---------- 年度月度明细 ---------- */
+.tab-box-yuedu {
+  margin-bottom: 10px;
 }
 
-.money-expense {
-  color: #d31027;
+.yuedu-title {
+  font-size: 35rpx;
+  color: #333;
 }
 
-.month-title {
-  font-size: 30rpx;
-  font-weight: bold;
-  color: #323233;
+/* ---------- 空态 ---------- */
+.yuewushuju {
+  background-color: #fff;
+}
+
+/* 旧版单元格上下内边距效果：上 10px、下 0 */
+.ms-cell {
+  padding-top: 20rpx !important;
+  padding-bottom: 0 !important;
 }

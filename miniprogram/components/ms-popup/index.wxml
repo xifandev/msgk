@@ -1,0 +1,6 @@
+<view class="ms-popup" wx:if="{{ render }}" style="z-index: {{ zIndex }}">
+  <view class="ms-popup__mask {{ visible ? 'is-visible' : '' }}" bind:tap="onMaskTap"></view>
+  <view class="ms-popup__panel ms-popup__panel--{{ position }} {{ round ? 'is-round' : '' }} {{ visible ? 'is-visible' : '' }}" style="{{ customStyle }}" catchtouchmove="noop">
+    <slot></slot>
+  </view>
+</view>

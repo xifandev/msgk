@@ -1,0 +1,1 @@
+<view class="ms-icon {{ className }}" style="{{ iconStyle }}"></view>

@@ -1,0 +1,3 @@
+<view class="ms-grid-item" hover-class="{{ clickable ? 'ms-grid-item--hover' : 'none' }}" bind:tap="onTap">
+  <slot></slot>
+</view>

@@ -13,23 +13,27 @@ Page({
     // 当前场所
     cid: '',
     venueName: '',
-    // 场所选择弹窗
+    showCard: false,
+    // 场所选择弹层
     venuePopup: false,
     venueTree: [],
     venueNav: 0,
+    activeVenueId: null,
     // 首页动态
     items: [],
     itemsLoaded: false,
+    // 技术支持
+    companyShow: false,
     // 版本号
     version: '',
   },
 
-  // 拉取场所列表与树
+  // 拉取场所列表与分组树
   loadVenues() {
-    return get('/api/public/venues')
+    return get('/api/public/venues', {}, { loading: false })
       .then((res) => {
         const tree = (res.tree || []).map((group) => ({
-          ...group,
+          text: group.text,
           children: (group.children || [])
             .slice()
             .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)),
@@ -39,7 +43,10 @@ Page({
 
         if (this.data.cid) {
           const venue = this.venueList.find((item) => String(item.id) === String(this.data.cid));
-          this.setData({ venueName: venue ? venue.name : '' });
+          this.setData({
+            venueName: venue ? venue.name : '',
+            activeVenueId: venue ? venue.id : null,
+          });
         }
       })
       .catch(() => {});
@@ -52,7 +59,7 @@ Page({
       this.setData({ items: [], itemsLoaded: true });
       return;
     }
-    get('/api/public/home', { venueId: cid })
+    get('/api/public/home', { venueId: cid }, { loading: false })
       .then((res) => {
         const items = (res.items || []).map((item) => ({
           ...item,
@@ -66,8 +73,8 @@ Page({
       });
   },
 
-  // 打开/关闭场所选择
   openVenuePopup() {
+    wx.vibrateShort({ type: 'light' });
     this.setData({ venuePopup: true });
   },
 
@@ -75,12 +82,13 @@ Page({
     this.setData({ venuePopup: false });
   },
 
-  onVenueNav({ detail = {} }) {
-    this.setData({ venueNav: detail.index || 0 });
+  onVenueNav(e) {
+    this.setData({ venueNav: e.detail.index || 0 });
   },
 
-  onVenueSelect({ detail = {} }) {
-    if (!detail || detail.id == null) {
+  onVenueSelect(e) {
+    const detail = e.detail || {};
+    if (detail.id == null) {
       return;
     }
     const cid = String(detail.id);
@@ -90,6 +98,7 @@ Page({
       {
         cid,
         venueName: detail.text || '',
+        activeVenueId: detail.id,
         venuePopup: false,
         items: [],
         itemsLoaded: false,
@@ -118,6 +127,18 @@ Page({
     wx.navigateTo({ url });
   },
 
+  openCompany() {
+    this.setData({ companyShow: true });
+  },
+
+  closeCompany() {
+    this.setData({ companyShow: false });
+  },
+
+  callCompany() {
+    wx.makePhoneCall({ phoneNumber: '15224499331' });
+  },
+
   onLoad(options) {
     let cid = (options && options.cid) || wx.getStorageSync('cid') || '';
     if (cid) {
@@ -126,6 +147,8 @@ Page({
     this.setData({ cid: String(cid) });
     this.loadVenues();
     this.loadHome();
+    // 延迟触发场所卡片的上滑动画
+    setTimeout(() => this.setData({ showCard: true }), 120);
   },
 
   onReady() {
@@ -137,6 +160,13 @@ Page({
     return {
       title: '码上公开',
       path: this.data.cid ? `/pages/index/index?cid=${this.data.cid}` : '/pages/index/index',
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: '码上公开',
+      query: this.data.cid ? `cid=${this.data.cid}` : '',
     };
   },
 });

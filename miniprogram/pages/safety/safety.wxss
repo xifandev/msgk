@@ -1,32 +1,69 @@
+/* ---------- 页头右上角灯泡装饰图标（旧版 .icon 1:1） ---------- */
 .corner-icon {
+  width: 180rpx;
+  height: 180rpx;
   position: absolute;
-  right: 38rpx;
-  top: 30rpx;
-  font-size: 64rpx;
-  color: rgba(255, 255, 255, 0.75);
+  right: 19px;
+  top: 26px;
+  opacity: 0.7;
   z-index: 1;
+  /* 纯装饰元素，不遮挡页面点击 */
+  pointer-events: none;
 }
 
-.news-item {
+/* ---------- 文章列表（旧版 1:1） ---------- */
+.news_box {
   display: flex;
   flex-direction: column;
 }
 
-.news-title {
-  font-size: 30rpx;
+.news_item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  justify-items: center;
+  align-content: center;
+}
+
+.news_content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin-right: 20rpx;
+}
+
+/* 标题：旧版 16px/500 字重，最多两行截断 */
+.news_title {
+  font-size: 32rpx;
   font-weight: 500;
+  line-height: 44rpx;
+  max-height: 88rpx;
+  margin-bottom: 10px;
+  overflow: hidden;
   color: #3b3a39;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
-.news-time {
+/* 时间：旧版 15px */
+.news_time {
   color: #b9b9b9;
-  font-size: 26rpx;
-  margin-top: 10rpx;
+  font-size: 30rpx;
 }
 
+/* ---------- 底部加载状态 ---------- */
 .load-status {
   text-align: center;
   font-size: 24rpx;
   color: #969799;
   padding: 30rpx 0;
+}
+
+/* 首次加载占位，避免白屏 */
+.loading-box {
+  display: flex;
+  justify-content: center;
+  padding: 120rpx 0;
 }
