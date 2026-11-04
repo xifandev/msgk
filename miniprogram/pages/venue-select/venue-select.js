@@ -1,5 +1,5 @@
 // pages/venue-select/venue-select.js
-// 场所选择独立页：沉浸式页头 + 搜索 + 乡镇分组列表 + 右侧索引导航
+// 场所选择独立页：沉浸式页头 + 搜索 + 乡镇筛选条 + 分组列表
 // 选择后写入本地存储 cid 并返回首页，首页 onShow 同步刷新
 const { get } = require('../../utils/request');
 
@@ -9,25 +9,35 @@ Page({
   data: {
     // 状态栏高度：自定义导航栏下自行留出安全区
     statusBarHeight: 20,
+    // 吸顶筛选条高度（px），用于分组标题的 sticky 偏移
+    chipBarHeight: 42,
     loading: true,
     loadError: false,
     keyword: '',
     results: [],
     sections: [],
-    rail: [],
+    towns: [],
     total: 0,
     townshipCount: 0,
-    activeRail: -1,
+    // 当前高亮 / 需要滚动到可视区的乡镇
+    activeChip: 0,
+    chipIntoView: '',
   },
 
   onLoad() {
     const info = typeof wx.getWindowInfo === 'function' ? wx.getWindowInfo() : wx.getSystemInfoSync();
+    const winWidth = (info && info.windowWidth) || 375;
     this.venueList = [];
-    this.setData({ statusBarHeight: (info && info.statusBarHeight) || 20 });
+    this.sectionTops = [];
+    this.setData({
+      statusBarHeight: (info && info.statusBarHeight) || 20,
+      // 84rpx 的筛选条高度换算成 px，供 sticky 偏移使用
+      chipBarHeight: Math.round((84 * winWidth) / 750),
+    });
     this.load();
   },
 
-  // 拉取场所列表并组装分组与索引
+  // 拉取场所列表并组装分组与乡镇筛选
   load() {
     this.setData({ loading: true, loadError: false });
     get('/api/public/venues', {}, { loading: false })
@@ -48,17 +58,51 @@ Page({
         this.venueList = [];
         sections.forEach((s) => s.children.forEach((c) => this.venueList.push(c)));
 
-        this.setData({
-          loading: false,
-          sections,
-          rail: sections.map((s, i) => ({ index: i, label: shortLabel(s.text) })),
-          total: this.venueList.length,
-          townshipCount: sections.length,
-        });
+        this.setData(
+          {
+            loading: false,
+            sections,
+            towns: sections.map((s, i) => ({ index: i, label: shortLabel(s.text) })),
+            total: this.venueList.length,
+            townshipCount: sections.length,
+          },
+          () => this.measureSections()
+        );
       })
       .catch(() => {
         this.setData({ loading: false, loadError: true });
       });
+  },
+
+  // 记录各分组标题的位置，用于滚动时高亮当前乡镇
+  measureSections() {
+    wx.createSelectorQuery()
+      .selectAll('.section__head')
+      .boundingClientRect()
+      .selectViewport()
+      .scrollOffset()
+      .exec((res) => {
+        const rects = (res && res[0]) || [];
+        const scrollTop = (res && res[1] && res[1].scrollTop) || 0;
+        this.sectionTops = rects.map((r) => r.top + scrollTop);
+      });
+  },
+
+  onPageScroll(e) {
+    const tops = this.sectionTops || [];
+    if (!tops.length) {
+      return;
+    }
+    const line = e.scrollTop + this.data.statusBarHeight + this.data.chipBarHeight + 16;
+    let index = 0;
+    for (let i = 0; i < tops.length; i += 1) {
+      if (tops[i] <= line) {
+        index = i;
+      }
+    }
+    if (index !== this.data.activeChip) {
+      this.setData({ activeChip: index });
+    }
   },
 
   // 搜索：名称或乡镇模糊匹配，命中片段高亮
@@ -100,12 +144,16 @@ Page({
     }, 450);
   },
 
-  // 右侧索引：滚动到对应乡镇分组
-  onRailTap(e) {
+  // 乡镇筛选：滚动到对应分组，并把胶囊滚进可视区
+  onChipTap(e) {
     const index = Number(e.currentTarget.dataset.index) || 0;
     wx.vibrateShort({ type: 'light' });
-    this.setData({ activeRail: index });
-    wx.pageScrollTo({ selector: '#sec-' + index, duration: 300 });
+    this.setData({ activeChip: index, chipIntoView: 'chip-' + index });
+    wx.pageScrollTo({
+      selector: '#sec-' + index,
+      offsetTop: -(this.data.statusBarHeight + this.data.chipBarHeight),
+      duration: 300,
+    });
   },
 
   goBack() {
@@ -115,7 +163,7 @@ Page({
   },
 });
 
-// 索引标签：去掉“镇 / 乡”，保留“街道”
+// 筛选标签：去掉“镇 / 乡”，保留“街道”
 function shortLabel(text) {
   return String(text || '').replace(/[镇乡]$/, '');
 }

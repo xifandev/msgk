@@ -27,7 +27,7 @@
 
   <!-- 悬浮搜索卡 -->
   <view class="search-card">
-    <ms-icon name="search" size="32rpx" color="#969799" />
+    <ms-icon name="search" size="34rpx" color="#969799" />
     <input
       class="search-card__input"
       value="{{ keyword }}"
@@ -45,6 +45,28 @@
     >
       <ms-icon name="cross" size="22rpx" color="#ffffff" />
     </view>
+  </view>
+
+  <!-- 吸顶乡镇筛选条：大号胶囊，方便手指点按 -->
+  <view
+    class="chips"
+    wx:if="{{ !loading && !loadError && !keyword && towns.length > 0 }}"
+    style="top:{{ statusBarHeight }}px"
+  >
+    <scroll-view class="chips__scroll" scroll-x scroll-into-view="{{ chipIntoView }}" scroll-with-animation>
+      <view class="chips__inner">
+        <view
+          class="chip-tab {{ activeChip === index ? 'is-active' : '' }}"
+          wx:for="{{ towns }}"
+          wx:key="index"
+          id="chip-{{ index }}"
+          data-index="{{ index }}"
+          bind:tap="onChipTap"
+          aria-role="button"
+          aria-label="跳转到 {{ item.label }}"
+        >{{ item.label }}</view>
+      </view>
+    </scroll-view>
   </view>
 
   <!-- 加载中 -->
@@ -78,7 +100,7 @@
         aria-label="选择场所 {{ item.name }}"
       >
         <view class="venue__avatar">
-          <ms-icon name="building" size="34rpx" color="#d31027" />
+          <ms-icon name="building" size="36rpx" color="#d31027" />
         </view>
         <view class="venue__body">
           <view class="venue__name">
@@ -87,7 +109,7 @@
             </block>
           </view>
           <view class="venue__town">
-            <view class="venue__town-icon"><ms-icon name="location" size="22rpx" color="#b0b3b8" /></view>
+            <view class="venue__town-icon"><ms-icon name="location" size="24rpx" color="#b0b3b8" /></view>
             <text>{{ item.township }}</text>
           </view>
         </view>
@@ -103,7 +125,11 @@
     </view>
 
     <view wx:for="{{ sections }}" wx:key="id" wx:for-item="group" class="section">
-      <view class="section__head" id="{{ group.id }}" style="top:{{ statusBarHeight }}px">
+      <view
+        class="section__head"
+        id="{{ group.id }}"
+        style="top:{{ statusBarHeight + chipBarHeight }}px"
+      >
         <view class="section__dot"></view>
         <text class="section__name">{{ group.text }}</text>
         <text class="section__count">{{ group.count }} 个场所</text>
@@ -121,12 +147,12 @@
           aria-label="选择场所 {{ v.name }}"
         >
           <view class="venue__avatar">
-            <ms-icon name="building" size="34rpx" color="#d31027" />
+            <ms-icon name="building" size="36rpx" color="#d31027" />
           </view>
           <view class="venue__body">
             <view class="venue__name">{{ v.name }}</view>
             <view class="venue__town">
-              <view class="venue__town-icon"><ms-icon name="location" size="22rpx" color="#b0b3b8" /></view>
+              <view class="venue__town-icon"><ms-icon name="location" size="24rpx" color="#b0b3b8" /></view>
               <text>{{ v.township }}</text>
             </view>
           </view>
@@ -136,17 +162,4 @@
 
     <view class="list-end" wx:if="{{ sections.length > 0 }}">— 已展示全部场所 —</view>
   </block>
-
-  <!-- 乡镇索引（右侧快捷导航，显示乡镇全称） -->
-  <view class="rail" wx:if="{{ !keyword && !loading && sections.length > 0 }}">
-    <view
-      class="rail__item {{ activeRail === index ? 'is-active' : '' }}"
-      wx:for="{{ rail }}"
-      wx:key="index"
-      data-index="{{ index }}"
-      bind:tap="onRailTap"
-      aria-role="button"
-      aria-label="跳转到 {{ item.label }}"
-    >{{ item.label }}</view>
-  </view>
 </view>

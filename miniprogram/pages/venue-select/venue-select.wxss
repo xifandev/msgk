@@ -50,13 +50,13 @@ page {
 .hero__nav {
   display: flex;
   align-items: center;
-  height: 64rpx;
-  margin-bottom: 26rpx;
+  height: 88rpx;
+  margin-bottom: 22rpx;
 }
 
 .hero__back {
-  width: 64rpx;
-  height: 64rpx;
+  width: 88rpx;
+  height: 88rpx;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.20);
   display: flex;
@@ -91,9 +91,9 @@ page {
   display: flex;
   align-items: center;
   margin: -56rpx 32rpx 0;
-  height: 92rpx;
-  padding: 0 28rpx;
-  border-radius: 46rpx;
+  height: 100rpx;
+  padding: 0 30rpx;
+  border-radius: 50rpx;
   background-color: #ffffff;
   box-shadow: 0 10rpx 30rpx rgba(31, 35, 41, 0.08);
 }
@@ -112,8 +112,8 @@ page {
 
 .search-card__clear {
   flex-shrink: 0;
-  width: 36rpx;
-  height: 36rpx;
+  width: 40rpx;
+  height: 40rpx;
   border-radius: 50%;
   background-color: #d9dbdf;
   display: flex;
@@ -123,7 +123,7 @@ page {
 
 /* ---------- 乡镇分组 ---------- */
 .section {
-  margin-top: 34rpx;
+  margin-top: 40rpx;
 }
 
 .section__head {
@@ -131,7 +131,7 @@ page {
   z-index: 5;
   display: flex;
   align-items: center;
-  padding: 12rpx 40rpx 14rpx;
+  padding: 16rpx 40rpx 14rpx;
   background-color: #f1f2f4;
 }
 
@@ -168,7 +168,8 @@ page {
   position: relative;
   display: flex;
   align-items: center;
-  padding: 26rpx 28rpx;
+  min-height: 148rpx;
+  padding: 30rpx 28rpx;
 }
 
 .venue--hover {
@@ -187,9 +188,9 @@ page {
 
 .venue__avatar {
   flex-shrink: 0;
-  width: 76rpx;
-  height: 76rpx;
-  border-radius: 24rpx;
+  width: 84rpx;
+  height: 84rpx;
+  border-radius: 26rpx;
   background-color: #fdeeee;
   display: flex;
   align-items: center;
@@ -203,7 +204,7 @@ page {
 }
 
 .venue__name {
-  font-size: 30rpx;
+  font-size: 32rpx;
   color: #323233;
   line-height: 1.45;
   word-break: break-all;
@@ -212,8 +213,8 @@ page {
 .venue__town {
   display: flex;
   align-items: center;
-  margin-top: 6rpx;
-  font-size: 24rpx;
+  margin-top: 8rpx;
+  font-size: 25rpx;
   color: #969799;
 }
 
@@ -266,45 +267,68 @@ page {
   background-color: #b31217;
 }
 
+/* ---------- 吸顶乡镇筛选条 ---------- */
+.chips {
+  position: sticky;
+  z-index: 6;
+  height: 84rpx;
+  margin-top: 30rpx;
+  background-color: #f1f2f4;
+}
+
+/* 右侧渐隐，提示可横向滑动 */
+.chips::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 48rpx;
+  background: linear-gradient(to right, rgba(241, 242, 244, 0), #f1f2f4);
+  pointer-events: none;
+}
+
+.chips__scroll {
+  width: 100%;
+  height: 84rpx;
+  white-space: nowrap;
+}
+
+.chips__inner {
+  display: inline-flex;
+  align-items: center;
+  height: 84rpx;
+  padding: 0 32rpx;
+}
+
+.chip-tab {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 84rpx;
+  min-width: 132rpx;
+  padding: 0 32rpx;
+  margin-right: 20rpx;
+  border-radius: 42rpx;
+  background-color: #ffffff;
+  border: 1rpx solid #eceef1;
+  font-size: 28rpx;
+  color: #4e5159;
+  white-space: nowrap;
+}
+
+.chip-tab.is-active {
+  background-color: #d31027;
+  border-color: #d31027;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* ---------- 列表尾部 ---------- */
 .list-end {
   padding: 40rpx 0 20rpx;
   text-align: center;
   font-size: 24rpx;
   color: #c3c6cb;
-}
-
-/* ---------- 右侧乡镇索引 ---------- */
-.rail {
-  position: fixed;
-  right: 8rpx;
-  top: 46%;
-  transform: translateY(-50%);
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 8rpx 4rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 4rpx 16rpx rgba(31, 35, 41, 0.10);
-}
-
-.rail__item {
-  height: 46rpx;
-  margin: 1rpx 0;
-  padding: 0 12rpx;
-  border-radius: 999rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20rpx;
-  line-height: 1;
-  color: #646566;
-  white-space: nowrap;
-}
-
-.rail__item.is-active {
-  background-color: #d31027;
-  color: #ffffff;
-  font-weight: 600;
 }
