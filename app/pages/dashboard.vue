@@ -316,38 +316,50 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
           </svg>
           <span class="ring-num">{{ pct(submitRate) }}</span>
         </div>
-        <div class="hero-copy">
-          <p class="kpi-label">本期已报送</p>
-          <p class="kpi-value">{{ submitted }}<small>/ {{ period.total }}</small></p>
-          <p v-if="delta !== null" class="delta-pill" :class="{ down: delta < 0, up: delta > 0 }">
-            {{ delta === 0 ? '与上月持平' : `较上月 ${delta > 0 ? '+' : ''}${delta} 家` }}
-          </p>
+        <div class="kpi-copy">
+          <span class="kpi-label">本期已报送</span>
+          <span class="kpi-line">
+            <span class="kpi-value">{{ submitted }}<small>/ {{ period.total }}</small></span>
+            <span v-if="delta !== null" class="delta-pill" :class="{ down: delta < 0, up: delta > 0 }">
+              {{ delta === 0 ? '与上月持平' : `${delta > 0 ? '+' : ''}${delta} 家` }}
+            </span>
+          </span>
         </div>
       </article>
 
       <button type="button" class="kpi" @click="focusTable('missing')">
         <span class="kpi-icon is-red" aria-hidden="true"><el-icon><CircleCloseFilled /></el-icon></span>
-        <span class="kpi-label">未报送</span>
-        <span class="kpi-value">{{ period.missing }}</span>
+        <span class="kpi-copy">
+          <span class="kpi-label">未报送</span>
+          <span class="kpi-line"><span class="kpi-value">{{ period.missing }}</span></span>
+        </span>
       </button>
 
       <button type="button" class="kpi" @click="focusTable('pending')">
         <span class="kpi-icon is-amber" aria-hidden="true"><el-icon><Clock /></el-icon></span>
-        <span class="kpi-label">待审核</span>
-        <span class="kpi-value">{{ period.pending }}</span>
-        <span class="kpi-foot">镇级 {{ townPending }} · 县级 {{ countyPending }}</span>
+        <span class="kpi-copy">
+          <span class="kpi-label">待审核</span>
+          <span class="kpi-line">
+            <span class="kpi-value">{{ period.pending }}</span>
+            <span class="kpi-foot">镇 {{ townPending }} · 县 {{ countyPending }}</span>
+          </span>
+        </span>
       </button>
 
       <button type="button" class="kpi" @click="focusTable('rejected')">
         <span class="kpi-icon is-rose" aria-hidden="true"><el-icon><WarningFilled /></el-icon></span>
-        <span class="kpi-label">审核未通过</span>
-        <span class="kpi-value">{{ period.rejected }}</span>
+        <span class="kpi-copy">
+          <span class="kpi-label">审核未通过</span>
+          <span class="kpi-line"><span class="kpi-value">{{ period.rejected }}</span></span>
+        </span>
       </button>
 
       <div class="kpi">
         <span class="kpi-icon is-blue" aria-hidden="true"><el-icon><OfficeBuilding /></el-icon></span>
-        <span class="kpi-label">应报场所</span>
-        <span class="kpi-value">{{ period.total }}</span>
+        <span class="kpi-copy">
+          <span class="kpi-label">应报场所</span>
+          <span class="kpi-line"><span class="kpi-value">{{ period.total }}</span></span>
+        </span>
       </div>
     </section>
 
@@ -562,73 +574,77 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
 .head-actions .el-button { margin: 0; }
 
 /* ---------- KPI ---------- */
-.kpis { display: grid; grid-template-columns: 1.55fr repeat(4, minmax(0, 1fr)); gap: 16px; }
+/* 横向排布：图标 | 标签+数值，整体高度压到 78px 左右 */
+.kpis { display: grid; grid-template-columns: 1.7fr repeat(4, minmax(0, 1fr)); gap: 12px; }
 .kpi {
   position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 3px;
-  padding: 18px 20px 16px;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  min-height: 78px;
+  padding: 12px 16px;
   border: 1px solid #e9edf3;
-  border-radius: 16px;
+  border-radius: 14px;
   background: #fff;
   text-align: start;
   font: inherit;
   cursor: default;
   box-shadow: 0 1px 4px rgb(16 24 40 / 3%);
-  transition: border-color .18s, box-shadow .18s, transform .18s;
+  transition: border-color .18s, box-shadow .18s;
 }
 button.kpi { cursor: pointer; }
-button.kpi:hover, button.kpi:focus-visible { border-color: #c2d3e8; box-shadow: 0 8px 22px rgb(16 24 40 / 8%); transform: translateY(-2px); }
+button.kpi:hover, button.kpi:focus-visible { border-color: #c2d3e8; box-shadow: 0 4px 14px rgb(16 24 40 / 8%); }
 .kpi-icon {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
-  margin-block-end: 6px;
-  border-radius: 10px;
-  font-size: 17px;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  font-size: 16px;
 }
 .kpi-icon.is-red { background: #fef1f0; color: #d92d20; }
 .kpi-icon.is-amber { background: #fff4e2; color: #dc6803; }
 .kpi-icon.is-rose { background: #fdeef4; color: #c0357b; }
 .kpi-icon.is-blue { background: #eef4fc; color: #17549c; }
-.kpi-label { display: block; color: #667085; font-size: 13px; }
-.kpi-value { display: block; margin-block-start: 2px; color: #101828; font-size: 30px; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
-.kpi-value small { margin-inline-start: 4px; color: #98a2b3; font-size: 14px; font-weight: 500; }
-.kpi-foot { color: #98a2b3; font-size: 12px; }
+.kpi-copy { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.kpi-label { color: #667085; font-size: 12.5px; line-height: 1.3; }
+.kpi-line { display: flex; align-items: baseline; gap: 7px; min-width: 0; }
+.kpi-value { color: #101828; font-size: 24px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.kpi-value small { margin-inline-start: 3px; color: #98a2b3; font-size: 12.5px; font-weight: 500; }
+.kpi-foot { color: #98a2b3; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .kpi.hero {
-  flex-direction: row;
-  align-items: center;
-  gap: 20px;
+  gap: 14px;
+  padding: 12px 18px;
   border: 0;
   color: #fff;
   background: radial-gradient(130% 190% at 100% 0%, #2178c4 0%, #17549c 48%, #0d3f74 100%);
-  box-shadow: 0 12px 28px rgb(13 63 116 / 22%);
+  box-shadow: 0 10px 24px rgb(13 63 116 / 20%);
 }
+.kpi.hero .kpi-line { align-items: center; gap: 10px; }
 .kpi.hero .kpi-label { color: rgb(255 255 255 / 72%); }
-.kpi.hero .kpi-value { color: #fff; font-size: 34px; }
-.kpi.hero .kpi-value small { color: rgb(255 255 255 / 62%); font-size: 16px; }
-.hero-copy { min-width: 0; }
+.kpi.hero .kpi-value { color: #fff; font-size: 26px; }
+.kpi.hero .kpi-value small { color: rgb(255 255 255 / 62%); font-size: 13px; }
 .delta-pill {
   display: inline-flex;
-  margin: 8px 0 0;
-  padding: 3px 10px;
+  flex: none;
+  padding: 2px 8px;
   border-radius: 999px;
   background: rgb(255 255 255 / 14%);
   color: rgb(255 255 255 / 86%);
-  font-size: 12px;
+  font-size: 11px;
+  white-space: nowrap;
 }
 .delta-pill.up { background: rgb(134 239 172 / 22%); color: #bbf7d0; }
 .delta-pill.down { background: rgb(254 202 202 / 22%); color: #fecaca; }
-.ring { position: relative; flex: none; width: 90px; height: 90px; }
+.ring { position: relative; flex: none; width: 54px; height: 54px; }
 .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.ring circle { fill: none; stroke-width: 8; }
+.ring circle { fill: none; stroke-width: 9; }
 .ring-track { stroke: rgb(255 255 255 / 18%); }
 .ring-value { stroke: #fff; stroke-linecap: round; transition: stroke-dasharray .5s ease; }
-.ring-num { position: absolute; inset: 0; display: grid; place-items: center; font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ring-num { position: absolute; inset: 0; display: grid; place-items: center; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
 
 /* ---------- 通用卡片 ---------- */
 .split { display: grid; gap: 18px; align-items: start; }
@@ -870,10 +886,13 @@ button.kpi:hover, button.kpi:focus-visible { border-color: #c2d3e8; box-shadow: 
 @media (max-width: 720px) {
   .dash { --card-pad: 18px; gap: 12px; }
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .kpi { padding: 14px 15px; }
-  .kpi.hero { grid-column: span 2; padding: 18px; }
-  .kpi-value { font-size: 25px; }
-  .kpi.hero .kpi-value { font-size: 28px; }
+  .kpi { min-height: 68px; padding: 10px 12px; gap: 10px; }
+  .kpi-icon { width: 28px; height: 28px; font-size: 15px; border-radius: 8px; }
+  .kpi.hero { grid-column: span 2; padding: 12px 14px; }
+  .kpi-value { font-size: 21px; }
+  .kpi.hero .kpi-value { font-size: 22px; }
+  .ring { width: 48px; height: 48px; }
+  .ring-num { font-size: 12.5px; }
   .head-actions { width: 100%; }
   .head-actions :deep(.el-date-editor) { flex: 1; width: auto; }
   .info-list a { grid-template-columns: 64px minmax(0, 1fr) 46px; }
