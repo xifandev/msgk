@@ -47,32 +47,6 @@
     </view>
   </view>
 
-  <!-- 吸顶乡镇筛选条：大号胶囊，方便手指点按 -->
-  <view
-    class="chips"
-    wx:if="{{ !loading && !loadError && !keyword && towns.length > 0 }}"
-    style="top:{{ statusBarHeight }}px"
-  >
-    <scroll-view
-      class="chips__scroll"
-      scroll-x
-      enable-flex
-      scroll-into-view="{{ chipIntoView }}"
-      scroll-with-animation
-    >
-      <view
-        class="chip-tab {{ activeChip === index ? 'is-active' : '' }}"
-        wx:for="{{ towns }}"
-        wx:key="index"
-        id="chip-{{ index }}"
-        data-index="{{ index }}"
-        bind:tap="onChipTap"
-        aria-role="button"
-        aria-label="跳转到 {{ item.label }}"
-      >{{ item.label }}</view>
-    </scroll-view>
-  </view>
-
   <!-- 加载中 -->
   <view wx:if="{{ loading }}" class="state">
     <ms-loading text="正在加载场所" color="#d31027" size="48rpx" />
@@ -132,7 +106,7 @@
       <view
         class="section__head"
         id="{{ group.id }}"
-        style="top:{{ statusBarHeight + chipBarHeight }}px"
+        style="top:{{ statusBarHeight }}px"
       >
         <view class="section__dot"></view>
         <text class="section__name">{{ group.text }}</text>

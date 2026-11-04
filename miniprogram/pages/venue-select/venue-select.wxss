@@ -267,69 +267,6 @@ page {
   background-color: #b31217;
 }
 
-/* ---------- 吸顶乡镇筛选条 ---------- */
-.chips {
-  position: sticky;
-  z-index: 6;
-  display: flex;
-  align-items: center;
-  height: 84rpx;
-  margin-top: 30rpx;
-  background-color: #f1f2f4;
-}
-
-/* 右侧渐隐，提示可横向滑动 */
-.chips::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 48rpx;
-  background: linear-gradient(to right, rgba(241, 242, 244, 0), #f1f2f4);
-  pointer-events: none;
-}
-
-.chips__scroll {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  height: 84rpx;
-  white-space: nowrap;
-}
-
-.chip-tab {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 84rpx;
-  min-width: 132rpx;
-  padding: 0 32rpx;
-  margin-right: 20rpx;
-  border-radius: 42rpx;
-  background-color: #ffffff;
-  border: 1rpx solid #eceef1;
-  font-size: 28rpx;
-  color: #4e5159;
-  white-space: nowrap;
-}
-
-.chip-tab:first-child {
-  margin-left: 32rpx;
-}
-
-.chip-tab:last-child {
-  margin-right: 32rpx;
-}
-
-.chip-tab.is-active {
-  background-color: #d31027;
-  border-color: #d31027;
-  color: #ffffff;
-  font-weight: 600;
-}
-
 /* ---------- 列表尾部 ---------- */
 .list-end {
   padding: 40rpx 0 20rpx;
