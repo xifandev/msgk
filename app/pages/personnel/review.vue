@@ -168,14 +168,6 @@ onMounted(async () => {
 
 <template>
   <div class="page">
-    <div class="page-header">
-      <div>
-        <h1>人员审核</h1>
-        <p>按场所核对人员名册，审核通过后由场所自行决定是否向公众公开。</p>
-      </div>
-      <el-button :loading="loading" @click="load">刷新</el-button>
-    </div>
-
     <section v-if="isReviewer" class="todo-banner" :class="{ clear: !mineCount }">
       <div class="todo-count">
         <strong>{{ mineCount }}</strong>
@@ -204,8 +196,11 @@ onMounted(async () => {
     <section class="panel">
       <div class="toolbar">
         <el-input v-model="query.search" placeholder="搜索场所或乡镇" clearable @keyup.enter="search" @clear="search" />
-        <el-button @click="search">查询</el-button>
-        <span class="muted">共 {{ total }} 条</span>
+        <el-button plain @click="search">查询</el-button>
+        <div class="toolbar-actions">
+          <span class="toolbar-note">共 {{ total }} 条</span>
+          <el-button :loading="loading" @click="load">刷新</el-button>
+        </div>
       </div>
 
       <div v-loading="loading" class="review-list">
@@ -328,14 +323,12 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.page-header { align-items: center; }
 .todo-banner {
   display: flex;
   align-items: center;
   gap: 20px;
   flex-wrap: wrap;
   padding: 18px 22px;
-  margin-block-end: 18px;
   border: 1px solid #f0d9a8;
   border-radius: 14px;
   background: #fffaf0;
@@ -347,7 +340,7 @@ onMounted(async () => {
 .todo-count span { color: var(--ink); font-weight: 600; }
 .todo-hint { flex: 1 1 320px; margin: 0; color: var(--muted); font-size: 14px; }
 
-.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-block-end: 16px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
 .tab {
   display: inline-flex;
   align-items: center;

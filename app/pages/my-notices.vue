@@ -33,11 +33,13 @@ onMounted(load)
 
 <template>
   <div class="page">
-    <div class="page-header">
-      <div><h1>我的通知</h1><p>这里列出面向管理员的内部公告，打开详情后自动标记为已读。</p></div>
-      <el-button @click="load">刷新</el-button>
-    </div>
     <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-head-title">内部公告 <small>共 {{ total }} 条</small></h2>
+        <div class="panel-head-actions">
+          <el-button @click="load">刷新</el-button>
+        </div>
+      </div>
       <div class="table-region" tabindex="0" role="region" aria-label="内部公告列表">
         <el-table v-loading="loading" :data="list">
           <el-table-column type="index" label="序号" width="64" :index="(index: number) => (paging.page - 1) * paging.pageSize + index + 1" />

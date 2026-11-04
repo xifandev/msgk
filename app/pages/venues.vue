@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 import { TOWNSHIPS } from '~~/shared/townships'
 const { admin, hasPerm } = useAdmin()
 const loading = ref(false)
@@ -115,14 +116,13 @@ onMounted(load)
 
 <template>
   <div class="page">
-    <div class="page-header">
-      <div><h1>场所配置</h1><p>维护宗教活动场所的基础信息、图片与二维码，按乡镇和排序值排列。</p></div>
-      <el-button v-if="hasPerm('venues:edit') && admin?.allVenues" type="primary" @click="editVenue()">添加场所</el-button>
-    </div>
     <section class="panel">
       <div class="toolbar">
         <el-input v-model="filters.search" placeholder="搜索场所名称或乡镇" clearable style="max-width: 280px" aria-label="搜索场所" @keyup.enter="search" @clear="search" />
-        <el-button type="primary" plain @click="search">搜索</el-button>
+        <el-button plain @click="search">查询</el-button>
+        <div class="toolbar-actions">
+          <el-button v-if="hasPerm('venues:edit') && admin?.allVenues" type="primary" :icon="Plus" @click="editVenue()">添加场所</el-button>
+        </div>
       </div>
       <div class="table-region" tabindex="0" role="region" aria-label="场所列表">
         <el-table v-loading="loading" :data="list">
@@ -146,7 +146,7 @@ onMounted(load)
             </template>
           </el-table-column>
           <template #empty>
-            <p class="muted">{{ filters.search ? '没有找到匹配的场所，换个关键词试试' : '暂无场所，点击右上角“添加场所”开始配置' }}</p>
+            <p class="muted">{{ filters.search ? '没有找到匹配的场所，换个关键词试试' : '暂无场所，点击上方“添加场所”开始配置' }}</p>
           </template>
         </el-table>
       </div>

@@ -139,9 +139,9 @@ onMounted(() => {
 
 <template>
   <div class="page">
-    <div class="page-header">
-      <div><h1>场所介绍</h1><p>按场所维护登记信息与简介，提交审核通过后可向公众公开。</p></div>
-      <VenueSelect v-model="venueId" style="min-width: 240px" />
+    <div class="page-bar">
+      <span class="page-bar-label">当前场所</span>
+      <VenueSelect v-model="venueId" style="min-width: 260px" />
     </div>
     <div v-if="profile" v-loading="loading" class="detail-layout">
       <section class="panel">

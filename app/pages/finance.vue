@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 import { REVIEW_LABELS, REVIEW_TAG_TYPES, reviewActionMessage } from '~~/shared/review'
 const route = useRoute()
 const { hasPerm } = useAdmin()
@@ -169,10 +170,6 @@ onMounted(() => {
 
 <template>
   <div class="page">
-    <div class="page-header">
-      <div><h1>财务公开</h1><p>按月维护收支明细，提交审核通过后向公众公开。</p></div>
-      <el-button v-if="hasPerm('finance:edit')" type="primary" @click="addVisible = true">添加月度公开</el-button>
-    </div>
     <section class="panel">
       <div class="toolbar">
         <VenueSelect v-model="filters.venueId" clearable />
@@ -180,7 +177,10 @@ onMounted(() => {
         <el-select v-model="filters.state" clearable placeholder="全部状态">
           <el-option v-for="(label, value) in REVIEW_LABELS" :key="value" :label="label" :value="value" />
         </el-select>
-        <span class="muted">{{ total }}条数据</span>
+        <el-button plain @click="load">查询</el-button>
+        <div class="toolbar-actions">
+          <el-button v-if="hasPerm('finance:edit')" type="primary" :icon="Plus" @click="addVisible = true">添加月度公开</el-button>
+        </div>
       </div>
       <div class="table-region" tabindex="0" role="region" aria-label="月度账单列表">
         <el-table v-loading="loading" :data="list">

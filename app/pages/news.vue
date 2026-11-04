@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { QuestionFilled } from '@element-plus/icons-vue'
+import { Plus, QuestionFilled } from '@element-plus/icons-vue'
 const { admin, hasPerm } = useAdmin()
 const loading = ref(false)
 const list = ref<any[]>([])
@@ -112,13 +112,6 @@ onMounted(() => { load(); loadCategories() })
 
 <template>
   <div class="page">
-    <div class="page-header">
-      <div><h1>新闻与法规</h1><p>维护新闻与法规文章及分类，发布后向公众展示。</p></div>
-      <div class="header-actions">
-        <el-button v-if="hasPerm('news:edit')" @click="categoryVisible = true">管理分类</el-button>
-        <el-button v-if="hasPerm('news:edit')" type="primary" @click="editArticle()">新建文章</el-button>
-      </div>
-    </div>
     <section class="panel">
       <div class="toolbar">
         <el-input v-model="filters.search" placeholder="搜索文章标题" clearable aria-label="搜索文章标题" @keyup.enter="search" @clear="search" />
@@ -129,7 +122,11 @@ onMounted(() => { load(); loadCategories() })
           <el-option label="已发布" value="1" />
           <el-option label="未发布" value="0" />
         </el-select>
-        <el-button @click="search">查询</el-button>
+        <el-button plain @click="search">查询</el-button>
+        <div class="toolbar-actions">
+          <el-button v-if="hasPerm('news:edit')" @click="categoryVisible = true">管理分类</el-button>
+          <el-button v-if="hasPerm('news:edit')" type="primary" :icon="Plus" @click="editArticle()">新建文章</el-button>
+        </div>
       </div>
       <div class="table-region" tabindex="0" role="region" aria-label="新闻文章列表">
         <el-table v-loading="loading" :data="list">
@@ -160,7 +157,7 @@ onMounted(() => { load(); loadCategories() })
           <el-form-item required>
             <template #label>
               文章分类
-              <el-tooltip content="添加/修改分类请点击列表页右上角【管理分类】" placement="top">
+              <el-tooltip content="添加/修改分类请点击列表上方【管理分类】" placement="top">
                 <el-icon class="label-icon"><QuestionFilled /></el-icon>
               </el-tooltip>
             </template>
@@ -220,7 +217,6 @@ onMounted(() => { load(); loadCategories() })
 </template>
 
 <style scoped>
-.header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .label-icon { margin-inline-start: 4px; color: var(--muted); vertical-align: -2px; }
 .toolbar .el-input { max-width: 260px; }
 .toolbar .el-select { min-width: 160px; }

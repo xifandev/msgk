@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 const { admin: currentAdmin, fetchMe } = useAdmin()
 const list = ref<any[]>([])
 const roles = ref<any[]>([])
@@ -46,9 +47,77 @@ onMounted(load)
 </script>
 
 <template>
-  <div class="page"><div class="page-header"><div><h1>管理员管理</h1><p>配置登录手机号、功能角色和可管理的场所。</p></div><el-button type="primary" @click="edit()">新增管理员</el-button></div>
-    <section class="panel"><div class="toolbar"><el-input v-model="search" placeholder="输入手机号查询" clearable @keyup.enter="load" /><el-button @click="load">查询</el-button></div><div class="table-region" tabindex="0" role="region" aria-label="管理员列表"><el-table :data="list"><el-table-column type="index" label="序号" width="64" /><el-table-column prop="name" label="姓名" width="90" /><el-table-column prop="phone" label="登录手机号" width="130" /><el-table-column prop="role_name" label="担任角色" width="110" /><el-table-column prop="organization" label="所属单位" min-width="100" /><el-table-column label="管辖场所" min-width="160"><template #default="{ row }"><span v-if="row.all_venues">全部场所</span><el-tag v-else v-for="name in venueNames(row.venue_ids).slice(0, 5)" :key="name" class="venue-tag">{{ name }}</el-tag><span v-if="!row.all_venues && venueNames(row.venue_ids).length > 5" class="muted">…</span></template></el-table-column><el-table-column prop="note" label="备注" min-width="100" show-overflow-tooltip><template #default="{ row }">{{ row.note || '—' }}</template></el-table-column><el-table-column prop="last_login_at" label="最近一次登录" width="160" /><el-table-column label="可用状态" width="90"><template #default="{ row }"><el-switch v-model="row.status" :active-value="1" :inactive-value="0" :disabled="row.id === currentAdmin?.id || row.role_code === 'super'" :aria-label="`${row.name}账号状态`" @change="toggleStatus(row)" /></template></el-table-column><el-table-column label="操作" width="216" fixed="right" align="right"><template #default="{ row }"><TableActions><el-button size="small" type="primary" @click="edit(row)">编辑</el-button><el-button v-if="currentAdmin?.roleCode === 'super' && row.status === 1 && row.id !== currentAdmin?.id && row.role_code !== 'super'" size="small" type="warning" plain @click="impersonate(row)">登录</el-button><el-button v-if="row.id !== currentAdmin?.id && row.role_code !== 'super'" size="small" type="danger" plain @click="remove(row)">删除</el-button></TableActions></template></el-table-column></el-table></div></section>
-    <el-dialog v-model="visible" :title="form.id ? '编辑管理员' : '新增管理员'" width="min(680px, 95vw)"><el-form label-position="top" @submit.prevent="save"><div class="form-grid"><el-form-item label="姓名" required><el-input v-model="form.name" autocomplete="name" /></el-form-item><el-form-item label="登录手机号" required><el-input v-model="form.phone" inputmode="numeric" autocomplete="tel" maxlength="11" /></el-form-item><el-form-item label="担任角色" required><el-select v-model="form.roleId"><el-option v-for="role in roles" :key="role.id" :value="role.id" :label="role.name" /></el-select></el-form-item><el-form-item label="所属单位"><el-input v-model="form.organization" /></el-form-item></div><el-form-item label="管辖全部场所"><el-switch v-model="form.allVenues" :active-value="1" :inactive-value="0" /></el-form-item><el-form-item v-if="!form.allVenues" label="管辖场所（请点击选择）" required><el-select v-model="form.venueIds" multiple filterable collapse-tags :max-collapse-tags="6"><el-option v-for="venue in venues" :key="venue.id" :value="venue.id" :label="`${venue.name}（${venue.township}）`" /></el-select></el-form-item><el-form-item label="账号状态"><el-radio-group v-model="form.status"><el-radio-button :value="1">启用</el-radio-button><el-radio-button :value="0">停用</el-radio-button></el-radio-group></el-form-item><el-form-item label="备注"><el-input v-model="form.note" type="textarea" maxlength="500" /></el-form-item></el-form><template #footer><div class="dialog-actions"><el-button @click="visible = false">取消</el-button><el-button type="primary" :loading="saving" @click="save">保存管理员</el-button></div></template></el-dialog>
+  <div class="page">
+    <section class="panel">
+      <div class="toolbar">
+        <el-input v-model="search" placeholder="输入姓名或手机号查询" clearable style="max-width: 280px" aria-label="搜索管理员" @keyup.enter="load" @clear="load" />
+        <el-button plain @click="load">查询</el-button>
+        <div class="toolbar-actions">
+          <el-button type="primary" :icon="Plus" @click="edit()">新增管理员</el-button>
+        </div>
+      </div>
+      <div class="table-region" tabindex="0" role="region" aria-label="管理员列表">
+        <el-table :data="list">
+          <el-table-column type="index" label="序号" width="64" />
+          <el-table-column prop="name" label="姓名" width="90" />
+          <el-table-column prop="phone" label="登录手机号" width="130" />
+          <el-table-column prop="role_name" label="担任角色" width="110" />
+          <el-table-column prop="organization" label="所属单位" min-width="100" />
+          <el-table-column label="管辖场所" min-width="160">
+            <template #default="{ row }">
+              <span v-if="row.all_venues">全部场所</span>
+              <el-tag v-else v-for="name in venueNames(row.venue_ids).slice(0, 5)" :key="name" class="venue-tag">{{ name }}</el-tag>
+              <span v-if="!row.all_venues && venueNames(row.venue_ids).length > 5" class="muted">…</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="note" label="备注" min-width="100" show-overflow-tooltip><template #default="{ row }">{{ row.note || '—' }}</template></el-table-column>
+          <el-table-column prop="last_login_at" label="最近一次登录" width="160" />
+          <el-table-column label="可用状态" width="90">
+            <template #default="{ row }">
+              <el-switch v-model="row.status" :active-value="1" :inactive-value="0" :disabled="row.id === currentAdmin?.id || row.role_code === 'super'" :aria-label="`${row.name}账号状态`" @change="toggleStatus(row)" />
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="216" fixed="right" align="right">
+            <template #default="{ row }">
+              <TableActions>
+                <el-button size="small" type="primary" @click="edit(row)">编辑</el-button>
+                <el-button v-if="currentAdmin?.roleCode === 'super' && row.status === 1 && row.id !== currentAdmin?.id && row.role_code !== 'super'" size="small" type="warning" plain @click="impersonate(row)">登录</el-button>
+                <el-button v-if="row.id !== currentAdmin?.id && row.role_code !== 'super'" size="small" type="danger" plain @click="remove(row)">删除</el-button>
+              </TableActions>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </section>
+
+    <el-dialog v-model="visible" :title="form.id ? '编辑管理员' : '新增管理员'" width="min(680px, 95vw)">
+      <el-form label-position="top" @submit.prevent="save">
+        <div class="form-grid">
+          <el-form-item label="姓名" required><el-input v-model="form.name" autocomplete="name" /></el-form-item>
+          <el-form-item label="登录手机号" required><el-input v-model="form.phone" inputmode="numeric" autocomplete="tel" maxlength="11" /></el-form-item>
+          <el-form-item label="担任角色" required>
+            <el-select v-model="form.roleId"><el-option v-for="role in roles" :key="role.id" :value="role.id" :label="role.name" /></el-select>
+          </el-form-item>
+          <el-form-item label="所属单位"><el-input v-model="form.organization" /></el-form-item>
+        </div>
+        <el-form-item label="管辖全部场所"><el-switch v-model="form.allVenues" :active-value="1" :inactive-value="0" /></el-form-item>
+        <el-form-item v-if="!form.allVenues" label="管辖场所（请点击选择）" required>
+          <el-select v-model="form.venueIds" multiple filterable collapse-tags :max-collapse-tags="6">
+            <el-option v-for="venue in venues" :key="venue.id" :value="venue.id" :label="`${venue.name}（${venue.township}）`" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="账号状态">
+          <el-radio-group v-model="form.status"><el-radio-button :value="1">启用</el-radio-button><el-radio-button :value="0">停用</el-radio-button></el-radio-group>
+        </el-form-item>
+        <el-form-item label="备注"><el-input v-model="form.note" type="textarea" maxlength="500" /></el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-actions">
+          <el-button @click="visible = false">取消</el-button>
+          <el-button type="primary" :loading="saving" @click="save">保存管理员</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 

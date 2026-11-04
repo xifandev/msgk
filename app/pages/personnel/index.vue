@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 import { reviewActionMessage } from '~~/shared/review'
 
 interface Member {
@@ -140,13 +141,18 @@ onMounted(() => { if (!venueId.value && venues.value.length) venueId.value = ven
 
 <template>
   <div class="page">
-    <div class="page-header"><div><h1>人员公开</h1><p>按场所维护教职与工作人员名册，审核通过后向公众公开。</p></div><VenueSelect v-model="venueId" style="min-width: 240px" /></div>
+    <div class="page-bar">
+      <span class="page-bar-label">当前场所</span>
+      <VenueSelect v-model="venueId" style="min-width: 260px" />
+    </div>
     <div v-if="record" v-loading="loading" class="detail-layout">
       <section class="panel">
         <div class="toolbar">
-          <el-button v-if="canEdit" type="primary" @click="addMember">添加人员</el-button>
-          <el-button v-if="canEdit" type="success" plain :loading="saving" @click="save">{{ dirty ? '保存名册（有未保存修改）' : '保存名册' }}</el-button>
-          <span class="muted">共 {{ members.length }} 人</span>
+          <span class="toolbar-note">共 {{ members.length }} 人</span>
+          <div class="toolbar-actions">
+            <el-button v-if="canEdit" :loading="saving" @click="save">{{ dirty ? '保存名册（有未保存修改）' : '保存名册' }}</el-button>
+            <el-button v-if="canEdit" type="primary" :icon="Plus" @click="addMember">添加人员</el-button>
+          </div>
         </div>
         <p v-if="canEdit" class="muted hint-text">人员信息编辑完成后，点击右侧“提交审核”即可。</p>
         <p v-if="!editable" class="muted">当前内容正在审核或已经通过，如需修改请先重新编辑。</p>

@@ -7,11 +7,39 @@ async function save() { try { await $fetch('/api/auth/settings', { method: 'PUT'
 </script>
 
 <template>
-  <div class="page"><div class="page-header"><div><h1>个人设置</h1><p>查看当前账号信息和数据权限范围。</p></div></div><section class="panel"><el-descriptions :column="1" border><el-descriptions-item label="姓名">{{ admin?.name }}</el-descriptions-item><el-descriptions-item label="手机号">{{ admin?.phone }}</el-descriptions-item><el-descriptions-item label="角色">{{ admin?.roleName }}</el-descriptions-item><el-descriptions-item label="管辖场所"><span v-if="admin?.allVenues">全部场所</span><el-tag v-else v-for="venue in venues" :key="venue.id" class="venue-tag">{{ venue.name }}</el-tag></el-descriptions-item></el-descriptions><div class="setting-row"><div><strong>内部通知</strong><p class="muted">控制是否接收内部公告提醒。</p></div><el-switch v-model="noticeEnabled" aria-label="内部通知开关" @change="save" /></div></section></div>
+  <div class="page">
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-head-title">账号信息</h2>
+      </div>
+      <el-descriptions :column="1" border>
+        <el-descriptions-item label="姓名">{{ admin?.name }}</el-descriptions-item>
+        <el-descriptions-item label="手机号">{{ admin?.phone }}</el-descriptions-item>
+        <el-descriptions-item label="角色">{{ admin?.roleName }}</el-descriptions-item>
+        <el-descriptions-item label="管辖场所">
+          <span v-if="admin?.allVenues">全部场所</span>
+          <el-tag v-else v-for="venue in venues" :key="venue.id" class="venue-tag">{{ venue.name }}</el-tag>
+        </el-descriptions-item>
+      </el-descriptions>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-head-title">通知偏好</h2>
+      </div>
+      <div class="setting-row">
+        <div>
+          <strong>内部通知</strong>
+          <p class="muted">控制是否接收内部公告提醒。</p>
+        </div>
+        <el-switch v-model="noticeEnabled" aria-label="内部通知开关" @change="save" />
+      </div>
+    </section>
+  </div>
 </template>
 
 <style scoped>
 .venue-tag { margin: 3px; }
-.setting-row { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-block-start: 28px; }
+.setting-row { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
 .setting-row p { margin: 4px 0 0; }
 </style>

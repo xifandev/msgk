@@ -54,15 +54,13 @@ onMounted(() => {
 
 <template>
   <div class="page">
-    <div class="page-header"><div><h1>场所介绍审核</h1><p>查看场所登记资料，完成镇级或县级审核。</p></div></div>
     <section class="panel">
       <div class="toolbar">
         <el-input v-model="queryInput.search" placeholder="搜索场所或乡镇" clearable @keyup.enter="search" @clear="search" />
         <el-select v-model="queryInput.state" clearable placeholder="全部状态" @change="search">
           <el-option v-for="(label, value) in REVIEW_LABELS" :key="value" :label="label" :value="value" />
         </el-select>
-        <el-button @click="search">查询</el-button>
-        <span class="muted">{{ total }}条数据</span>
+        <el-button plain @click="search">查询</el-button>
       </div>
       <div class="table-region" tabindex="0" role="region" aria-label="场所介绍审核列表">
         <el-table :data="list">

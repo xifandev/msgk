@@ -286,14 +286,11 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
 <template>
   <div class="page dash" v-loading="loading">
     <header class="head">
-      <div class="head-copy">
-        <h1>公开报送总览</h1>
-        <p class="head-sub">
-          {{ venueMode ? '本场所' : `${data?.townshipTotal ?? 0} 个镇级 · ${data?.venueTotal ?? 0} 个场所` }}
-          <span class="sep">·</span>{{ monthLabel }}
-          <NuxtLink v-if="data?.unread" class="notice-link" to="/my-notices">{{ data.unread }} 条未读通知</NuxtLink>
-        </p>
-      </div>
+      <p class="head-sub">
+        {{ venueMode ? '本场所' : `${data?.townshipTotal ?? 0} 个镇级 · ${data?.venueTotal ?? 0} 个场所` }}
+        <span class="sep">·</span>{{ monthLabel }}
+        <NuxtLink v-if="data?.unread" class="notice-link" to="/my-notices">{{ data.unread }} 条未读通知</NuxtLink>
+      </p>
       <div class="head-actions">
         <el-date-picker
           :model-value="month"
@@ -564,9 +561,8 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
 .dash > * { min-width: 0; }
 
 /* ---------- 顶部 ---------- */
-.head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; padding-block: 4px 2px; }
-.head h1 { margin: 0; font-size: clamp(24px, 2vw, 29px); font-weight: 700; letter-spacing: 1.5px; color: #101828; }
-.head-sub { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 7px 0 0; color: #98a2b3; font-size: 13px; }
+.head { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; padding-block: 2px; }
+.head-sub { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0; color: #98a2b3; font-size: 13.5px; }
 .sep { color: #d0d5dd; }
 .notice-link { padding: 2px 10px; border-radius: 999px; background: #fffaeb; border: 1px solid #fedf89; color: #b54708; font-size: 12px; }
 .notice-link:hover { background: #fef0c7; }

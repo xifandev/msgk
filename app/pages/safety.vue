@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 import { REVIEW_LABELS, REVIEW_TAG_TYPES, reviewActionMessage } from '~~/shared/review'
 const route = useRoute()
 const { hasPerm } = useAdmin()
@@ -106,10 +107,6 @@ onMounted(() => {
 
 <template>
   <div class="page">
-    <div class="page-header">
-      <div><h1>场所安全</h1><p>编写场所安全知识文章，关联场所并提交两级审核，审核通过后向公众公开。</p></div>
-      <el-button v-if="hasPerm('safety:edit')" type="primary" @click="editArticle()">新建安全文章</el-button>
-    </div>
     <section class="panel">
       <div class="toolbar">
         <VenueSelect v-model="filters.venueId" clearable />
@@ -121,8 +118,10 @@ onMounted(() => {
           <el-option label="已公开" value="1" />
           <el-option label="未公开" value="0" />
         </el-select>
-        <el-button @click="search">查询</el-button>
-        <span class="muted">{{ total }}条数据</span>
+        <el-button plain @click="search">查询</el-button>
+        <div class="toolbar-actions">
+          <el-button v-if="hasPerm('safety:edit')" type="primary" :icon="Plus" @click="editArticle()">新建安全文章</el-button>
+        </div>
       </div>
       <div class="table-region" tabindex="0" role="region" aria-label="安全文章列表">
         <el-table v-loading="loading" :data="list">

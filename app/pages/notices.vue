@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 const { admin, hasPerm } = useAdmin()
 const loading = ref(false)
 const list = ref<any[]>([])
@@ -74,10 +75,6 @@ onMounted(load)
 
 <template>
   <div class="page">
-    <div class="page-header">
-      <div><h1>公告管理</h1><p>小程序公告面向公众展示，内部公告仅后台管理员可见。</p></div>
-      <el-button v-if="hasPerm('notices:edit')" type="primary" @click="editNotice()">新建公告</el-button>
-    </div>
     <section class="panel">
       <div class="toolbar">
         <el-input v-model="filters.search" placeholder="搜索公告标题" clearable aria-label="搜索公告标题" @keyup.enter="search" @clear="search" />
@@ -88,7 +85,10 @@ onMounted(load)
           <el-option label="已发布" value="1" />
           <el-option label="未发布" value="0" />
         </el-select>
-        <el-button @click="search">查询</el-button>
+        <el-button plain @click="search">查询</el-button>
+        <div class="toolbar-actions">
+          <el-button v-if="hasPerm('notices:edit')" type="primary" :icon="Plus" @click="editNotice()">新建公告</el-button>
+        </div>
       </div>
       <div class="table-region" tabindex="0" role="region" aria-label="公告列表">
         <el-table v-loading="loading" :data="list">

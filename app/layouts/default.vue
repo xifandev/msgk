@@ -4,7 +4,7 @@ import {
   Avatar, Bell, DataAnalysis, Document, DocumentChecked, Guide, Key, List,
   Message, OfficeBuilding, Reading, Setting, User, UserFilled, Wallet, Warning
 } from '@element-plus/icons-vue'
-import { NAVIGATION } from '~~/shared/navigation'
+import { NAVIGATION, navigationFor } from '~~/shared/navigation'
 
 const { admin, hasPerm, logout, impersonator, stopImpersonate } = useAdmin()
 const route = useRoute()
@@ -14,6 +14,11 @@ const items = computed(() => NAVIGATION.filter((item) => hasPerm(item.permission
 const mainItems = computed(() => items.value.filter((item) => !item.superOnly))
 const opsItems = computed(() => items.value.filter((item) => item.superOnly && admin.value?.roleCode === 'super'))
 watch(() => route.path, () => { mobileMenu.value = false })
+
+const currentPage = computed(() => navigationFor(route.path))
+const pageTitle = computed(() => currentPage.value?.label ?? '后台管理')
+const pageDescription = computed(() => currentPage.value?.description ?? '')
+useHead({ title: computed(() => `${pageTitle.value} · 沂水宗教码上公开`) })
 
 async function switchBack() {
   try {
@@ -93,8 +98,11 @@ async function switchBack() {
           <el-button size="small" type="warning" @click="switchBack">切回我的账号</el-button>
         </div>
         <header class="topbar">
-          <el-button class="mobile-trigger" size="small" plain @click="mobileMenu = true">打开导航</el-button>
-          <div class="topbar-title">信息公开，清晰可查</div>
+          <el-button class="mobile-trigger" size="small" plain @click="mobileMenu = true">导航</el-button>
+          <div class="topbar-heading">
+            <h1 class="topbar-title">{{ pageTitle }}</h1>
+            <p v-if="pageDescription" class="topbar-desc">{{ pageDescription }}</p>
+          </div>
           <div class="account">
             <span class="account-name">{{ admin?.name }}</span>
             <el-tag effect="plain">{{ admin?.roleName }}</el-tag>
@@ -132,8 +140,8 @@ async function switchBack() {
   align-items: flex-start;
   justify-content: center;
   gap: 3px;
-  min-height: 88px;
-  padding: 16px 18px;
+  min-height: 78px;
+  padding: 14px 18px;
   border-block-end: 1px solid rgb(255 255 255 / 8%);
   background: rgb(255 255 255 / 3%);
   flex: none;
@@ -148,11 +156,40 @@ async function switchBack() {
 
 .workspace { min-height: 100dvh; margin-inline-start: 200px; }
 .top-sticky { position: sticky; inset-block-start: 0; z-index: 10; }
-.topbar { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 28px; background: rgb(255 255 255 / 92%); border-block-end: 1px solid var(--line); backdrop-filter: blur(12px); }
-.topbar-title { color: var(--muted); }
-.account { display: flex; align-items: center; gap: 12px; }
-.account-name { font-weight: 650; }
-.content { padding: 28px; }
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 78px;
+  padding: 10px 28px;
+  background: rgb(255 255 255 / 94%);
+  border-block-end: 1px solid var(--line);
+  backdrop-filter: blur(12px);
+}
+.topbar-heading { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 auto; }
+.topbar-title {
+  margin: 0;
+  color: #101828;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.topbar-desc {
+  margin: 0;
+  color: #98a2b3;
+  font-size: 12.5px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.account { display: flex; align-items: center; gap: 12px; flex: none; }
+.account-name { font-weight: 650; color: #344054; }
+.content { padding: 24px 28px 36px; }
 .impersonate-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 8px 28px; background: #fdf6ec; border-block-end: 1px solid #f3d19e; color: #7a5a12; font-size: 14px; }
 .impersonate-text strong { color: #5c4300; }
 .mobile-trigger { display: none; }
@@ -161,10 +198,12 @@ async function switchBack() {
   .sidebar { display: none; }
   .workspace { margin-inline-start: 0; }
   .mobile-trigger { display: inline-flex; }
-  .topbar { padding: 10px 16px; }
-  .topbar-title { display: none; }
-  .content { padding: 18px 14px; }
+  .topbar { gap: 12px; min-height: 64px; padding: 8px 16px; }
+  .topbar-title { font-size: 17px; letter-spacing: .5px; }
+  .topbar-desc { display: none; }
+  .content { padding: 16px 14px 28px; }
   .account { gap: 6px; }
+  .account-name { display: none; }
 }
 </style>
 

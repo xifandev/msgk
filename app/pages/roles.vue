@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 import { PERMISSIONS, type PermissionDefinition } from '~~/shared/permissions'
 const list = ref<any[]>([])
 const visible = ref(false)
@@ -45,15 +46,33 @@ onMounted(load)
 
 <template>
   <div class="page">
-    <div class="page-header">
-      <div><h1>角色权限</h1><p>功能权限与场所数据范围分开管理，修改后实时生效。</p></div>
-      <div class="header-actions">
-        <el-button @click="load">刷新</el-button>
-        <el-button type="primary" @click="edit()">新增角色</el-button>
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-head-title">角色列表 <small>共 {{ list.length }} 个角色</small></h2>
+        <div class="panel-head-actions">
+          <el-button @click="load">刷新</el-button>
+          <el-button type="primary" :icon="Plus" @click="edit()">新增角色</el-button>
+        </div>
       </div>
-    </div>
-    <section class="panel table-region" tabindex="0" role="region" aria-label="角色列表">
-      <el-table :data="list"><el-table-column type="index" label="序号" width="64" /><el-table-column prop="name" label="角色名" width="180" /><el-table-column label="拥有权限"><template #default="{ row }"><el-tag v-for="code in row.permissions" :key="code" class="perm-tag" effect="plain">{{ code === '*' ? '全部权限' : PERMISSIONS.find((item) => item.code === code)?.name ?? code }}</el-tag></template></el-table-column><el-table-column label="操作" width="144" align="right"><template #default="{ row }"><TableActions><el-button size="small" type="primary" @click="edit(row)">编辑</el-button><el-button v-if="!['super','county','town','venue'].includes(row.code)" size="small" type="danger" plain @click="remove(row)">删除</el-button></TableActions></template></el-table-column></el-table>
+      <div class="table-region" tabindex="0" role="region" aria-label="角色列表">
+        <el-table :data="list">
+          <el-table-column type="index" label="序号" width="64" />
+          <el-table-column prop="name" label="角色名" width="180" />
+          <el-table-column label="拥有权限">
+            <template #default="{ row }">
+              <el-tag v-for="code in row.permissions" :key="code" class="perm-tag" effect="plain">{{ code === '*' ? '全部权限' : PERMISSIONS.find((item) => item.code === code)?.name ?? code }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="144" align="right">
+            <template #default="{ row }">
+              <TableActions>
+                <el-button size="small" type="primary" @click="edit(row)">编辑</el-button>
+                <el-button v-if="!['super','county','town','venue'].includes(row.code)" size="small" type="danger" plain @click="remove(row)">删除</el-button>
+              </TableActions>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
     </section>
     <el-dialog v-model="visible" :title="form.id ? '编辑角色' : '新增角色'" width="min(760px, 94vw)">
       <el-form label-position="top" @submit.prevent="save">
@@ -82,7 +101,6 @@ onMounted(load)
 </template>
 
 <style scoped>
-.header-actions { display: flex; gap: 10px; }
 .perm-tag { margin: 3px; }
 .permission-group { padding-block: 8px; border-block-end: 1px solid var(--line); }
 .permission-group-head { display: flex; align-items: center; gap: 14px; }
