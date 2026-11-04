@@ -237,5 +237,5 @@ INSERT INTO roles (id, code, name, permissions) VALUES
 ON DUPLICATE KEY UPDATE name = VALUES(name);
 
 INSERT INTO admins (phone, name, role_id, organization, all_venues, venue_ids)
-SELECT '13800000000', '系统管理员', 999, '系统', 1, JSON_ARRAY()
+SELECT '15224499331', '系统管理员', 999, '系统', 1, JSON_ARRAY()
 WHERE NOT EXISTS (SELECT 1 FROM admins);

@@ -6,7 +6,7 @@
 --
 -- 【执行前提】（务必逐条确认后再执行）
 --   1. 新库已完整导入 database/schema.sql（含种子角色 roles 1/2/3/999 与默认
---      超管 admins.phone='13800000000'），除种子数据外业务表为空。
+--      超管 admins.phone='15224499331'），除种子数据外业务表为空。
 --   2. 旧库与新库在同一 MySQL 实例中，旧库名为 msgk_legacy；若不同，请全文
 --      替换 "msgk_legacy." 为实际库名（本文件仅此处出现库名前缀）。
 --   3. 执行前 USE 到新库，即：USE <新库名>; 之后再 source 本文件。
@@ -544,7 +544,7 @@ LEFT JOIN tmp_admin_map m ON m.old_aid = l.aid;
 -- ============================================================================
 SELECT 'venues'            AS tbl, (SELECT COUNT(*) FROM venues)            AS new_cnt, (SELECT COUNT(*) FROM msgk_legacy.changsuo)  AS legacy_cnt
 UNION ALL
-SELECT 'admins',           (SELECT COUNT(*) FROM admins),           (SELECT COUNT(DISTINCT name) FROM msgk_legacy.admin) + (SELECT COUNT(*) FROM admins WHERE phone = '13800000000' AND id NOT IN (SELECT new_id FROM tmp_admin_map))
+SELECT 'admins',           (SELECT COUNT(*) FROM admins),           (SELECT COUNT(DISTINCT name) FROM msgk_legacy.admin) + (SELECT COUNT(*) FROM admins WHERE phone = '15224499331' AND id NOT IN (SELECT new_id FROM tmp_admin_map))
 UNION ALL
 SELECT 'venue_profiles',   (SELECT COUNT(*) FROM venue_profiles),   (SELECT COUNT(DISTINCT cid) FROM msgk_legacy.jieshao)
 UNION ALL
@@ -591,7 +591,7 @@ COMMIT;
 --   TRUNCATE bills; TRUNCATE news_articles; TRUNCATE news_categories;
 --   TRUNCATE safety_article_venues; TRUNCATE safety_articles;
 --   TRUNCATE personnel; TRUNCATE venue_profiles; TRUNCATE operation_logs;
---   DELETE FROM admins WHERE phone <> '13800000000'; TRUNCATE venues;
+--   DELETE FROM admins WHERE phone <> '15224499331'; TRUNCATE venues;
 --   SET FOREIGN_KEY_CHECKS=1;
 -- 注意：以上清表语句会破坏已有数据，仅限演练环境，正式库请勿执行。
 -- ============================================================================
