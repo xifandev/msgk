@@ -21,7 +21,7 @@
             <view class="balance__top">
               <text class="balance__label">本月结余（元）</text>
               <view class="balance__delta {{ bill.deltaUp ? 'is-up' : 'is-down' }}">
-                <ms-icon wx:if="{{ !bill.deltaFlat }}" name="{{ bill.deltaUp ? 'trend-up' : 'trend-down' }}" size="22rpx" color="#ffffff" />
+                <ms-icon wx:if="{{ !bill.deltaFlat }}" name="{{ bill.deltaUp ? 'arrow-up' : 'arrow-down' }}" size="20rpx" color="#ffffff" />
                 <text>{{ bill.deltaText }}</text>
               </view>
             </view>
@@ -77,7 +77,7 @@
               <view class="day__card">
                 <view class="bill" wx:for="{{ item.items }}" wx:for-item="row" wx:key="id">
                   <view class="bill__icon {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">
-                    <ms-icon name="{{ row.kind === 'expense' ? 'expense' : 'income' }}" size="30rpx" color="#ffffff" />
+                    <text class="bill__glyph">{{ row.kind === 'expense' ? '−' : '+' }}</text>
                   </view>
                   <view class="bill__body">
                     <text class="bill__summary">{{ row.summary || '未填写摘要' }}</text>
