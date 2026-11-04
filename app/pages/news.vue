@@ -141,10 +141,12 @@ onMounted(() => { load(); loadCategories() })
           <el-table-column v-if="hasPerm('news:publish')" label="状态" width="100">
             <template #default="{ row }"><el-switch v-model="row.published" :active-value="1" :inactive-value="0" inline-prompt active-text="发布" inactive-text="隐藏" :aria-label="`《${row.title}》发布状态`" @change="publish(row)" /></template>
           </el-table-column>
-          <el-table-column label="操作" width="150" fixed="right">
+          <el-table-column label="操作" width="190" fixed="right">
             <template #default="{ row }">
-              <el-button v-if="hasPerm('news:edit')" text bg type="primary" @click="editArticle(row)">编辑</el-button>
-              <el-button v-if="hasPerm('news:delete')" text type="danger" @click="removeArticle(row)">删除</el-button>
+              <TableActions>
+                <el-button v-if="hasPerm('news:edit')" size="small" type="primary" :aria-label="`编辑《${row.title}》`" @click="editArticle(row)">编辑</el-button>
+                <el-button v-if="hasPerm('news:delete')" size="small" type="danger" plain :aria-label="`删除《${row.title}》`" @click="removeArticle(row)">删除</el-button>
+              </TableActions>
             </template>
           </el-table-column>
         </el-table>
@@ -195,10 +197,12 @@ onMounted(() => { load(); loadCategories() })
         <el-table-column prop="name" label="分类名称" min-width="140" />
         <el-table-column prop="sortOrder" label="排序" width="80" />
         <el-table-column prop="articleCount" label="文章数" width="90" />
-        <el-table-column label="操作" width="130">
+        <el-table-column label="操作" width="170">
           <template #default="{ row }">
-            <el-button text type="primary" @click="editCategory(row)">编辑</el-button>
-            <el-button v-if="hasPerm('news:delete')" text type="danger" :disabled="row.articleCount > 0" :title="row.articleCount > 0 ? '分类下还有文章，不能删除' : ''" @click="removeCategory(row)">删除</el-button>
+            <TableActions>
+              <el-button size="small" type="primary" :aria-label="`编辑分类${row.name}`" @click="editCategory(row)">编辑</el-button>
+              <el-button v-if="hasPerm('news:delete')" size="small" type="danger" plain :disabled="row.articleCount > 0" :title="row.articleCount > 0 ? '分类下还有文章，不能删除' : ''" :aria-label="`删除分类${row.name}`" @click="removeCategory(row)">删除</el-button>
+            </TableActions>
           </template>
         </el-table-column>
       </el-table>

@@ -193,11 +193,13 @@ onMounted(() => {
               </el-tooltip>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="180" fixed="right">
+          <el-table-column label="操作" width="230" fixed="right">
             <template #default="{ row }">
-              <el-button v-if="['draft', 'rejected'].includes(row.state)" text bg type="primary" @click="openBill(row)">录入明细</el-button>
-              <el-button v-else text type="success" @click="openBill(row)">查看审核</el-button>
-              <el-button v-if="hasPerm('finance:delete') && row.state === 'draft'" text type="danger" @click="remove(row)">删除</el-button>
+              <TableActions>
+                <el-button v-if="['draft', 'rejected'].includes(row.state)" size="small" type="primary" :aria-label="`录入${row.venue_name}${row.bill_month}的收支明细`" @click="openBill(row)">录入明细</el-button>
+                <el-button v-else size="small" type="primary" plain :aria-label="`查看${row.venue_name}${row.bill_month}的审核`" @click="openBill(row)">查看审核</el-button>
+                <el-button v-if="hasPerm('finance:delete') && row.state === 'draft'" size="small" type="danger" plain :aria-label="`删除${row.venue_name}${row.bill_month}账单`" @click="remove(row)">删除</el-button>
+              </TableActions>
             </template>
           </el-table-column>
         </el-table>
@@ -239,12 +241,12 @@ onMounted(() => {
             </el-table-column>
             <el-table-column prop="summary" label="简要描述" min-width="140" />
             <el-table-column label="金额" width="120" align="right"><template #default="{ row }">{{ formatMoney(row.amount) }}</template></el-table-column>
-            <el-table-column label="操作" width="130">
+            <el-table-column label="操作" width="170">
               <template #default="{ row }">
-                <template v-if="billEditable">
-                  <el-button text type="primary" @click="editItem(row)">编辑</el-button>
-                  <el-button v-if="hasPerm('finance:delete')" text type="danger" @click="deleteItem(row)">删除</el-button>
-                </template>
+                <TableActions v-if="billEditable">
+                  <el-button size="small" type="primary" :aria-label="`编辑明细${row.summary}`" @click="editItem(row)">编辑</el-button>
+                  <el-button v-if="hasPerm('finance:delete')" size="small" type="danger" plain :aria-label="`删除明细${row.summary}`" @click="deleteItem(row)">删除</el-button>
+                </TableActions>
               </template>
             </el-table-column>
           </el-table>

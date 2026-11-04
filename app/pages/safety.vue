@@ -141,11 +141,13 @@ onMounted(() => {
               </el-tooltip>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="220" fixed="right">
+          <el-table-column label="操作" width="300" fixed="right">
             <template #default="{ row }">
-              <el-button text type="primary" @click="openDetail(row)">查看/处理</el-button>
-              <el-button v-if="hasPerm('safety:edit') && ['draft', 'rejected'].includes(row.state)" text bg type="primary" @click="editArticle(row)">编辑</el-button>
-              <el-button v-if="hasPerm('safety:delete') && ['draft', 'rejected'].includes(row.state)" text type="danger" @click="removeArticle(row)">删除</el-button>
+              <TableActions>
+                <el-button size="small" type="primary" :aria-label="`查看并处理《${row.title}》`" @click="openDetail(row)">查看/处理</el-button>
+                <el-button v-if="hasPerm('safety:edit') && ['draft', 'rejected'].includes(row.state)" size="small" type="primary" plain :aria-label="`编辑《${row.title}》`" @click="editArticle(row)">编辑</el-button>
+                <el-button v-if="hasPerm('safety:delete') && ['draft', 'rejected'].includes(row.state)" size="small" type="danger" plain :aria-label="`删除《${row.title}》`" @click="removeArticle(row)">删除</el-button>
+              </TableActions>
             </template>
           </el-table-column>
         </el-table>

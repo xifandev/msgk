@@ -75,8 +75,12 @@ onMounted(() => {
           <el-table-column label="提交时间" width="180">
             <template #default="{ row }">{{ row.profile_submitted_at || row.updated_at }}</template>
           </el-table-column>
-          <el-table-column label="操作" width="120">
-            <template #default="{ row }"><el-button text type="primary" @click="open(row)">查看审核</el-button></template>
+          <el-table-column label="操作" width="150">
+            <template #default="{ row }">
+              <TableActions>
+                <el-button size="small" type="primary" :aria-label="`查看${row.name}的审核`" @click="open(row)">查看审核</el-button>
+              </TableActions>
+            </template>
           </el-table-column>
         </el-table>
       </div>

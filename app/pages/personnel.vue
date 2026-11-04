@@ -145,7 +145,7 @@ onMounted(() => { if (!venueId.value && venues.value.length) venueId.value = ven
         <p v-if="!editable" class="muted">当前内容正在审核或已经通过，如需修改请先重新编辑。</p>
         <el-empty v-if="!members.length" description="尚未添加人员" />
         <div v-for="(member, index) in members" :key="index" class="member-card">
-          <div class="member-head"><strong>第 {{ index + 1 }} 位成员</strong><div v-if="canEdit"><el-button text :disabled="index === 0" @click="move(index, -1)">上移</el-button><el-button text :disabled="index === members.length - 1" @click="move(index, 1)">下移</el-button><el-button text type="danger" @click="removeMember(index)">删除</el-button></div></div>
+          <div class="member-head"><strong>第 {{ index + 1 }} 位成员</strong><div v-if="canEdit" class="member-actions"><el-button size="small" :disabled="index === 0" @click="move(index, -1)">上移</el-button><el-button size="small" :disabled="index === members.length - 1" @click="move(index, 1)">下移</el-button><el-button size="small" type="danger" plain @click="removeMember(index)">删除</el-button></div></div>
           <div class="member-body">
             <ImageUpload v-if="canEdit" v-model="member.imageUrl" :label="`${member.name || '成员'}照片`" />
             <el-image v-else-if="member.imageUrl" :src="member.imageUrl" :preview-src-list="[member.imageUrl]" fit="cover" class="photo-preview" :alt="`${member.name}照片`" />
@@ -178,6 +178,8 @@ onMounted(() => { if (!venueId.value && venues.value.length) venueId.value = ven
 .review-side { display: grid; gap: 20px; align-content: start; }
 .member-card { border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-block-end: 16px; }
 .member-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-block-end: 12px; }
+.member-actions { display: flex; gap: 8px; }
+.member-actions .el-button + .el-button { margin-inline-start: 0; }
 .member-body { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: start; }
 .member-form { width: 100%; }
 .member-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 18px; }

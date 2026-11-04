@@ -69,12 +69,12 @@ async function switchBack() {
           <el-button size="small" type="warning" @click="switchBack">切回我的账号</el-button>
         </div>
         <header class="topbar">
-          <el-button class="mobile-trigger" text @click="mobileMenu = true">打开导航</el-button>
+          <el-button class="mobile-trigger" size="small" plain @click="mobileMenu = true">打开导航</el-button>
           <div class="topbar-title">信息公开，清晰可查</div>
           <div class="account">
             <span class="account-name">{{ admin?.name }}</span>
             <el-tag effect="plain">{{ admin?.roleName }}</el-tag>
-            <el-button text @click="logout">退出登录</el-button>
+            <el-button size="small" plain @click="logout">退出登录</el-button>
           </div>
         </header>
       </div>

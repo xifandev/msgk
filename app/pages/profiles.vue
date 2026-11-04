@@ -166,7 +166,7 @@ onMounted(() => {
                 <span class="muted extra-index">介绍{{ index + 1 }}</span>
                 <el-input v-model="pair.key" placeholder="名称" maxlength="50" aria-label="介绍名称" />
                 <el-input v-model="pair.value" placeholder="内容" maxlength="500" aria-label="介绍内容" />
-                <el-button v-if="canEdit" text type="danger" aria-label="删除该介绍" @click="extraPairs.splice(index, 1)">删除</el-button>
+                <el-button v-if="canEdit" size="small" type="danger" plain aria-label="删除该介绍" @click="extraPairs.splice(index, 1)">删除</el-button>
               </div>
               <el-button v-if="canEdit" type="success" plain @click="extraPairs.push({ key: '', value: '' })">＋ 添加更多介绍</el-button>
               <p v-if="!extraPairs.length" class="muted">可添加“建筑面积”“始建年代”等自定义介绍条目。</p>

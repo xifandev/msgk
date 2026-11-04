@@ -144,11 +144,13 @@ onMounted(load)
             <template #default="{ row }"><el-tag v-if="row.personnel_state" :type="REVIEW_TAG_TYPES[row.personnel_state]">{{ REVIEW_LABELS[row.personnel_state] }}</el-tag><span v-else class="muted">未填写</span></template>
           </el-table-column>
           <el-table-column prop="updated_at" label="更新时间" width="170" />
-          <el-table-column label="操作" width="200" fixed="right">
+          <el-table-column label="操作" width="260" fixed="right">
             <template #default="{ row }">
-              <el-button text type="primary" @click="openQr(row)">二维码</el-button>
-              <el-button v-if="hasPerm('venues:edit')" text bg type="primary" @click="editVenue(row)">编辑</el-button>
-              <el-button v-if="hasPerm('venues:delete')" text type="danger" @click="remove(row)">删除</el-button>
+              <TableActions>
+                <el-button size="small" type="primary" plain :aria-label="`查看${row.name}的二维码`" @click="openQr(row)">二维码</el-button>
+                <el-button v-if="hasPerm('venues:edit')" size="small" type="primary" :aria-label="`编辑${row.name}`" @click="editVenue(row)">编辑</el-button>
+                <el-button v-if="hasPerm('venues:delete')" size="small" type="danger" plain :aria-label="`删除${row.name}`" @click="remove(row)">删除</el-button>
+              </TableActions>
             </template>
           </el-table-column>
           <template #empty>
@@ -171,13 +173,13 @@ onMounted(load)
         <el-form-item label="场所图片">
           <div class="upload-row">
             <ImageUpload v-model="editForm.image_url" label="场所图片" />
-            <el-button v-if="editForm.image_url" text type="danger" @click="editForm.image_url = null">清除图片</el-button>
+            <el-button v-if="editForm.image_url" size="small" type="danger" plain @click="editForm.image_url = null">清除图片</el-button>
           </div>
         </el-form-item>
         <el-form-item label="场所二维码">
           <div class="upload-row">
             <ImageUpload v-model="editForm.qr_code_url" label="场所二维码" />
-            <el-button v-if="editForm.qr_code_url" text type="danger" @click="editForm.qr_code_url = null">清除二维码</el-button>
+            <el-button v-if="editForm.qr_code_url" size="small" type="danger" plain @click="editForm.qr_code_url = null">清除二维码</el-button>
           </div>
           <p class="muted upload-hint">二维码用于打印张贴，信众扫码直达该场所公开页。</p>
         </el-form-item>
