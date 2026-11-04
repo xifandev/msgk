@@ -1,9 +1,11 @@
 {
   "usingComponents": {
-    "ms-empty": "/components/ms-empty/index"
+    "ms-empty": "/components/ms-empty/index",
+    "ms-icon": "/components/ms-icon/index"
   },
   "navigationBarTitleText": "",
-  "navigationBarBackgroundColor": "#f8f8fa",
-  "backgroundColorTop": "#f8f8fa",
+  "navigationBarBackgroundColor": "#ffffff",
+  "backgroundColorTop": "#fdeff0",
+  "backgroundColor": "#f2f3f5",
   "navigationBarTextStyle": "black"
 }

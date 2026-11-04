@@ -1,38 +1,158 @@
-<page-main title="{{ venue.name || '场所介绍' }}">
+<page-main title="场所介绍" title1="登记信息公开可查" title2="信息实时更新">
   <!-- 加载中 -->
   <ms-loading wx:if="{{ !loaded }}" text="正在加载" />
 
-  <!-- 无数据：整页空态（与旧版一致） -->
+  <!-- 无数据：整页空态 -->
   <ms-empty wx:elif="{{ !venue || !venue.profile }}" description="暂无场所信息" />
 
-  <!-- 有数据：场所简介 / 登记注册信息 两个标签 -->
-  <ms-tabs
-    wx:else
-    tabs="{{ ['场所简介','登记注册信息'] }}"
-    active="{{ tabIndex }}"
-    bind:change="onTabChange"
-  >
-    <!-- 场所简介 -->
-    <block wx:if="{{ tabIndex === 0 }}">
-      <view class="jianjie" wx:if="{{ venue.profile.summary }}">
-        <rich-text nodes="{{ venue.profile.summary }}" />
+  <block wx:else>
+    <!-- 概况卡 -->
+    <view class="venue-hero">
+      <view class="venue-hero__glow"></view>
+      <view class="venue-hero__top">
+        <view class="venue-hero__badge">
+          <ms-icon name="building" size="46rpx" color="#ffffff" />
+        </view>
+        <view class="venue-hero__info">
+          <view class="venue-hero__name">{{ venue.name }}</view>
+          <view class="venue-hero__meta">
+            <view class="venue-hero__meta-item" wx:if="{{ venue.township }}">
+              <ms-icon name="location" size="22rpx" color="rgba(255,255,255,0.9)" />
+              <text>{{ venue.township }}</text>
+            </view>
+            <view class="venue-hero__meta-item">
+              <ms-icon name="passed" size="22rpx" color="rgba(255,255,255,0.9)" />
+              <text>已审核公开</text>
+            </view>
+          </view>
+        </view>
+        <view
+          wx:if="{{ venue.profile.phone }}"
+          class="venue-hero__call"
+          hover-class="venue-hero__call--hover"
+          bind:tap="callPhone"
+          aria-role="button"
+          aria-label="拨打场所联系电话"
+        >
+          <ms-icon name="phone" size="28rpx" color="#d31027" />
+          <text>拨打</text>
+        </view>
       </view>
-      <ms-empty wx:else description="暂无场所信息" />
-    </block>
 
-    <!-- 登记注册信息 -->
-    <block wx:else>
-      <view style="height:20rpx"></view>
-      <ms-cell title="登记时间" value="{{ venue.profile.registrationDate || '—' }}" />
-      <ms-cell title="宗教" value="{{ venue.profile.religion || '—' }}" />
-      <ms-cell title="场所类别" value="{{ venue.profile.category || '—' }}" />
-      <ms-cell title="场所负责人" value="{{ venue.profile.manager || '—' }}" />
-      <ms-cell title="联系电话" value="{{ venue.profile.phone || '—' }}" />
-      <ms-cell title="批准设立机构" value="{{ venue.profile.approvalAuthority || '—' }}" />
-      <ms-cell title="地址" label="{{ venue.profile.address || '—' }}" />
-      <ms-cell title="统一社会信用代码" label="{{ venue.profile.creditCode || '—' }}" border="{{ false }}" />
-    </block>
-  </ms-tabs>
+      <view class="venue-hero__stats">
+        <view class="venue-stat">
+          <text class="venue-stat__label">场所类别</text>
+          <text class="venue-stat__value">{{ venue.profile.category || '—' }}</text>
+        </view>
+        <view class="venue-stat__split"></view>
+        <view class="venue-stat">
+          <text class="venue-stat__label">宗教</text>
+          <text class="venue-stat__value">{{ venue.profile.religion || '—' }}</text>
+        </view>
+        <view class="venue-stat__split"></view>
+        <view class="venue-stat">
+          <text class="venue-stat__label">登记时间</text>
+          <text class="venue-stat__value">{{ venue.profile.registrationDate || '—' }}</text>
+        </view>
+      </view>
+    </view>
 
-  <view style="height:20rpx"></view>
+    <!-- 简介 / 登记信息 -->
+    <ms-tabs tabs="{{ ['场所简介', '登记注册信息'] }}" active="{{ tabIndex }}" bind:change="onTabChange">
+      <view class="tab-pane">
+        <!-- 场所简介 -->
+        <block wx:if="{{ tabIndex === 0 }}">
+          <view class="content-card" wx:if="{{ summaryHtml }}">
+            <view class="card-head">
+              <view class="card-head__bar"></view>
+              <text class="card-head__title">场所简介</text>
+            </view>
+            <view class="summary-body">
+              <rich-text nodes="{{ summaryHtml }}"></rich-text>
+            </view>
+            <view class="summary-note">
+              <ms-icon name="bulb-o" size="24rpx" color="#b0b3b8" />
+              <text>简介内容由场所登记单位提供并公开</text>
+            </view>
+          </view>
+          <view class="empty-card" wx:else>
+            <ms-empty description="暂无场所简介" />
+          </view>
+        </block>
+
+        <!-- 登记注册信息 -->
+        <block wx:else>
+          <view class="content-card">
+            <view class="card-head">
+              <view class="card-head__bar"></view>
+              <text class="card-head__title">基本登记</text>
+            </view>
+            <view class="reg-grid">
+              <view class="reg-cell">
+                <text class="reg-cell__label">登记时间</text>
+                <text class="reg-cell__value">{{ venue.profile.registrationDate || '—' }}</text>
+              </view>
+              <view class="reg-cell">
+                <text class="reg-cell__label">场所类别</text>
+                <text class="reg-cell__value">{{ venue.profile.category || '—' }}</text>
+              </view>
+              <view class="reg-cell">
+                <text class="reg-cell__label">宗教</text>
+                <text class="reg-cell__value">{{ venue.profile.religion || '—' }}</text>
+              </view>
+              <view class="reg-cell">
+                <text class="reg-cell__label">场所负责人</text>
+                <text class="reg-cell__value">{{ venue.profile.manager || '—' }}</text>
+              </view>
+            </view>
+          </view>
+
+          <view class="content-card">
+            <view class="card-head">
+              <view class="card-head__bar"></view>
+              <text class="card-head__title">联系与地址</text>
+            </view>
+
+            <view
+              class="reg-row {{ venue.profile.phone ? 'is-link' : '' }}"
+              hover-class="{{ venue.profile.phone ? 'reg-row--hover' : 'none' }}"
+              bind:tap="callPhone"
+              aria-role="{{ venue.profile.phone ? 'button' : '' }}"
+            >
+              <view class="reg-row__icon"><ms-icon name="phone" size="30rpx" color="#d31027" /></view>
+              <view class="reg-row__body">
+                <text class="reg-row__label">联系电话</text>
+                <text class="reg-row__value">{{ venue.profile.phone || '—' }}</text>
+              </view>
+              <ms-icon wx:if="{{ venue.profile.phone }}" name="arrow" size="24rpx" color="#c8c9cc" />
+            </view>
+
+            <view class="reg-row">
+              <view class="reg-row__icon"><ms-icon name="location" size="30rpx" color="#d31027" /></view>
+              <view class="reg-row__body">
+                <text class="reg-row__label">场所地址</text>
+                <text class="reg-row__value">{{ venue.profile.address || '—' }}</text>
+              </view>
+            </view>
+
+            <view class="reg-row">
+              <view class="reg-row__icon"><ms-icon name="id-card" size="30rpx" color="#d31027" /></view>
+              <view class="reg-row__body">
+                <text class="reg-row__label">统一社会信用代码</text>
+                <text class="reg-row__value reg-row__value--mono">{{ venue.profile.creditCode || '—' }}</text>
+              </view>
+            </view>
+
+            <view class="reg-row reg-row--last">
+              <view class="reg-row__icon"><ms-icon name="passed" size="30rpx" color="#d31027" /></view>
+              <view class="reg-row__body">
+                <text class="reg-row__label">批准设立机构</text>
+                <text class="reg-row__value">{{ venue.profile.approvalAuthority || '—' }}</text>
+              </view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </ms-tabs>
+  </block>
 </page-main>

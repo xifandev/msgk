@@ -1,6 +1,13 @@
 // pages/article/article.js
 const { get } = require('../../utils/request');
 const { formatDate } = require('../../utils/format');
+const { enhanceRichText } = require('../../utils/richtext');
+
+const KIND_TEXT = {
+  safety: '场所安全',
+  notice: '公告通知',
+  news: '政策法规',
+};
 
 Page({
   data: {
@@ -8,6 +15,8 @@ Page({
     id: '',
     article: null,
     date: '',
+    kindText: '信息公开',
+    contentHtml: '',
     loadFailed: false,
   },
 
@@ -18,6 +27,9 @@ Page({
         this.setData({
           article: res,
           date: formatDate(res.createdAt),
+          kindText: KIND_TEXT[kind] || '信息公开',
+          // 正文样式内联 + 图片自适应，解决图片横向溢出
+          contentHtml: enhanceRichText(res.content),
           loadFailed: false,
         });
         if (res.title) {

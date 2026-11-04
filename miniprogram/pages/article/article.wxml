@@ -1,15 +1,51 @@
 <view class="article-page" wx:if="{{ article }}">
-  <view class="news-head">
-    <view class="news-title">{{ article.title }}</view>
-    <view class="news-time">
-      <text>{{ date }}</text>
+  <view class="article-band"></view>
+
+  <!-- 标题区 -->
+  <view class="article-hero">
+    <view class="article-kicker">
+      <view class="article-kicker__dot"></view>
+      <text>{{ kindText }}</text>
+    </view>
+    <view class="article-title">{{ article.title }}</view>
+    <view class="article-meta">
+      <view class="article-meta__item">
+        <ms-icon name="calendar" size="24rpx" color="#9a9ca1" />
+        <text>{{ date }}</text>
+      </view>
+      <view class="article-meta__split" wx:if="{{ article.authorName }}"></view>
+      <view class="article-meta__item" wx:if="{{ article.authorName }}">
+        <ms-icon name="manager" size="24rpx" color="#9a9ca1" />
+        <text>{{ article.authorName }}</text>
+      </view>
     </view>
   </view>
-  <view class="news-body">
-    <rich-text nodes="{{ article.content }}"></rich-text>
+
+  <!-- 封面 -->
+  <view class="article-cover" wx:if="{{ article.coverUrl }}">
+    <image class="article-cover__img" src="{{ article.coverUrl }}" mode="widthFix" />
   </view>
-  <view class="bottom-gap"></view>
+
+  <!-- 正文 -->
+  <view class="article-card">
+    <view class="article-body" wx:if="{{ contentHtml }}">
+      <rich-text nodes="{{ contentHtml }}"></rich-text>
+    </view>
+    <view class="article-empty" wx:else>
+      <ms-empty description="暂无正文内容" />
+    </view>
+
+    <view class="article-end">
+      <view class="article-end__line"></view>
+      <text>全文完</text>
+      <view class="article-end__line"></view>
+    </view>
+  </view>
+
+  <view class="article-tip">内容由发布单位提供，如有疑问请联系场所负责人</view>
+  <view class="article-bottom-gap"></view>
 </view>
-<view class="article-page" wx:elif="{{ loadFailed }}">
+
+<view class="article-fail" wx:elif="{{ loadFailed }}">
   <ms-empty description="文章不存在或加载失败" />
 </view>

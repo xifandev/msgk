@@ -1,7 +1,37 @@
 // pages/finance/finance.js
 const { get } = require('../../utils/request');
-const { formatDate, formatMoney, previousMonth } = require('../../utils/format');
+const { formatDate, formatAmount, previousMonth } = require('../../utils/format');
 const { getVenueId, redirectHome } = require('../../utils/venue');
+
+const WEEK = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+
+// 百分比取整，避免出现 NaN
+function percent(value, total) {
+  if (!total || total <= 0) {
+    return 0;
+  }
+  return Math.round((Number(value) / Number(total)) * 100);
+}
+
+// 柱状高度：有值至少留 4% 让细柱可见
+function barHeight(value, max) {
+  const num = Number(value);
+  if (!num || num <= 0 || !max || max <= 0) {
+    return 0;
+  }
+  return Math.max(Math.round((num / max) * 100), 4);
+}
+
+// 'YYYY-MM-DD' → '11月04日 周二'
+function dayLabel(date) {
+  const parts = String(date || '').split('-');
+  if (parts.length !== 3) {
+    return String(date || '');
+  }
+  const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  const weekday = isNaN(d.getTime()) ? '' : WEEK[d.getDay()];
+  return `${Number(parts[1])}月${parts[2]}日${weekday ? ' ' + weekday : ''}`;
+}
 
 Page({
   // 忽略旧请求的响应，防止切换月份/年份时旧数据覆盖新数据
@@ -16,8 +46,9 @@ Page({
     // --------- 月度 ---------
     month: '', // YYYY-MM
     monthText: '',
-    bill: null,
+    bill: null, // 结余卡数据（含百分比与环比文案）
     items: [],
+    groups: [], // 按日期分组的明细
     monthLoaded: false,
     // 月份选择
     monthPickerShow: false,
@@ -29,6 +60,7 @@ Page({
     year: 0,
     months: [],
     totals: null,
+    chart: [],
     yearLoaded: false,
     // 年份选择
     yearPickerShow: false,
@@ -49,28 +81,78 @@ Page({
         if (requestId !== this.monthlyRequestId) {
           return;
         }
-        const bill = res.bill
-          ? {
-              income: formatMoney(res.bill.income),
-              expense: formatMoney(res.bill.expense),
-              previousBalance: formatMoney(res.bill.previousBalance),
-              currentBalance: formatMoney(res.bill.currentBalance),
-            }
-          : null;
+        const bill = this.buildBill(res.bill);
         const items = (res.items || []).map((item) => ({
           ...item,
           kindText: item.kind === 'expense' ? '支出' : '收入',
-          amountText: `${item.kind === 'expense' ? '-' : '+'}${formatMoney(item.amount)}`,
+          amountText: `${item.kind === 'expense' ? '-' : '+'}${formatAmount(item.amount)}`,
           date: formatDate(item.occurredOn),
         }));
-        this.setData({ bill, items, monthLoaded: true });
+        this.setData({ bill, items, groups: this.groupByDay(items), monthLoaded: true });
       })
       .catch(() => {
         if (requestId !== this.monthlyRequestId) {
           return;
         }
-        this.setData({ bill: null, items: [], monthLoaded: true });
+        this.setData({ bill: null, items: [], groups: [], monthLoaded: true });
       });
+  },
+
+  // 结余卡：金额、环比、收支占比
+  buildBill(raw) {
+    if (!raw) {
+      return null;
+    }
+    const income = Number(raw.income) || 0;
+    const expense = Number(raw.expense) || 0;
+    const previous = Number(raw.previousBalance) || 0;
+    const current = Number(raw.currentBalance) || 0;
+    const delta = Math.round((current - previous) * 100) / 100;
+    const flow = income + expense;
+    const incomePercent = flow > 0 ? percent(income, flow) : 0;
+
+    let deltaText = '与上月持平';
+    if (delta !== 0) {
+      deltaText = `${delta > 0 ? '较上月增加' : '较上月减少'} ${formatAmount(Math.abs(delta))} 元`;
+    }
+
+    return {
+      incomeText: formatAmount(income),
+      expenseText: formatAmount(expense),
+      previousText: formatAmount(previous),
+      currentText: formatAmount(current),
+      deltaText,
+      deltaUp: delta > 0,
+      deltaFlat: delta === 0,
+      hasFlow: flow > 0,
+      incomePercent,
+      expensePercent: flow > 0 ? 100 - incomePercent : 0,
+    };
+  },
+
+  // 明细按日期分组，组头显示当日收支小计
+  groupByDay(items) {
+    const groups = [];
+    const index = {};
+    items.forEach((item) => {
+      const key = item.date || '未知日期';
+      if (index[key] == null) {
+        index[key] = groups.length;
+        groups.push({ date: key, label: dayLabel(key), income: 0, expense: 0, incomeText: '', expenseText: '', items: [] });
+      }
+      const group = groups[index[key]];
+      group.items.push(item);
+      if (item.kind === 'expense') {
+        group.expense += Number(item.amount) || 0;
+      } else {
+        group.income += Number(item.amount) || 0;
+      }
+    });
+    groups.forEach((group) => {
+      group.incomeText = group.income > 0 ? formatAmount(group.income) : '';
+      group.expenseText = group.expense > 0 ? formatAmount(group.expense) : '';
+    });
+    return groups;
   },
 
   openMonthPicker() {
@@ -99,6 +181,7 @@ Page({
         monthPickerShow: false,
         bill: null,
         items: [],
+        groups: [],
       },
       () => this.loadMonthly()
     );
@@ -116,30 +199,61 @@ Page({
         if (requestId !== this.yearlyRequestId) {
           return;
         }
-        const months = (res.months || []).map((item) => {
+        const rows = (res.months || []).map((item) => {
           const parts = String(item.month).split('-');
           return {
             ...item,
+            incomeNum: Number(item.income) || 0,
+            expenseNum: Number(item.expense) || 0,
+            previousNum: Number(item.previousBalance) || 0,
+            currentNum: Number(item.currentBalance) || 0,
             monthText: parts.length === 2 ? `${parts[0]}年${parseInt(parts[1], 10)}月份` : String(item.month),
-            income: formatMoney(item.income),
-            expense: formatMoney(item.expense),
-            previousBalance: formatMoney(item.previousBalance),
-            currentBalance: formatMoney(item.currentBalance),
           };
         });
-        const totals = res.totals
-          ? {
-              income: formatMoney(res.totals.income),
-              expense: formatMoney(res.totals.expense),
-            }
-          : null;
-        this.setData({ months, totals, yearLoaded: true });
+
+        const maxValue = rows.reduce(
+          (max, item) => Math.max(max, item.incomeNum, item.expenseNum),
+          0
+        );
+
+        // 柱状图数据
+        const chart = rows.map((item) => ({
+          month: item.month,
+          label: `${parseInt(String(item.month).split('-')[1], 10)}月`,
+          incomeHeight: barHeight(item.incomeNum, maxValue),
+          expenseHeight: barHeight(item.expenseNum, maxValue),
+        }));
+
+        // 月度明细（含单月收入/支出对比条）
+        const months = rows.map((item) => {
+          const monthMax = Math.max(item.incomeNum, item.expenseNum);
+          return {
+            month: item.month,
+            monthText: item.monthText,
+            incomeText: formatAmount(item.incomeNum),
+            expenseText: formatAmount(item.expenseNum),
+            previousText: formatAmount(item.previousNum),
+            currentText: formatAmount(item.currentNum),
+            incomeWidth: barHeight(item.incomeNum, monthMax),
+            expenseWidth: barHeight(item.expenseNum, monthMax),
+          };
+        });
+
+        const rawTotals = res.totals || { income: 0, expense: 0 };
+        const last = rows.length > 0 ? rows[rows.length - 1] : null;
+        const totals = {
+          incomeText: formatAmount(rawTotals.income),
+          expenseText: formatAmount(rawTotals.expense),
+          balanceText: formatAmount(last ? last.currentNum : 0),
+        };
+
+        this.setData({ months, totals, chart, yearLoaded: true });
       })
       .catch(() => {
         if (requestId !== this.yearlyRequestId) {
           return;
         }
-        this.setData({ months: [], totals: null, yearLoaded: true });
+        this.setData({ months: [], totals: null, chart: [], yearLoaded: true });
       });
   },
 
@@ -168,6 +282,7 @@ Page({
         yearPickerShow: false,
         months: [],
         totals: null,
+        chart: [],
       },
       () => this.loadYearly()
     );

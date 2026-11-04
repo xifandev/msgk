@@ -25,6 +25,18 @@ function formatMoney(value) {
   return num.toFixed(2);
 }
 
+// 金额千分位，用于大额展示：1234.5 → 1,234.50
+function formatAmount(value) {
+  const num = Number(value);
+  if (isNaN(num)) {
+    return '0.00';
+  }
+  const fixed = Math.abs(num).toFixed(2);
+  const parts = fixed.split('.');
+  const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return `${num < 0 ? '-' : ''}${intPart}.${parts[1]}`;
+}
+
 // 当前月份的上一个月 → 'YYYY-MM'
 function previousMonth() {
   const now = new Date();
@@ -37,4 +49,4 @@ function previousMonth() {
   return `${year}-${pad(month)}`;
 }
 
-module.exports = { formatDate, formatMoney, previousMonth };
+module.exports = { formatDate, formatMoney, formatAmount, previousMonth };

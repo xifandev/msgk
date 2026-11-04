@@ -1,162 +1,213 @@
 <page-main title="财务公开" title1="收支公开透明化" title2="阳光监督新举措">
-  <view style="height:20rpx"></view>
-  <ms-tabs tabs="{{ ['月度收支','年度收支'] }}" active="{{ active }}" animated swipeable bind:change="onTabChange">
-    <!-- 月度收支 -->
-    <view wx:if="{{ active === 0 }}" class="tab-box">
-      <view class="select-time" bind:tap="openMonthPicker">
-        <text>{{ monthText }}</text>
-        <ms-icon name="play" size="24rpx" color="#333" class="select-time-icon" />
-      </view>
+  <ms-tabs tabs="{{ ['月度收支', '年度收支'] }}" active="{{ active }}" animated swipeable bind:change="onTabChange">
+    <view class="pane">
+      <!-- ================= 月度收支 ================= -->
+      <block wx:if="{{ active === 0 }}">
+        <view class="period" bind:tap="openMonthPicker" hover-class="period--hover" aria-role="button" aria-label="切换月份">
+          <view class="period__left">
+            <ms-icon name="calendar" size="30rpx" color="#646566" />
+            <text class="period__text">{{ monthText }}</text>
+          </view>
+          <view class="period__right">
+            <text>切换月份</text>
+            <ms-icon name="arrow-down" size="22rpx" color="#9a9ca1" />
+          </view>
+        </view>
 
-      <view wx:if="{{ monthLoaded && bill }}">
-        <ms-cell-group title="收支统计">
-          <ms-grid column-num="2" direction="horizontal">
-            <ms-grid-item>
-              <view>
-                <view class="tongji-title">本月结余</view>
-                <view class="tongji-money">
-                  <text>{{ bill.currentBalance }}</text>
-                  <text>元</text>
-                </view>
+        <block wx:if="{{ monthLoaded && bill }}">
+          <!-- 结余主卡 -->
+          <view class="balance">
+            <view class="balance__glow"></view>
+            <view class="balance__top">
+              <text class="balance__label">本月结余（元）</text>
+              <view class="balance__delta {{ bill.deltaUp ? 'is-up' : 'is-down' }}">
+                <ms-icon wx:if="{{ !bill.deltaFlat }}" name="{{ bill.deltaUp ? 'trend-up' : 'trend-down' }}" size="22rpx" color="#ffffff" />
+                <text>{{ bill.deltaText }}</text>
               </view>
-            </ms-grid-item>
-            <ms-grid-item>
-              <view>
-                <view class="tongji-title">上月结余</view>
-                <view class="tongji-money">
-                  <text>{{ bill.previousBalance }}</text>
-                  <text>元</text>
-                </view>
-              </view>
-            </ms-grid-item>
-            <ms-grid-item>
-              <view>
-                <view class="tongji-title">本月总收入</view>
-                <view class="tongji-money">
-                  <text>{{ bill.income }}</text>
-                  <text>元</text>
-                </view>
-              </view>
-            </ms-grid-item>
-            <ms-grid-item>
-              <view>
-                <view class="tongji-title">本月总支出</view>
-                <view class="tongji-money">
-                  <text>{{ bill.expense }}</text>
-                  <text>元</text>
-                </view>
-              </view>
-            </ms-grid-item>
-          </ms-grid>
-        </ms-cell-group>
-
-        <ms-cell-group title="收支明细">
-          <ms-empty wx:if="{{ items.length === 0 }}" description="本月暂无公开数据" />
-          <ms-cell wx:for="{{ items }}" wx:key="id" use-icon-slot="{{ true }}">
-            <view slot="icon" class="type-badge {{ item.kind === 'expense' ? 'type-zhichu' : 'type-shouru' }}">
-              <text class="type-text">{{ item.kindText }}</text>
             </view>
-            <view slot="title" class="shouru-box">
-              <view>
-                <view class="shouru-zhaiyao">{{ item.summary }}</view>
-                <view class="shouru-time">{{ item.date }}</view>
+            <view class="balance__value">{{ bill.currentText }}</view>
+
+            <view class="balance__flow">
+              <view class="flow">
+                <text class="flow__label">本月收入</text>
+                <text class="flow__value">{{ bill.incomeText }}</text>
               </view>
-              <view class="shouru-money {{ item.kind === 'expense' ? 'money-zhichu' : 'money-shouru' }}">{{ item.amountText }}</view>
+              <view class="flow__split"></view>
+              <view class="flow">
+                <text class="flow__label">本月支出</text>
+                <text class="flow__value">{{ bill.expenseText }}</text>
+              </view>
             </view>
-          </ms-cell>
-        </ms-cell-group>
-      </view>
 
-      <view wx:elif="{{ monthLoaded && !bill }}" class="yuewushuju">
-        <ms-empty description="本月暂无公开数据" />
-      </view>
-    </view>
-
-    <!-- 年度收支 -->
-    <view wx:if="{{ active === 1 }}" class="tab-box">
-      <view class="select-time" bind:tap="openYearPicker">
-        <text>{{ year }}年</text>
-        <ms-icon name="play" size="24rpx" color="#333" class="select-time-icon" />
-      </view>
-
-      <view wx:if="{{ yearLoaded && months.length > 0 }}">
-        <ms-cell-group title="收支统计" wx:if="{{ totals }}">
-          <ms-grid column-num="2" direction="horizontal">
-            <ms-grid-item>
-              <view>
-                <view class="tongji-title">本年总收入</view>
-                <view class="tongji-money">
-                  <text>{{ totals.income }}</text>
-                  <text>元</text>
+            <view class="ratio" wx:if="{{ bill.hasFlow }}">
+              <view class="ratio__bar">
+                <view class="ratio__income" style="width:{{ bill.incomePercent }}%"></view>
+                <view class="ratio__expense" style="width:{{ bill.expensePercent }}%"></view>
+              </view>
+              <view class="ratio__legend">
+                <view class="ratio__legend-item">
+                  <view class="dot dot--income"></view>
+                  <text>收入 {{ bill.incomePercent }}%</text>
+                </view>
+                <view class="ratio__legend-item">
+                  <view class="dot dot--expense"></view>
+                  <text>支出 {{ bill.expensePercent }}%</text>
                 </view>
               </view>
-            </ms-grid-item>
-            <ms-grid-item>
-              <view>
-                <view class="tongji-title">本年总支出</view>
-                <view class="tongji-money">
-                  <text>{{ totals.expense }}</text>
-                  <text>元</text>
+            </view>
+          </view>
+
+          <!-- 明细 -->
+          <view class="section" wx:if="{{ items.length > 0 }}">
+            <view class="section__head">
+              <view class="section__bar"></view>
+              <text class="section__title">收支明细</text>
+              <text class="section__extra">共 {{ items.length }} 笔</text>
+            </view>
+
+            <view class="day" wx:for="{{ groups }}" wx:key="date">
+              <view class="day__head">
+                <text class="day__date">{{ item.label }}</text>
+                <view class="day__sum">
+                  <text wx:if="{{ item.incomeText }}">收入 {{ item.incomeText }}</text>
+                  <text wx:if="{{ item.expenseText }}">支出 {{ item.expenseText }}</text>
                 </view>
               </view>
-            </ms-grid-item>
-          </ms-grid>
-        </ms-cell-group>
 
-        <ms-cell-group title="月度明细">
-          <ms-empty wx:if="{{ months.length === 0 }}" description="暂无明细" />
-          <ms-cell wx:for="{{ months }}" wx:key="month" use-label-slot="{{ true }}" class="tab-box-yuedu">
-            <view slot="title">
-              <text class="yuedu-title">{{ item.monthText }}</text>
+              <view class="day__card">
+                <view class="bill" wx:for="{{ item.items }}" wx:for-item="row" wx:key="id">
+                  <view class="bill__icon {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">
+                    <ms-icon name="{{ row.kind === 'expense' ? 'expense' : 'income' }}" size="30rpx" color="#ffffff" />
+                  </view>
+                  <view class="bill__body">
+                    <text class="bill__summary">{{ row.summary || '未填写摘要' }}</text>
+                    <text class="bill__sub">{{ row.kindText }}</text>
+                  </view>
+                  <text class="bill__amount {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">{{ row.amountText }}</text>
+                </view>
+              </view>
             </view>
-            <view slot="label" class="shouru-box">
-              <ms-icon name="balance-list" size="50rpx" color="#07C060" />
-              <ms-grid column-num="2" direction="horizontal">
-                <ms-grid-item>
-                  <view>
-                    <view class="tongji-title">收入</view>
-                    <view class="tongji-money">
-                      <text>{{ item.income }}</text>
-                      <text>元</text>
-                    </view>
-                  </view>
-                </ms-grid-item>
-                <ms-grid-item>
-                  <view>
-                    <view class="tongji-title">支出</view>
-                    <view class="tongji-money">
-                      <text>{{ item.expense }}</text>
-                      <text>元</text>
-                    </view>
-                  </view>
-                </ms-grid-item>
-                <ms-grid-item>
-                  <view>
-                    <view class="tongji-title">上月结余</view>
-                    <view class="tongji-money">
-                      <text>{{ item.previousBalance }}</text>
-                      <text>元</text>
-                    </view>
-                  </view>
-                </ms-grid-item>
-                <ms-grid-item>
-                  <view>
-                    <view class="tongji-title">本月结余</view>
-                    <view class="tongji-money">
-                      <text>{{ item.currentBalance }}</text>
-                      <text>元</text>
-                    </view>
-                  </view>
-                </ms-grid-item>
-              </ms-grid>
-            </view>
-          </ms-cell>
-        </ms-cell-group>
-      </view>
+          </view>
 
-      <view wx:elif="{{ yearLoaded && months.length === 0 }}" class="yuewushuju">
-        <ms-empty description="本年暂无公开数据" />
-      </view>
+          <view class="empty-wrap" wx:else>
+            <ms-empty description="本月暂无公开明细" />
+          </view>
+        </block>
+
+        <view class="empty-wrap" wx:elif="{{ monthLoaded && !bill }}">
+          <ms-empty description="本月暂无公开数据" />
+        </view>
+        <view class="skeleton" wx:else></view>
+      </block>
+
+      <!-- ================= 年度收支 ================= -->
+      <block wx:else>
+        <view class="period" bind:tap="openYearPicker" hover-class="period--hover" aria-role="button" aria-label="切换年份">
+          <view class="period__left">
+            <ms-icon name="calendar" size="30rpx" color="#646566" />
+            <text class="period__text">{{ year }} 年</text>
+          </view>
+          <view class="period__right">
+            <text>切换年份</text>
+            <ms-icon name="arrow-down" size="22rpx" color="#9a9ca1" />
+          </view>
+        </view>
+
+        <block wx:if="{{ yearLoaded && months.length > 0 }}">
+          <!-- 年度账单卡 -->
+          <view class="year">
+            <view class="year__head">
+              <view>
+                <text class="year__title">{{ year }} 年度账单</text>
+                <text class="year__sub">共 {{ months.length }} 个月有公开数据</text>
+              </view>
+              <view class="year__badge">
+                <ms-icon name="chart-bar" size="34rpx" color="#ffffff" />
+              </view>
+            </view>
+
+            <view class="year__totals">
+              <view class="total">
+                <text class="total__label">总收入</text>
+                <text class="total__value is-income">{{ totals.incomeText }}</text>
+              </view>
+              <view class="total">
+                <text class="total__label">总支出</text>
+                <text class="total__value is-expense">{{ totals.expenseText }}</text>
+              </view>
+              <view class="total">
+                <text class="total__label">年末结余</text>
+                <text class="total__value">{{ totals.balanceText }}</text>
+              </view>
+            </view>
+
+            <!-- 月度柱状对比 -->
+            <view class="chart">
+              <view class="chart__grid">
+                <view class="chart__line"></view>
+                <view class="chart__line"></view>
+                <view class="chart__line"></view>
+              </view>
+              <view class="chart__cols">
+                <view class="chart__col" wx:for="{{ chart }}" wx:key="month">
+                  <view class="chart__bars">
+                    <view class="chart__bar chart__bar--income" style="height:{{ item.incomeHeight }}%"></view>
+                    <view class="chart__bar chart__bar--expense" style="height:{{ item.expenseHeight }}%"></view>
+                  </view>
+                  <text class="chart__label">{{ item.label }}</text>
+                </view>
+              </view>
+            </view>
+            <view class="chart__legend">
+              <view class="legend"><view class="dot dot--income"></view><text>收入</text></view>
+              <view class="legend"><view class="dot dot--expense"></view><text>支出</text></view>
+            </view>
+          </view>
+
+          <!-- 月度明细 -->
+          <view class="section">
+            <view class="section__head">
+              <view class="section__bar"></view>
+              <text class="section__title">月度明细</text>
+            </view>
+
+            <view class="month" wx:for="{{ months }}" wx:key="month">
+              <view class="month__head">
+                <text class="month__name">{{ item.monthText }}</text>
+                <view class="month__balance">
+                  <text>本月结余</text>
+                  <text class="month__balance-value">{{ item.currentText }}</text>
+                </view>
+              </view>
+
+              <view class="month__row">
+                <view class="mstat">
+                  <text class="mstat__label">收入</text>
+                  <text class="mstat__value is-income">{{ item.incomeText }}</text>
+                </view>
+                <view class="mstat">
+                  <text class="mstat__label">支出</text>
+                  <text class="mstat__value is-expense">{{ item.expenseText }}</text>
+                </view>
+                <view class="mstat">
+                  <text class="mstat__label">上月结余</text>
+                  <text class="mstat__value">{{ item.previousText }}</text>
+                </view>
+              </view>
+
+              <view class="month__bar">
+                <view class="month__bar-income" style="width:{{ item.incomeWidth }}%"></view>
+                <view class="month__bar-expense" style="width:{{ item.expenseWidth }}%"></view>
+              </view>
+            </view>
+          </view>
+        </block>
+
+        <view class="empty-wrap" wx:elif="{{ yearLoaded && months.length === 0 }}">
+          <ms-empty description="本年暂无公开数据" />
+        </view>
+        <view class="skeleton" wx:else></view>
+      </block>
     </view>
   </ms-tabs>
 </page-main>

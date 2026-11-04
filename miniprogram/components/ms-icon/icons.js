@@ -47,6 +47,33 @@ const RAW = {
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.2 3.6c.9 0 1.7.6 1.9 1.5l.6 2.3c.2.7-.1 1.4-.7 1.8l-1 .7a11.4 11.4 0 0 0 5.1 5.1l.7-1c.4-.6 1.1-.9 1.8-.7l2.3.6c.9.2 1.5 1 1.5 1.9v2.1c0 1.2-1 2.2-2.2 2.1C9.5 20.5 3.5 14.5 3.1 6.9 3 5.7 4 4.7 5.2 4.7z" fill="#000"/></svg>',
   search:
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.2" fill="none" stroke="#000" stroke-width="1.9"/><path d="M15.4 15.4l4.2 4.2" fill="none" stroke="#000" stroke-width="1.9" stroke-linecap="round"/></svg>',
+  // 建筑 / 场所
+  building:
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3.4 20.6h17.2" fill="none" stroke="#000" stroke-width="1.8" stroke-linecap="round"/><path d="M5.6 20.6V4.9c0-.7.6-1.3 1.3-1.3h6c.7 0 1.3.6 1.3 1.3v15.7" fill="none" stroke="#000" stroke-width="1.8" stroke-linejoin="round"/><path d="M14.2 20.6V9.6h3.1c.7 0 1.2.5 1.2 1.2v9.8" fill="none" stroke="#000" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.1 7.5h2.6M8.1 11h2.6M8.1 14.5h2.6M8.1 18h2.6" fill="none" stroke="#000" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  // 日历
+  calendar:
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect x="3.6" y="5.4" width="16.8" height="15" rx="2.2" fill="none" stroke="#000" stroke-width="1.8"/><path d="M3.6 10h16.8" fill="none" stroke="#000" stroke-width="1.8"/><path d="M8.2 3.4v3.6M15.8 3.4v3.6" fill="none" stroke="#000" stroke-width="1.8" stroke-linecap="round"/><path d="M7.6 13.6h2.2M7.6 17h2.2M13.4 13.6h2.2M13.4 17h2.2" fill="none" stroke="#000" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  // 定位
+  location:
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 21c4.2-4.6 6.4-7.9 6.4-10.9A6.4 6.4 0 0 0 5.6 10c0 3.1 2.2 6.4 6.4 11z" fill="none" stroke="#000" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="10.2" r="2.4" fill="none" stroke="#000" stroke-width="1.8"/></svg>',
+  // 信用代码 / 证件
+  'id-card':
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect x="2.8" y="5.2" width="18.4" height="13.6" rx="2.4" fill="none" stroke="#000" stroke-width="1.8"/><circle cx="8.4" cy="11" r="2.1" fill="none" stroke="#000" stroke-width="1.7"/><path d="M5.2 15.9c.7-1.3 1.8-2 3.2-2s2.5.7 3.2 2" fill="none" stroke="#000" stroke-width="1.7" stroke-linecap="round"/><path d="M14.6 10.4h3.4M14.6 13.6h3.4" fill="none" stroke="#000" stroke-width="1.7" stroke-linecap="round"/></svg>',
+  // 收入：箭头落入托盘
+  income:
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3.6v9.8M8 9.6l4 3.8 4-3.8" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.2 16.4v2c0 1 .8 1.8 1.8 1.8h12c1 0 1.8-.8 1.8-1.8v-2" fill="none" stroke="#000" stroke-width="1.9" stroke-linecap="round"/></svg>',
+  // 支出：箭头离开托盘
+  expense:
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 13.6V3.8M8 7.8l4-3.8 4 3.8" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.2 16.4v2c0 1 .8 1.8 1.8 1.8h12c1 0 1.8-.8 1.8-1.8v-2" fill="none" stroke="#000" stroke-width="1.9" stroke-linecap="round"/></svg>',
+  // 上升趋势
+  'trend-up':
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 16.4l5.4-5.4 3.4 3.4L20 7.2" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.4 7.2H20V12" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  // 下降趋势
+  'trend-down':
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 7.6l5.4 5.4 3.4-3.4L20 16.8" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.4 16.8H20V12" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  // 柱状图
+  'chart-bar':
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3.6 20.4h16.8" fill="none" stroke="#000" stroke-width="1.8" stroke-linecap="round"/><rect x="5.6" y="12.4" width="3.4" height="6" rx="1" fill="#000"/><rect x="10.3" y="8" width="3.4" height="10.4" rx="1" fill="#000"/><rect x="15" y="4.6" width="3.4" height="13.8" rx="1" fill="#000"/></svg>',
 };
 
 function toUri(svg) {
