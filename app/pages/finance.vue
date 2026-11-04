@@ -201,7 +201,7 @@ onMounted(() => {
               </el-tooltip>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="190" fixed="right" align="right">
+          <el-table-column label="操作" width="168" fixed="right" align="right">
             <template #default="{ row }">
               <TableActions>
                 <el-button v-if="['draft', 'rejected'].includes(row.state)" size="small" type="primary" :aria-label="`录入${row.venue_name}${row.bill_month}的收支明细`" @click="openBill(row)">录入明细</el-button>
@@ -254,7 +254,7 @@ onMounted(() => {
             </el-table-column>
             <el-table-column prop="summary" label="简要描述" min-width="140" />
             <el-table-column label="金额" width="120" align="right"><template #default="{ row }">{{ formatMoney(row.amount) }}</template></el-table-column>
-            <el-table-column label="操作" width="140" align="right">
+            <el-table-column label="操作" width="132" align="right">
               <template #default="{ row }">
                 <TableActions v-if="billEditable">
                   <el-button size="small" type="primary" :aria-label="`编辑明细${row.summary}`" @click="editItem(row)">编辑</el-button>

@@ -47,9 +47,9 @@ img { max-width: 100%; }
 .money-expense { color: #b42318; font-weight: 650; }
 .status-text { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .table-region { max-width: 100%; overflow: auto; }
-/* 表格行内操作：一律使用带边框/底色的实体按钮，禁止纯文本链接式按钮 */
-.table-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
-.table-actions .el-button { margin: 0; }
+/* 表格行内操作：一律使用带边框/底色的实体按钮，禁止纯文本链接式按钮；单行显示不换行 */
+.table-actions { display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 8px; }
+.table-actions .el-button { margin: 0; flex: none; white-space: nowrap; padding-inline: 9px; }
 .table-actions .el-button.is-link,
 .table-actions .el-button.is-text { padding: 5px 11px; border: 1px solid var(--el-color-primary-light-5); background: var(--el-color-primary-light-9); }
 .table-region:focus-visible { outline: 3px solid #84adff; }

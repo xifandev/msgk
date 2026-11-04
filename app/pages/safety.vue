@@ -141,7 +141,7 @@ onMounted(() => {
               </el-tooltip>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="240" fixed="right" align="right">
+          <el-table-column label="操作" width="216" fixed="right" align="right">
             <template #default="{ row }">
               <TableActions>
                 <el-button size="small" type="primary" :aria-label="`查看并处理《${row.title}》`" @click="openDetail(row)">查看/处理</el-button>
