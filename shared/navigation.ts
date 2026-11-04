@@ -13,7 +13,7 @@ export interface NavigationItem {
 
 export const NAVIGATION: NavigationItem[] = [
   { path: '/dashboard', label: '工作台', description: '全县公开报送进度、待办事项与本月数据总览。', permission: 'dashboard:view', icon: 'DataAnalysis' },
-  { path: '/venues', label: '场所配置', description: '维护宗教活动场所的基础信息、图片与二维码，按乡镇和排序值排列。', permission: 'venues:view', icon: 'OfficeBuilding' },
+  { path: '/venues', label: '场所管理', description: '维护宗教活动场所的基础信息、图片与二维码，按乡镇和排序值排列。', permission: 'venues:view', icon: 'OfficeBuilding' },
   { path: '/profiles', label: '场所介绍', description: '按场所维护登记信息与简介，提交审核通过后可向公众公开。', permission: 'venues:edit', icon: 'Document' },
   { path: '/profiles/review', label: '场所介绍审核', description: '查看场所登记资料，完成镇级或县级审核。', permission: 'venues:review', icon: 'DocumentChecked' },
   { path: '/personnel', label: '人员公开', description: '按场所维护教职与工作人员名册，审核通过后向公众公开。', permission: 'personnel:edit', icon: 'User' },
