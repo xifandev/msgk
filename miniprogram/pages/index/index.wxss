@@ -258,30 +258,220 @@
   line-height: 1.9;
 }
 
-/* ---------- 场所选择弹层 ---------- */
-.leixing-box {
-  background: linear-gradient(to bottom, #f3f7fb, #ffffff);
-  padding-bottom: 10rpx;
+/* ---------- 场所选择（全屏） ---------- */
+.venue-sheet {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
+  background-color: #ffffff;
 }
 
-.leixing {
-  font-size: 38rpx;
-  width: 100%;
-  text-align: center;
-  padding-top: 30rpx;
-  padding-bottom: 30rpx;
-  color: #323233;
+.venue-sheet__head {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: calc(env(safe-area-inset-top) + 40rpx) 32rpx 24rpx;
+  background: linear-gradient(to bottom, #f5f8fc, #ffffff);
 }
 
-.venue-loading {
-  height: 460px;
+.venue-sheet__titles {
+  flex: 1;
+  min-width: 0;
+  padding-right: 24rpx;
+}
+
+.venue-sheet__title {
+  font-size: 42rpx;
+  font-weight: 600;
+  color: #1f2329;
+  line-height: 1.3;
+}
+
+.venue-sheet__sub {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #969799;
+  line-height: 1.5;
+}
+
+.venue-sheet__close {
+  flex-shrink: 0;
+  width: 64rpx;
+  height: 64rpx;
+  margin-top: 4rpx;
+  border-radius: 50%;
+  background-color: #f2f3f5;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.popup-gap {
-  height: 50rpx;
+.venue-sheet__close--hover {
+  background-color: #e6e8eb;
+}
+
+.venue-sheet__search {
+  display: flex;
+  align-items: center;
+  margin: 8rpx 32rpx 0;
+  padding: 0 24rpx;
+  height: 76rpx;
+  border-radius: 38rpx;
+  background-color: #f5f6f8;
+}
+
+.venue-sheet__input {
+  flex: 1;
+  min-width: 0;
+  margin: 0 14rpx;
+  font-size: 28rpx;
+  color: #323233;
+}
+
+.venue-sheet__placeholder {
+  color: #b9bbbf;
+}
+
+.venue-sheet__clear {
+  flex-shrink: 0;
+  width: 34rpx;
+  height: 34rpx;
+  border-radius: 50%;
+  background-color: #c8c9cc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.venue-sheet__current {
+  display: flex;
+  align-items: center;
+  margin: 20rpx 32rpx 0;
+  font-size: 24rpx;
+  color: #646566;
+  line-height: 1.5;
+}
+
+.venue-sheet__current-label {
+  flex-shrink: 0;
+  margin-right: 12rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 6rpx;
+  background-color: #fdecee;
+  color: #d31027;
+  font-size: 22rpx;
+}
+
+.venue-sheet__current-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.venue-sheet__body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-top: 20rpx;
+  border-top: 1rpx solid #f0f1f3;
+  overflow: hidden;
+}
+
+.venue-sheet__tree {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+}
+
+.venue-sheet__loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.venue-sheet__results {
+  flex: 1;
+  min-height: 0;
+}
+
+.venue-sheet__result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 26rpx 32rpx;
+  border-bottom: 1rpx solid #f5f6f8;
+}
+
+.venue-sheet__result--hover {
+  background-color: #f7f8fa;
+}
+
+.venue-sheet__result.is-active .venue-sheet__result-name {
+  color: #d31027;
+  font-weight: 500;
+}
+
+.venue-sheet__result-main {
+  flex: 1;
+  min-width: 0;
+  padding-right: 16rpx;
+}
+
+.venue-sheet__result-name {
+  display: block;
+  font-size: 30rpx;
+  color: #323233;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.venue-sheet__result-town {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: #969799;
+}
+
+.venue-sheet__result-end {
+  padding: 30rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: #b9bbbf;
+}
+
+.venue-sheet__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120rpx 32rpx;
+  font-size: 28rpx;
+  color: #646566;
+}
+
+.venue-sheet__empty-tip {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #969799;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.venue-sheet__foot {
+  flex-shrink: 0;
+  padding: 20rpx 32rpx calc(env(safe-area-inset-bottom) + 20rpx);
+  border-top: 1rpx solid #f0f1f3;
+  font-size: 22rpx;
+  color: #b9bbbf;
+  text-align: center;
 }
 
 /* ---------- 技术支持 ---------- */

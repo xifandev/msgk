@@ -1,6 +1,7 @@
 .ms-tree-select {
   display: flex;
   width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -13,17 +14,34 @@
 
 .ms-tree-select__nav-item {
   position: relative;
-  padding: 30rpx 20rpx;
-  font-size: 28rpx;
+  padding: 26rpx 16rpx;
+  font-size: 27rpx;
   color: #646566;
   line-height: 1.4;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ms-tree-select__nav-text {
+  word-break: break-all;
+}
+
+.ms-tree-select__nav-count {
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: #c8c9cc;
 }
 
 .ms-tree-select__nav-item.is-active {
   background-color: #fff;
   color: #323233;
   font-weight: 500;
+}
+
+.ms-tree-select__nav-item.is-active .ms-tree-select__nav-count {
+  color: #d31027;
 }
 
 .ms-tree-select__nav-item.is-active::before {

@@ -45,6 +45,8 @@ const RAW = {
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="#000"/><path d="M12 6.8v6.4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="16.8" r="1.3" fill="#fff"/></svg>',
   phone:
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.2 3.6c.9 0 1.7.6 1.9 1.5l.6 2.3c.2.7-.1 1.4-.7 1.8l-1 .7a11.4 11.4 0 0 0 5.1 5.1l.7-1c.4-.6 1.1-.9 1.8-.7l2.3.6c.9.2 1.5 1 1.5 1.9v2.1c0 1.2-1 2.2-2.2 2.1C9.5 20.5 3.5 14.5 3.1 6.9 3 5.7 4 4.7 5.2 4.7z" fill="#000"/></svg>',
+  search:
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.2" fill="none" stroke="#000" stroke-width="1.9"/><path d="M15.4 15.4l4.2 4.2" fill="none" stroke="#000" stroke-width="1.9" stroke-linecap="round"/></svg>',
 };
 
 function toUri(svg) {

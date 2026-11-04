@@ -105,24 +105,96 @@
   <view bind:tap="openCompany">技术支持：山东盖特网络有限公司</view>
 </view>
 
-<!-- 场所选择 -->
-<ms-popup show="{{ venuePopup }}" position="bottom" round bind:close="closeVenuePopup">
-  <view class="leixing-box">
-    <view class="leixing">请选择场所</view>
-    <view class="venue-loading" wx:if="{{ venueTree.length === 0 }}">
-      <ms-loading text="正在加载" color="#d31027" size="48rpx" />
+<!-- 场所选择（全屏） -->
+<ms-popup
+  show="{{ venuePopup }}"
+  position="bottom"
+  custom-style="height:100vh;max-height:100vh;border-radius:0;padding-bottom:0;overflow:hidden;"
+  bind:close="closeVenuePopup"
+>
+  <view class="venue-sheet">
+    <view class="venue-sheet__head">
+      <view class="venue-sheet__titles">
+        <view class="venue-sheet__title">请选择场所</view>
+        <view class="venue-sheet__sub">{{ venueKeyword ? '找到 ' + venueResults.length + ' 个场所' : '共 ' + venueCount + ' 个场所 · 点左侧乡镇，再点场所' }}</view>
+      </view>
+      <view
+        class="venue-sheet__close"
+        hover-class="venue-sheet__close--hover"
+        bind:tap="closeVenuePopup"
+        aria-role="button"
+        aria-label="关闭选择场所"
+      >
+        <ms-icon name="cross" size="34rpx" color="#646566" />
+      </view>
     </view>
-    <ms-tree-select
-      wx:else
-      items="{{ venueTree }}"
-      main-active-index="{{ venueNav }}"
-      active-id="{{ activeVenueId }}"
-      height="{{ 460 }}"
-      bind:clicknav="onVenueNav"
-      bind:clickitem="onVenueSelect"
-    />
+
+    <view class="venue-sheet__search">
+      <ms-icon name="search" size="32rpx" color="#969799" />
+      <input
+        class="venue-sheet__input"
+        value="{{ venueKeyword }}"
+        placeholder="搜索场所名称或乡镇"
+        placeholder-class="venue-sheet__placeholder"
+        confirm-type="search"
+        bindinput="onVenueSearch"
+      />
+      <view
+        wx:if="{{ venueKeyword }}"
+        class="venue-sheet__clear"
+        bind:tap="clearVenueSearch"
+        aria-role="button"
+        aria-label="清空搜索"
+      >
+        <ms-icon name="cross" size="20rpx" color="#ffffff" />
+      </view>
+    </view>
+
+    <view wx:if="{{ venueName }}" class="venue-sheet__current">
+      <text class="venue-sheet__current-label">当前</text>
+      <text class="venue-sheet__current-name">{{ venueName }}</text>
+    </view>
+
+    <view class="venue-sheet__body">
+      <view wx:if="{{ venueTree.length === 0 }}" class="venue-sheet__loading">
+        <ms-loading text="正在加载场所" color="#d31027" size="48rpx" />
+      </view>
+      <scroll-view wx:elif="{{ venueKeyword }}" class="venue-sheet__results" scroll-y>
+        <view wx:if="{{ venueResults.length === 0 }}" class="venue-sheet__empty">
+          <text>没有匹配的场所</text>
+          <text class="venue-sheet__empty-tip">换个关键词试试，或清空搜索按乡镇浏览</text>
+        </view>
+        <view
+          wx:for="{{ venueResults }}"
+          wx:key="id"
+          class="venue-sheet__result {{ item.id == activeVenueId ? 'is-active' : '' }}"
+          data-id="{{ item.id }}"
+          data-name="{{ item.name }}"
+          bind:tap="onVenueResultSelect"
+          hover-class="venue-sheet__result--hover"
+        >
+          <view class="venue-sheet__result-main">
+            <text class="venue-sheet__result-name">{{ item.name }}</text>
+            <text class="venue-sheet__result-town">{{ item.township }}</text>
+          </view>
+          <ms-icon wx:if="{{ item.id == activeVenueId }}" name="checked" size="32rpx" color="#d31027" />
+        </view>
+        <view class="venue-sheet__result-end" wx:if="{{ venueResults.length >= 50 }}">仅显示前 50 条，请细化关键词</view>
+      </scroll-view>
+      <ms-tree-select
+        wx:else
+        class="venue-sheet__tree"
+        items="{{ venueTree }}"
+        main-active-index="{{ venueNav }}"
+        active-id="{{ activeVenueId }}"
+        height="{{ 0 }}"
+        bind:clicknav="onVenueNav"
+        bind:clickitem="onVenueSelect"
+      />
+    </view>
+
+    <view class="venue-sheet__foot">选择后可在首页随时切换场所</view>
   </view>
-  <view class="popup-gap"></view>
 </ms-popup>
 
 <!-- 技术支持 -->
