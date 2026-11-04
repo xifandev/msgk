@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { REVIEW_LABELS, REVIEW_TAG_TYPES } from '~~/shared/review'
 import { TOWNSHIPS } from '~~/shared/townships'
 const { admin, hasPerm } = useAdmin()
 const loading = ref(false)
@@ -136,12 +135,6 @@ onMounted(load)
               <el-image v-if="row.image_url" :src="row.image_url" :preview-src-list="[row.image_url]" fit="cover" preview-teleported style="width: 56px; height: 40px; border-radius: 6px" :alt="`${row.name}场所图片`" />
               <span v-else class="muted">未上传</span>
             </template>
-          </el-table-column>
-          <el-table-column label="介绍状态" width="110">
-            <template #default="{ row }"><el-tag v-if="row.profile_state" :type="REVIEW_TAG_TYPES[row.profile_state]">{{ REVIEW_LABELS[row.profile_state] }}</el-tag><span v-else class="muted">未填写</span></template>
-          </el-table-column>
-          <el-table-column label="人员状态" width="110">
-            <template #default="{ row }"><el-tag v-if="row.personnel_state" :type="REVIEW_TAG_TYPES[row.personnel_state]">{{ REVIEW_LABELS[row.personnel_state] }}</el-tag><span v-else class="muted">未填写</span></template>
           </el-table-column>
           <el-table-column prop="updated_at" label="更新时间" width="170" />
           <el-table-column label="操作" width="216" fixed="right" align="right">
