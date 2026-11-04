@@ -132,4 +132,16 @@
 
     <view class="list-end" wx:if="{{ sections.length > 0 }}">— 已展示全部场所 —</view>
   </block>
+
+  <!-- 场所切换动画：对号弹出 + 载入中 -->
+  <view class="switch" wx:if="{{ switching }}">
+    <view class="switch__card">
+      <view class="switch__ring"></view>
+      <view class="switch__mark">
+        <view class="switch__arm switch__arm--short"></view>
+        <view class="switch__arm switch__arm--long"></view>
+      </view>
+      <view class="switch__text">场所数据载入中</view>
+    </view>
+  </view>
 </view>

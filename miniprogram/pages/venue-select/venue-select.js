@@ -16,6 +16,8 @@ Page({
     sections: [],
     total: 0,
     townshipCount: 0,
+    // 已点选场所、播放对号动画并等待返回
+    switching: false,
   },
 
   onLoad() {
@@ -97,12 +99,13 @@ Page({
 
     wx.vibrateShort({ type: 'light' });
     wx.setStorageSync('cid', String(id));
-    wx.showToast({ title: '已选择该场所', icon: 'success', duration: 500 });
+    // 自绘切换动画：对号弹出 + 载入中文案，随后返回首页
+    this.setData({ switching: true });
     setTimeout(() => {
       wx.navigateBack({
         fail: () => wx.reLaunch({ url: '/pages/index/index' }),
       });
-    }, 450);
+    }, 900);
   },
 
   goBack() {
