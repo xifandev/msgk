@@ -3,6 +3,9 @@
   "version": "2.0.0",
   "private": true,
   "description": "码上公开微信小程序（纯公开查询版）",
+  "scripts": {
+    "build:npm": "node scripts/build-npm.mjs"
+  },
   "dependencies": {
     "@vant/weapp": "^1.11.7"
   }

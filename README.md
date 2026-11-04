@@ -27,3 +27,11 @@ npm run build
 - `.github/workflows/`：构建与部署工作流
 
 小程序不包含登录、管理员验证和财务写入功能。后台管理员通过手机号短信验证码登录。
+
+小程序首次运行需在 `miniprogram/` 下安装依赖并构建 npm 包（`miniprogram_npm/` 不入库）：
+
+```bash
+cd miniprogram
+npm install
+npm run build:npm   # 等价于开发者工具的「工具 - 构建 npm」
+```
