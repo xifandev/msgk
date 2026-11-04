@@ -159,6 +159,10 @@ watch(() => [filters.page, filters.pageSize, filters.venueId, filters.month, fil
 onMounted(() => {
   const state = String(route.query.state ?? '')
   if (state && state in REVIEW_LABELS) filters.state = state
+  const venueId = Number(route.query.venueId)
+  if (Number.isSafeInteger(venueId) && venueId > 0) filters.venueId = venueId
+  const month = String(route.query.month ?? '')
+  if (/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) filters.month = month
   load()
 })
 </script>
