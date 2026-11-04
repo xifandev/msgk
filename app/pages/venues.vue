@@ -136,10 +136,10 @@ onMounted(load)
               <span v-else class="muted">未上传</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="216" fixed="right" align="right">
+          <el-table-column label="操作" width="280" fixed="right" align="right">
             <template #default="{ row }">
               <TableActions>
-                <el-button size="small" type="primary" plain :aria-label="`查看${row.name}的二维码`" @click="openQr(row)">二维码</el-button>
+                <el-button size="small" type="primary" plain :aria-label="`查看${row.name}的场所二维码`" @click="openQr(row)">查看场所二维码</el-button>
                 <el-button v-if="hasPerm('venues:edit')" size="small" type="primary" :aria-label="`编辑${row.name}`" @click="editVenue(row)">编辑</el-button>
                 <el-button v-if="hasPerm('venues:delete')" size="small" type="danger" plain :aria-label="`删除${row.name}`" @click="remove(row)">删除</el-button>
               </TableActions>
