@@ -9,9 +9,9 @@
     "ms-picker": "/components/ms-picker/index"
   },
   "navigationBarTitleText": "财务公开",
-  "navigationBarBackgroundColor": "#05654a",
-  "navigationBarTextStyle": "white",
-  "backgroundColorTop": "#05654a",
-  "backgroundColor": "#f2f6f3",
+  "navigationBarBackgroundColor": "#35c885",
+  "navigationBarTextStyle": "black",
+  "backgroundColorTop": "#35c885",
+  "backgroundColor": "#f4faf6",
   "disableScroll": true
 }

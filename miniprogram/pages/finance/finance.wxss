@@ -1,8 +1,8 @@
-/* 财务公开：账单式设计 · 绿色主题（公正 / 阳光 / 绿色）
-   色彩：主色 #0a7d59，深翠 #04593f，浅绿底 #eef7f2；支出用暖沙色 #c98214 区分 */
+/* 财务公开：账单式设计 · 阳光绿主题（公开 / 明亮 / 通透）
+   色彩：主色 #0a7d59，嫩绿 #35c885，浅绿底 #f4faf6；支出用暖沙色 #c98214 区分 */
 
 .pane {
-  background: #f2f6f3;
+  background: #f4faf6;
   padding-bottom: 30rpx;
   min-height: 60vh;
 }
@@ -57,8 +57,9 @@
   margin: 20rpx 24rpx 0;
   padding: 32rpx 28rpx 26rpx;
   border-radius: 28rpx;
-  background: linear-gradient(148deg, #04593f 0%, #0a7d59 48%, #17a273 100%);
-  box-shadow: 0 16rpx 36rpx rgba(5, 89, 63, 0.24);
+  background: linear-gradient(148deg, #e5fff0 0%, #c9f5dc 48%, #a8eac6 100%);
+  border: 1rpx solid #9cdeb7;
+  box-shadow: 0 16rpx 36rpx rgba(32, 143, 91, 0.14);
   overflow: hidden;
 }
 
@@ -92,7 +93,7 @@
 
 .balance__label {
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.82);
+  color: #386b52;
   letter-spacing: 1rpx;
 }
 
@@ -103,9 +104,9 @@
   height: 40rpx;
   padding: 0 14rpx;
   border-radius: 20rpx;
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.58);
   font-size: 21rpx;
-  color: #fff;
+  color: #17643f;
 }
 
 .balance__delta text {
@@ -125,15 +126,16 @@
 
 /* 环比方向除颜色外还有箭头图标与文字，不单靠颜色区分 */
 .balance__delta.is-up {
-  background: rgba(255, 255, 255, 0.22);
+  background: #f2fff7;
 }
 
 .balance__delta.is-down {
-  background: rgba(0, 0, 0, 0.18);
+  background: #fff0d4;
+  color: #85550b;
 }
 
 .balance__delta.is-flat {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.58);
 }
 
 .balance__value {
@@ -141,7 +143,7 @@
   margin-top: 14rpx;
   font-size: 68rpx;
   font-weight: 700;
-  color: #fff;
+  color: #0c5a38;
   line-height: 1.2;
   letter-spacing: 1rpx;
   word-break: break-all;
@@ -154,7 +156,7 @@
   margin-top: 26rpx;
   padding: 18rpx 4rpx;
   border-radius: 18rpx;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.52);
 }
 
 .flow {
@@ -167,14 +169,14 @@
 
 .flow__label {
   font-size: 21rpx;
-  color: rgba(255, 255, 255, 0.76);
+  color: #386b52;
 }
 
 .flow__value {
   margin-top: 8rpx;
   font-size: 27rpx;
   font-weight: 600;
-  color: #fff;
+  color: #12573a;
   letter-spacing: 0;
   word-break: break-all;
 }
@@ -182,7 +184,7 @@
 .flow__split {
   width: 1rpx;
   height: 52rpx;
-  background: rgba(255, 255, 255, 0.22);
+  background: #a4d9ba;
 }
 
 /* 收支占比条 */
@@ -197,18 +199,18 @@
   height: 10rpx;
   border-radius: 6rpx;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .ratio__income {
   height: 100%;
-  background: linear-gradient(90deg, #d8fbe9, #8fe9c3);
+  background: linear-gradient(90deg, #0a7d59, #35b77e);
   transition: width 0.3s ease;
 }
 
 .ratio__expense {
   height: 100%;
-  background: linear-gradient(90deg, #ffe3b8, #f7c983);
+  background: linear-gradient(90deg, #f7c983, #dda13c);
   transition: width 0.3s ease;
 }
 
@@ -223,7 +225,7 @@
   align-items: center;
   margin-right: 24rpx;
   font-size: 21rpx;
-  color: rgba(255, 255, 255, 0.84);
+  color: #315f49;
 }
 
 .dot {
@@ -242,11 +244,11 @@
 }
 
 .ratio__legend .dot--income {
-  background: #a8efcd;
+  background: #0a7d59;
 }
 
 .ratio__legend .dot--expense {
-  background: #f7c983;
+  background: #c98214;
 }
 
 /* ---------- 区块标题 ---------- */
@@ -264,7 +266,7 @@
   width: 6rpx;
   height: 26rpx;
   border-radius: 4rpx;
-  background: linear-gradient(180deg, #17a273, #04593f);
+  background: linear-gradient(180deg, #35c885, #0a7d59);
   margin-right: 12rpx;
 }
 

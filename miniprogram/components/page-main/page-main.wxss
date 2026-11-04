@@ -13,13 +13,13 @@
   background: linear-gradient(180deg, #d31027 0%, #ea384d 22%, #f1f2f4 70%);
 }
 
-/* 绿色主题：横向由深翠过渡到亮绿（左深右亮，保证标题可读），纵向再淡出到页面底色；
+/* 绿色主题：明亮嫩绿渐变搭配深绿文字，纵向淡出到页面底色；
    最上层叠一条导航栏色的纵向过渡，消除与原生导航栏之间的色阶断层 */
 .bgc--green {
   background:
-    linear-gradient(180deg, #05654a 0%, rgba(5, 101, 74, 0.72) 4%, rgba(5, 101, 74, 0) 11%),
-    linear-gradient(180deg, rgba(242, 246, 243, 0) 0%, rgba(242, 246, 243, 0) 17%, #f2f6f3 40%),
-    linear-gradient(112deg, #034e39 0%, #0a7454 34%, #15a173 70%, #3fc394 100%);
+    linear-gradient(180deg, #35c885 0%, rgba(53, 200, 133, 0.72) 4%, rgba(53, 200, 133, 0) 11%),
+    linear-gradient(180deg, rgba(244, 250, 246, 0) 0%, rgba(244, 250, 246, 0) 17%, #f4faf6 40%),
+    linear-gradient(112deg, #35c885 0%, #62d89b 45%, #9ae8b9 100%);
 }
 
 .bgc--green::after {
@@ -67,6 +67,14 @@
 
 .top-title2-item text {
   padding-left: 8rpx;
+}
+
+.top-box--green .top-title {
+  color: #104c34;
+}
+
+.top-box--green .top-title2 {
+  color: #236647;
 }
 
 .cellgroup {
