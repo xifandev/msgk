@@ -1,0 +1,291 @@
+/* 注册信息页（全屏沉浸式） */
+
+.bgc {
+  background: linear-gradient(180deg, #d31027 0%, #ea384d 20%, #f1f2f4 60%);
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+
+/* 状态栏渐隐蒙层：白色卡片滚过顶部时状态栏文字仍可辨认 */
+.status-veil {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(211, 16, 39, 0.96) 0%,
+    rgba(211, 16, 39, 0.82) 60%,
+    rgba(211, 16, 39, 0) 100%
+  );
+}
+
+/* 固定返回按钮 */
+.nav-back {
+  position: fixed;
+  left: 24rpx;
+  z-index: 901;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-back--hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ---------- 页头 ---------- */
+.page-head {
+  position: relative;
+}
+
+.title-box {
+  position: relative;
+  z-index: 1;
+  padding-top: 20rpx;
+  padding-bottom: 70rpx;
+  padding-left: 40rpx;
+  overflow: hidden;
+}
+
+.top-title {
+  font-size: 56rpx;
+  color: #fff;
+  font-weight: bold;
+  line-height: 1.25;
+}
+
+.top-title2 {
+  font-size: 30rpx;
+  color: rgba(239, 239, 239, 0.92);
+  margin-top: 8rpx;
+}
+
+.top-img-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: 100vw;
+  pointer-events: none;
+}
+
+.top-img {
+  position: absolute;
+  right: 0;
+  top: 30rpx;
+  opacity: 0.6;
+  width: 300rpx;
+}
+
+.top-img-gezi {
+  position: absolute;
+  left: 400rpx;
+  top: 0;
+  width: 130rpx;
+  opacity: 0.9;
+}
+
+/* ---------- 白色内容区 ---------- */
+.sheet {
+  position: relative;
+  z-index: 1;
+  min-height: 60vh;
+  margin: 0 0 0;
+  padding: 28rpx 24rpx 40rpx;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 40rpx);
+  background: #f6f7f9;
+  border-radius: 28rpx 28rpx 0 0;
+}
+
+.sheet-state {
+  padding: 100rpx 0;
+}
+
+/* ---------- 场所抬头 ---------- */
+.venue-head {
+  padding: 6rpx 12rpx 22rpx;
+}
+
+.venue-head__name {
+  font-size: 38rpx;
+  font-weight: 600;
+  color: #1f2329;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.venue-head__tags {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 16rpx;
+}
+
+.venue-head__tag {
+  display: flex;
+  align-items: center;
+  margin: 0 14rpx 12rpx 0;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  background: #eef0f3;
+  font-size: 22rpx;
+  color: #646566;
+  line-height: 1.5;
+}
+
+.venue-head__tag--ok {
+  background: #eafaf2;
+  color: #2c7d5c;
+}
+
+.venue-head__tag--ok text {
+  margin-left: 6rpx;
+}
+
+/* ---------- 内容卡片 ---------- */
+.content-card {
+  margin: 0 0 24rpx;
+  padding: 8rpx 28rpx 24rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 18rpx rgba(31, 35, 41, 0.05);
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 0 8rpx;
+}
+
+.card-head__bar {
+  width: 6rpx;
+  height: 26rpx;
+  border-radius: 4rpx;
+  background: linear-gradient(180deg, #e63c4c, #d31027);
+  margin-right: 14rpx;
+}
+
+.card-head__title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1f2329;
+}
+
+/* ---------- 基本登记：两列栅格 ---------- */
+.reg-grid {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 12rpx;
+}
+
+.reg-cell {
+  width: 50%;
+  padding: 20rpx 0;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1rpx solid #f2f3f5;
+}
+
+.reg-cell:nth-child(odd) {
+  padding-right: 20rpx;
+}
+
+.reg-cell:nth-child(even) {
+  padding-left: 20rpx;
+  border-left: 1rpx solid #f2f3f5;
+}
+
+.reg-cell:nth-last-child(-n + 2) {
+  border-bottom: none;
+  padding-bottom: 6rpx;
+}
+
+.reg-cell__label {
+  font-size: 24rpx;
+  color: #969799;
+  line-height: 1.4;
+}
+
+.reg-cell__value {
+  margin-top: 8rpx;
+  font-size: 30rpx;
+  color: #1f2329;
+  font-weight: 500;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+/* ---------- 联系与地址：整行条目 ---------- */
+.reg-row {
+  display: flex;
+  align-items: flex-start;
+  padding: 22rpx 0;
+  border-bottom: 1rpx solid #f2f3f5;
+}
+
+.reg-row--last {
+  border-bottom: none;
+  padding-bottom: 4rpx;
+}
+
+.reg-row--hover {
+  background-color: #fafbfc;
+}
+
+.reg-row__icon {
+  flex-shrink: 0;
+  width: 56rpx;
+  height: 56rpx;
+  margin: 2rpx 18rpx 0 0;
+  border-radius: 16rpx;
+  background: #fdf0f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reg-row__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.reg-row__label {
+  font-size: 24rpx;
+  color: #969799;
+  line-height: 1.4;
+}
+
+.reg-row__value {
+  margin-top: 8rpx;
+  font-size: 30rpx;
+  color: #1f2329;
+  line-height: 1.55;
+  word-break: break-all;
+}
+
+.reg-row__value--mono {
+  font-family: Menlo, Consolas, 'Courier New', monospace;
+  font-size: 28rpx;
+  letter-spacing: 1rpx;
+}
+
+/* ---------- 页脚注明 ---------- */
+.sheet-note {
+  padding: 8rpx 0 20rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: #b0b3b8;
+  line-height: 1.6;
+}

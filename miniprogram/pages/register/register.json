@@ -1,0 +1,10 @@
+{
+  "navigationStyle": "custom",
+  "backgroundColorTop": "#d31027",
+  "backgroundColor": "#f1f2f4",
+  "usingComponents": {
+    "ms-icon": "/components/ms-icon/index",
+    "ms-empty": "/components/ms-empty/index",
+    "ms-loading": "/components/ms-loading/index"
+  }
+}

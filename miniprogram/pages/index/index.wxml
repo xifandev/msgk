@@ -38,7 +38,7 @@
   </view>
 
   <view class="grid-gap"></view>
-  <ms-grid column-num="3">
+  <ms-grid column-num="4" class="grid-4">
     <ms-grid-item bind:click="navigate" data-url="/pages/venue/venue" data-need-venue="{{ true }}">
       <view class="icon-baoxiu">
         <image class="icon-baoxiu-img" src="/assets/images/changsuo.png" mode="aspectFit" />
@@ -47,15 +47,21 @@
     </ms-grid-item>
     <ms-grid-item bind:click="navigate" data-url="/pages/personnel/personnel" data-need-venue="{{ true }}">
       <view class="icon-size icon-renyuan">
-        <ms-icon name="manager" size="52rpx" color="#ffffff" />
+        <ms-icon name="manager" size="46rpx" color="#ffffff" />
       </view>
       <view class="app-title-top">人员公开</view>
     </ms-grid-item>
     <ms-grid-item bind:click="navigate" data-url="/pages/safety/safety" data-need-venue="{{ true }}">
       <view class="icon-size icon-red">
-        <ms-icon name="bell" size="52rpx" color="#ffffff" />
+        <ms-icon name="bell" size="46rpx" color="#ffffff" />
       </view>
       <view class="app-title-top">场所安全</view>
+    </ms-grid-item>
+    <ms-grid-item bind:click="navigate" data-url="/pages/register/register" data-need-venue="{{ true }}">
+      <view class="icon-size icon-lan">
+        <ms-icon name="id-card" size="46rpx" color="#ffffff" />
+      </view>
+      <view class="app-title-top">注册信息</view>
     </ms-grid-item>
   </ms-grid>
 </ms-cell-group>

@@ -1,0 +1,130 @@
+<view class="bgc"></view>
+
+<!-- 全屏沉浸式：仅覆盖状态栏的渐隐蒙层，保证状态栏文字在滚动后依然可读 -->
+<view class="status-veil" style="height:{{ statusBarHeight }}px"></view>
+
+<!-- 固定返回按钮 -->
+<view
+  class="nav-back"
+  style="top:{{ statusBarHeight + 6 }}px"
+  hover-class="nav-back--hover"
+  bind:tap="goBack"
+  aria-role="button"
+  aria-label="返回"
+>
+  <ms-icon name="arrow" size="34rpx" color="#ffffff" />
+</view>
+
+<view class="page-head" style="padding-top:{{ safeTop }}px">
+  <view class="top-img-wrap" style="top:{{ safeTop }}px">
+    <image class="top-img" src="/assets/images/xing5.png" mode="widthFix" />
+    <image class="top-img-gezi" src="/assets/images/gezi.png" mode="widthFix" />
+  </view>
+  <view class="title-box">
+    <view class="top-title">注册信息</view>
+    <view class="top-title2">{{ venue ? venue.name : '场所登记信息公开可查' }}</view>
+  </view>
+</view>
+
+<!-- 白色内容区 -->
+<view class="sheet">
+  <!-- 加载中 -->
+  <view wx:if="{{ !loaded }}" class="sheet-state">
+    <ms-loading text="正在加载" />
+  </view>
+
+  <!-- 无数据：整页空态 -->
+  <view wx:elif="{{ !venue || !venue.profile }}" class="sheet-state">
+    <ms-empty description="暂无注册信息" />
+  </view>
+
+  <block wx:else>
+    <!-- 场所抬头 -->
+    <view class="venue-head">
+      <view class="venue-head__name">{{ venue.name }}</view>
+      <view class="venue-head__tags">
+        <view class="venue-head__tag" wx:if="{{ venue.township }}">{{ venue.township }}</view>
+        <view class="venue-head__tag" wx:if="{{ venue.profile.category }}">{{ venue.profile.category }}</view>
+        <view class="venue-head__tag" wx:if="{{ venue.profile.religion }}">{{ venue.profile.religion }}</view>
+        <view class="venue-head__tag venue-head__tag--ok">
+          <ms-icon name="passed" size="22rpx" color="#31b380" />
+          <text>已审核公开</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 基本登记 -->
+    <view class="content-card">
+      <view class="card-head">
+        <view class="card-head__bar"></view>
+        <text class="card-head__title">基本登记</text>
+      </view>
+      <view class="reg-grid">
+        <view class="reg-cell">
+          <text class="reg-cell__label">登记时间</text>
+          <text class="reg-cell__value">{{ venue.profile.registrationDate || '—' }}</text>
+        </view>
+        <view class="reg-cell">
+          <text class="reg-cell__label">场所类别</text>
+          <text class="reg-cell__value">{{ venue.profile.category || '—' }}</text>
+        </view>
+        <view class="reg-cell">
+          <text class="reg-cell__label">宗教</text>
+          <text class="reg-cell__value">{{ venue.profile.religion || '—' }}</text>
+        </view>
+        <view class="reg-cell reg-cell--last">
+          <text class="reg-cell__label">场所负责人</text>
+          <text class="reg-cell__value">{{ venue.profile.manager || '—' }}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 联系与地址 -->
+    <view class="content-card">
+      <view class="card-head">
+        <view class="card-head__bar"></view>
+        <text class="card-head__title">联系与地址</text>
+      </view>
+
+      <view
+        class="reg-row"
+        hover-class="{{ venue.profile.phone ? 'reg-row--hover' : 'none' }}"
+        bind:tap="callPhone"
+        aria-role="{{ venue.profile.phone ? 'button' : '' }}"
+      >
+        <view class="reg-row__icon"><ms-icon name="phone" size="30rpx" color="#d31027" /></view>
+        <view class="reg-row__body">
+          <text class="reg-row__label">联系电话</text>
+          <text class="reg-row__value">{{ venue.profile.phone || '—' }}</text>
+        </view>
+        <ms-icon wx:if="{{ venue.profile.phone }}" name="arrow" size="24rpx" color="#c8c9cc" />
+      </view>
+
+      <view class="reg-row">
+        <view class="reg-row__icon"><ms-icon name="location" size="30rpx" color="#d31027" /></view>
+        <view class="reg-row__body">
+          <text class="reg-row__label">场所地址</text>
+          <text class="reg-row__value">{{ venue.profile.address || '—' }}</text>
+        </view>
+      </view>
+
+      <view class="reg-row">
+        <view class="reg-row__icon"><ms-icon name="id-card" size="30rpx" color="#d31027" /></view>
+        <view class="reg-row__body">
+          <text class="reg-row__label">统一社会信用代码</text>
+          <text class="reg-row__value reg-row__value--mono">{{ venue.profile.creditCode || '—' }}</text>
+        </view>
+      </view>
+
+      <view class="reg-row reg-row--last">
+        <view class="reg-row__icon"><ms-icon name="passed" size="30rpx" color="#d31027" /></view>
+        <view class="reg-row__body">
+          <text class="reg-row__label">批准设立机构</text>
+          <text class="reg-row__value">{{ venue.profile.approvalAuthority || '—' }}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="sheet-note">登记信息由场所登记单位提供并公开</view>
+  </block>
+</view>
