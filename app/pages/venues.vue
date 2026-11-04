@@ -136,7 +136,6 @@ onMounted(load)
               <span v-else class="muted">未上传</span>
             </template>
           </el-table-column>
-          <el-table-column prop="updated_at" label="更新时间" width="170" />
           <el-table-column label="操作" width="216" fixed="right" align="right">
             <template #default="{ row }">
               <TableActions>
