@@ -7,6 +7,7 @@ export default defineNuxtConfig({
   devtools: { enabled: false },
   modules: ['@element-plus/nuxt'],
   nitro: {
+    errorHandler: '~~/server/error-handler',
     externals: {
       traceInclude: [require.resolve('@alicloud/dysmsapi20170525'), require.resolve('@alicloud/openapi-client')]
     }

@@ -8,6 +8,8 @@ const { admin } = useAdmin()
 const form = reactive({ phone: '', code: '' })
 const sending = ref(false)
 const submitting = ref(false)
+const loginSuccess = ref(false)
+const loginFailed = ref(false)
 const countdown = ref(0)
 let timer: ReturnType<typeof setInterval> | undefined
 const contactVisible = ref(false)
@@ -52,13 +54,18 @@ async function sendCode() {
 }
 
 async function submit() {
+  if (submitting.value || loginSuccess.value) return
   submitting.value = true
   try {
     const response = await $fetch<{ admin: any, redirect: string }>('/api/auth/login', { method: 'POST', body: form })
     admin.value = response.admin
-    await navigateTo(response.redirect)
+    loginSuccess.value = true
+    await new Promise((resolve) => setTimeout(resolve, 1200))
+    await navigateTo(response.redirect, { replace: true })
   } catch (error) {
     ElMessage.error(errorMessage(error))
+    loginFailed.value = true
+    setTimeout(() => { loginFailed.value = false }, 650)
   } finally {
     submitting.value = false
   }
@@ -68,7 +75,18 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
 </script>
 
 <template>
-  <section class="login-card" aria-labelledby="login-title">
+  <section class="login-card" :class="{ shake: loginFailed }" aria-labelledby="login-title">
+    <transition name="success-fade">
+      <div v-if="loginSuccess" class="success-overlay" role="status" aria-live="polite">
+        <svg class="success-mark" viewBox="0 0 72 72" fill="none" aria-hidden="true">
+          <circle class="success-circle" cx="36" cy="36" r="32" />
+          <path class="success-check" d="M22 37.5 32 47l18-21" />
+        </svg>
+        <p class="success-text">登录成功</p>
+        <p class="success-sub">正在进入管理系统…</p>
+      </div>
+    </transition>
+
     <aside class="login-intro">
       <h1 id="login-title">沂水宗教码上公开管理系统</h1>
       <p class="intro-sub">统一管理 · 规范审核</p>
@@ -279,6 +297,69 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   border-radius: 6px;
 }
 .contacts-button:hover { color: var(--brand); text-decoration: underline; }
+
+/* 登录失败抖动 */
+.shake { animation: shake .6s cubic-bezier(.36, .07, .19, .97); }
+@keyframes shake {
+  10%, 90% { transform: translateX(-2px); }
+  20%, 80% { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-7px); }
+  40%, 60% { transform: translateX(7px); }
+}
+
+/* 登录成功全屏动画 */
+.success-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: inherit;
+  background: linear-gradient(158deg, #0a3a6b 0%, #14508f 55%, #1a63b0 100%);
+}
+.success-mark { width: 88px; height: 88px; }
+.success-circle {
+  stroke: rgb(255 255 255 / 90%);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 202;
+  stroke-dashoffset: 202;
+  animation: draw .55s ease-out forwards;
+}
+.success-check {
+  stroke: #fff;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 44;
+  stroke-dashoffset: 44;
+  animation: draw .4s .5s ease-out forwards;
+}
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.success-text {
+  margin: 18px 0 0;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: 3px;
+  color: #fff;
+  animation: rise .45s .55s ease-out both;
+}
+.success-sub {
+  margin: 8px 0 0;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  color: rgb(255 255 255 / 72%);
+  animation: rise .45s .7s ease-out both;
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.success-fade-enter-active { transition: opacity .28s ease; }
+.success-fade-enter-from { opacity: 0; }
 
 @media (max-width: 760px) {
   .login-card { grid-template-columns: 1fr; border-radius: 18px; }
