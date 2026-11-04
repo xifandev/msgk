@@ -93,13 +93,27 @@
       <ms-empty wx:if="{{ itemsLoaded && items.length === 0 }}" description="暂无公告" />
       <view wx:else>
         <view wx:for="{{ items }}" wx:key="id">
-          <view class="news-item" bind:tap="openItem" data-kind="{{ item.kind }}" data-id="{{ item.id }}">
+          <view
+            class="news-item"
+            bind:tap="openItem"
+            data-kind="{{ item.kind }}"
+            data-id="{{ item.id }}"
+            hover-class="news-item--hover"
+            hover-stay-time="80"
+          >
+            <view class="news-thumb">
+              <ms-icon name="newspaper" size="40rpx" color="#d31027" />
+            </view>
             <view class="news-content">
               <view class="news-title">{{ item.title }}</view>
-              <view class="news-time">{{ item.date }}</view>
+              <view class="news-meta">
+                <text class="news-kind">{{ item.kindText }}</text>
+                <text class="news-date">{{ item.date }}</text>
+              </view>
             </view>
+            <ms-icon class="news-arrow" name="arrow" size="22rpx" color="#c8c9cc" />
           </view>
-          <ms-divider wx:if="{{ index < items.length - 1 }}" />
+          <view wx:if="{{ index < items.length - 1 }}" class="news-hairline"></view>
         </view>
       </view>
     </view>
