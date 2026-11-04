@@ -109,7 +109,7 @@ onMounted(() => {
   <div class="page">
     <section class="panel">
       <div class="toolbar">
-        <VenueSelect v-model="filters.venueId" clearable />
+        <VenueSelect v-model="filters.venueId" clearable style="width: 220px" />
         <el-input v-model="filters.search" placeholder="请输入安全标题" clearable aria-label="搜索文章标题" @keyup.enter="search" @clear="search" />
         <el-select v-model="filters.state" clearable placeholder="全部状态" aria-label="按审核状态筛选">
           <el-option v-for="(label, value) in REVIEW_LABELS" :key="value" :label="label" :value="value" />

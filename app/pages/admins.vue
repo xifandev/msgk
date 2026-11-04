@@ -50,7 +50,7 @@ onMounted(load)
   <div class="page">
     <section class="panel">
       <div class="toolbar">
-        <el-input v-model="search" placeholder="输入姓名或手机号查询" clearable style="max-width: 280px" aria-label="搜索管理员" @keyup.enter="load" @clear="load" />
+        <el-input v-model="search" placeholder="输入姓名或手机号查询" clearable aria-label="搜索管理员" @keyup.enter="load" @clear="load" />
         <el-button plain @click="load">查询</el-button>
         <div class="toolbar-actions">
           <el-button type="primary" :icon="Plus" @click="edit()">新增管理员</el-button>
@@ -59,25 +59,25 @@ onMounted(load)
       <div class="table-region" tabindex="0" role="region" aria-label="管理员列表">
         <el-table :data="list">
           <el-table-column type="index" label="序号" width="64" />
-          <el-table-column prop="name" label="姓名" width="90" />
+          <el-table-column prop="name" label="姓名" width="80" />
           <el-table-column prop="phone" label="登录手机号" width="130" />
-          <el-table-column prop="role_name" label="担任角色" width="110" />
-          <el-table-column prop="organization" label="所属单位" min-width="100" />
-          <el-table-column label="管辖场所" min-width="160">
+          <el-table-column prop="role_name" label="担任角色" width="100" />
+          <el-table-column prop="organization" label="所属单位" min-width="90" />
+          <el-table-column label="管辖场所" min-width="140">
             <template #default="{ row }">
               <span v-if="row.all_venues">全部场所</span>
               <el-tag v-else v-for="name in venueNames(row.venue_ids).slice(0, 5)" :key="name" class="venue-tag">{{ name }}</el-tag>
               <span v-if="!row.all_venues && venueNames(row.venue_ids).length > 5" class="muted">…</span>
             </template>
           </el-table-column>
-          <el-table-column prop="note" label="备注" min-width="100" show-overflow-tooltip><template #default="{ row }">{{ row.note || '—' }}</template></el-table-column>
-          <el-table-column prop="last_login_at" label="最近一次登录" width="160" />
+          <el-table-column prop="note" label="备注" min-width="80" show-overflow-tooltip><template #default="{ row }">{{ row.note || '—' }}</template></el-table-column>
+          <el-table-column prop="last_login_at" label="最近一次登录" width="150" />
           <el-table-column label="可用状态" width="90">
             <template #default="{ row }">
               <el-switch v-model="row.status" :active-value="1" :inactive-value="0" :disabled="row.id === currentAdmin?.id || row.role_code === 'super'" :aria-label="`${row.name}账号状态`" @change="toggleStatus(row)" />
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="216" fixed="right" align="right">
+          <el-table-column label="操作" width="200" fixed="right" align="right">
             <template #default="{ row }">
               <TableActions>
                 <el-button size="small" type="primary" @click="edit(row)">编辑</el-button>

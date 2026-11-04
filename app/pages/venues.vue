@@ -118,7 +118,7 @@ onMounted(load)
   <div class="page">
     <section class="panel">
       <div class="toolbar">
-        <el-input v-model="filters.search" placeholder="搜索场所名称或乡镇" clearable style="max-width: 280px" aria-label="搜索场所" @keyup.enter="search" @clear="search" />
+        <el-input v-model="filters.search" placeholder="搜索场所名称或乡镇" clearable aria-label="搜索场所" @keyup.enter="search" @clear="search" />
         <el-button plain @click="search">查询</el-button>
         <div class="toolbar-actions">
           <el-button v-if="hasPerm('venues:edit') && admin?.allVenues" type="primary" :icon="Plus" @click="editVenue()">添加场所</el-button>

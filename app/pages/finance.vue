@@ -172,7 +172,7 @@ onMounted(() => {
   <div class="page">
     <section class="panel">
       <div class="toolbar">
-        <VenueSelect v-model="filters.venueId" clearable />
+        <VenueSelect v-model="filters.venueId" clearable style="width: 260px" />
         <el-date-picker v-model="filters.month" type="month" value-format="YYYY-MM" placeholder="公开月份" />
         <el-select v-model="filters.state" clearable placeholder="全部状态">
           <el-option v-for="(label, value) in REVIEW_LABELS" :key="value" :label="label" :value="value" />

@@ -38,6 +38,11 @@ img { max-width: 100%; }
 
 /* 页面级标题已上移到顶部标题栏，页面内只保留操作区 */
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-block-end: 16px; }
+/* 筛选项统一固定宽度：Element Plus 控件默认 100% 宽，在 flex 行里会被撑成一列 */
+.toolbar > .el-input { width: 220px; }
+.toolbar > .el-select { width: 180px; }
+.toolbar > .el-date-editor { width: 172px; }
+.toolbar > .el-input-number { width: 140px; }
 /* 主操作（新增/添加）统一靠右，与查询按钮之间留出足够间距，避免误触 */
 .toolbar-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-inline-start: auto; }
 .toolbar-actions .el-button { margin: 0; }
@@ -100,6 +105,7 @@ img { max-width: 100%; }
 .form-grid .full { grid-column: 1 / -1; }
 .empty-state { padding: 48px 20px; text-align: center; color: var(--muted); }
 .pagination { display: flex; justify-content: flex-end; margin-block-start: 18px; padding-block-start: 2px; }
+.pagination .el-pagination { flex-wrap: wrap; row-gap: 8px; justify-content: flex-end; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: inset(50%); white-space: nowrap; border: 0; }
 
 /* 弹窗：高度永不超过可视区，内容区独立滚动，底部操作按钮常驻可见 */
@@ -139,9 +145,16 @@ img { max-width: 100%; }
   .form-grid { grid-template-columns: 1fr; }
   .form-grid .full { grid-column: auto; }
   .toolbar { align-items: stretch; }
+  .toolbar > .el-input,
+  .toolbar > .el-select,
+  .toolbar > .el-date-editor { width: 100%; }
   .toolbar-actions { width: 100%; margin-inline-start: 0; }
   .toolbar-actions .el-button { flex: 1 1 0; }
   .pagination { justify-content: center; }
+  .pagination .el-pagination { justify-content: center; }
+  /* 窄屏隐藏每页条数与跳页，避免分页条撑破卡片 */
+  .pagination .el-pagination__sizes,
+  .pagination .el-pagination__jump { display: none; }
 }
 
 @media (pointer: coarse) {

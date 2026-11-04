@@ -13,7 +13,7 @@ onMounted(load)
   <div class="page">
     <section class="panel">
       <div class="toolbar">
-        <el-input v-model="queryInput.search" placeholder="搜索模块、对象或操作人" clearable style="max-width: 280px" aria-label="搜索操作日志" @keyup.enter="search" @clear="search" />
+        <el-input v-model="queryInput.search" placeholder="搜索模块、对象或操作人" clearable aria-label="搜索操作日志" @keyup.enter="search" @clear="search" />
         <el-button plain @click="search">查询</el-button>
       </div>
       <div class="table-region" tabindex="0" role="region" aria-label="操作日志列表">

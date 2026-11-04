@@ -143,7 +143,7 @@ onMounted(() => { if (!venueId.value && venues.value.length) venueId.value = ven
   <div class="page">
     <div class="page-bar">
       <span class="page-bar-label">当前场所</span>
-      <VenueSelect v-model="venueId" style="min-width: 260px" />
+      <VenueSelect v-model="venueId" style="width: 320px" />
     </div>
     <div v-if="record" v-loading="loading" class="detail-layout">
       <section class="panel">
@@ -192,7 +192,7 @@ onMounted(() => { if (!venueId.value && venues.value.length) venueId.value = ven
 .review-side :deep(.review-status > .el-tag) { justify-self: start; }
 .member-card { border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-block-end: 14px; background: var(--surface); transition: border-color 0.15s, box-shadow 0.15s; }
 .member-card:hover { border-color: var(--el-color-primary-light-7); box-shadow: 0 6px 18px rgb(16 24 40 / 5%); }
-.member-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-block-end: 12px; }
+.member-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-block-end: 12px; }
 .member-no { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--brand-soft); color: var(--brand); font-size: 13px; font-weight: 700; }
 .member-name { padding: 1px 8px; border-radius: 6px; background: #f2f4f7; color: var(--muted); font-size: 12px; font-weight: 400; }
 .member-actions { display: flex; gap: 8px; margin-inline-start: auto; }

@@ -141,7 +141,7 @@ onMounted(() => {
   <div class="page">
     <div class="page-bar">
       <span class="page-bar-label">当前场所</span>
-      <VenueSelect v-model="venueId" style="min-width: 260px" />
+      <VenueSelect v-model="venueId" style="width: 320px" />
     </div>
     <div v-if="profile" v-loading="loading" class="detail-layout">
       <section class="panel">
