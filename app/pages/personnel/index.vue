@@ -166,7 +166,7 @@ onMounted(() => { if (!venueId.value && venues.value.length) venueId.value = ven
             <el-form label-position="top" :disabled="!canEdit" class="member-form" @change="markDirty"><div class="member-grid">
               <el-form-item label="姓名" required><el-input v-model="member.name" maxlength="50" placeholder="请输入姓名" /></el-form-item>
               <el-form-item label="性别"><el-select v-model="member.gender" clearable><el-option label="男" value="男" /><el-option label="女" value="女" /></el-select></el-form-item>
-              <el-form-item label="教职"><el-input v-model="member.clergy" maxlength="50" placeholder="如：法师、道长，没有可不填" /></el-form-item>
+              <el-form-item label="教职"><el-input v-model="member.clergy" maxlength="50" placeholder="没有可不填" /></el-form-item>
               <el-form-item label="联系电话"><el-input v-model="member.phone" maxlength="30" placeholder="请输入联系电话" /></el-form-item>
               <el-form-item label="职务" required class="span-2">
                 <div class="position-row">
