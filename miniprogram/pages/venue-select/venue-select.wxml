@@ -16,7 +16,7 @@
         aria-role="button"
         aria-label="返回首页"
       >
-        <ms-icon name="arrow" size="34rpx" color="#ffffff" />
+        <ms-icon name="arrow-left" size="34rpx" color="#ffffff" />
       </view>
     </view>
 
@@ -133,15 +133,21 @@
     <view class="list-end" wx:if="{{ sections.length > 0 }}">— 已展示全部场所 —</view>
   </block>
 
-  <!-- 场所切换动画：对号弹出 + 载入中 -->
-  <view class="switch" wx:if="{{ switching }}">
+  <!-- 场所切换：先载入，再显示完成 -->
+  <view
+    class="switch"
+    wx:if="{{ switching }}"
+    aria-role="status"
+    aria-label="{{ switchDone ? '场所载入完成' : '场所数据载入中' }}"
+  >
     <view class="switch__card">
-      <view class="switch__ring"></view>
-      <view class="switch__mark">
-        <view class="switch__arm switch__arm--short"></view>
-        <view class="switch__arm switch__arm--long"></view>
+      <view class="switch__visual">
+        <view wx:if="{{ !switchDone }}" class="switch__loader"></view>
+        <view wx:else class="switch__success">
+          <ms-icon name="passed" size="48rpx" color="#4f876d" />
+        </view>
       </view>
-      <view class="switch__text">场所数据载入中</view>
+      <view class="switch__text">{{ switchDone ? '场所载入完成' : '场所数据载入中' }}</view>
     </view>
   </view>
 </view>

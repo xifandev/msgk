@@ -65,7 +65,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transform: rotate(180deg);
 }
 
 /* 红色主题：白色半透明底 + 白色箭头 */

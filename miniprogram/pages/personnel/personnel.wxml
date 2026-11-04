@@ -8,25 +8,37 @@
     <!-- 空态 -->
     <ms-empty wx:elif="{{ members.length === 0 }}" description="暂未公开" />
 
-    <!-- 成员列表（旧版 .box 布局） -->
+    <!-- 成员列表：竖版证件照 + 姓名 + 职务/教职标签 -->
     <ms-cell wx:for="{{ members }}" wx:key="index">
-      <view slot="title" class="box">
+      <view slot="title" class="member">
         <image
           wx:if="{{ item.imageUrl }}"
-          class="touxiang"
+          class="member__photo"
           src="{{ item.imageUrl }}"
           mode="aspectFill"
         />
-        <view wx:else class="touxiang touxiang--fallback">
-          <ms-icon name="contact" size="80rpx" color="#c8c9cc" />
+        <view wx:else class="member__photo member__photo--fallback">
+          <ms-icon name="contact" size="72rpx" color="#c8c9cc" />
         </view>
-        <view>
-          <view class="name">{{ item.name }}</view>
-          <view class="zhiwu" wx:if="{{ item.clergy || item.position }}">
-            {{ item.clergy }} {{ item.position }}
+        <view class="member__info">
+          <view class="member__name">{{ item.name }}</view>
+          <view class="member__tags" wx:if="{{ item.positions.length || item.clergies.length }}">
+            <text
+              wx:for="{{ item.positions }}"
+              wx:for-item="tag"
+              wx:key="index"
+              class="member__tag member__tag--position"
+            >{{ tag }}</text>
+            <text
+              wx:for="{{ item.clergies }}"
+              wx:for-item="tag"
+              wx:key="index"
+              class="member__tag member__tag--clergy"
+            >{{ tag }}</text>
           </view>
-          <view class="zhiwei" wx:if="{{ item.phone }}" bind:tap="callPhone" data-phone="{{ item.phone }}">
-            电话:{{ item.phone }}
+          <view wx:if="{{ item.phone }}" class="member__phone">
+            <ms-icon name="phone" size="24rpx" color="#b3b6bb" />
+            <text>{{ item.phone }}</text>
           </view>
         </view>
       </view>

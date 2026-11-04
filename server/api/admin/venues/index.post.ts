@@ -11,15 +11,21 @@ export default defineEventHandler(async (event) => {
   const body = await readBody<Record<string, unknown>>(event)
   const name = text(body?.name, '场所名称', 100)
   const township = text(body?.township, '所属乡镇', 50)
-  const sortOrder = intOrDefault(body?.sort_order, '排序值')
+  // 排序值未提供时排到本乡镇末尾，避免新场所默认 0 插队到最前
+  let sortOrder: number
+  if (body?.sort_order === undefined || body?.sort_order === null || body?.sort_order === '') {
+    const last = await queryOne<{ next: number }>('SELECT COALESCE(MAX(sort_order), 0) + 10 AS next FROM venues WHERE township = ?', [township])
+    sortOrder = last?.next ?? 10
+  } else {
+    sortOrder = intOrDefault(body.sort_order, '排序值')
+  }
   const imageUrl = optionalUrl(body?.image_url, '场所图片')
-  const qrCodeUrl = optionalUrl(body?.qr_code_url, '二维码图片')
   const safetyNote = text(body?.safety_note, '安全提示', 2000, false) || null
 
   const venueId = await withTransaction(async (conn) => {
     const [result] = await conn.execute<ResultSetHeader>(
-      'INSERT INTO venues (name, township, sort_order, image_url, qr_code_url, safety_note) VALUES (?, ?, ?, ?, ?, ?)',
-      [name, township, sortOrder, imageUrl, qrCodeUrl, safetyNote]
+      'INSERT INTO venues (name, township, sort_order, image_url, safety_note) VALUES (?, ?, ?, ?, ?)',
+      [name, township, sortOrder, imageUrl, safetyNote]
     )
     const id = result.insertId
     await conn.execute(

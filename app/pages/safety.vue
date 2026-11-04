@@ -173,9 +173,9 @@ onMounted(() => {
       </template>
     </el-dialog>
 
-    <el-drawer v-model="detailVisible" size="min(900px, 96vw)" :title="current.title ?? '文章详情'">
+    <el-drawer v-model="detailVisible" class="safety-drawer" size="min(900px, 96vw)" :title="current.title ?? '文章详情'">
       <div class="detail-layout">
-        <section>
+        <section class="detail-main">
           <el-descriptions :column="2" border class="detail-meta">
             <el-descriptions-item label="关联场所" :span="2">{{ current.venueNames || '—' }}</el-descriptions-item>
             <el-descriptions-item label="作者">{{ current.authorName || '—' }}</el-descriptions-item>
@@ -201,11 +201,15 @@ onMounted(() => {
 .toolbar .el-input { max-width: 260px; }
 .toolbar .el-select { min-width: 160px; }
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0 18px; }
-.detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 24px; }
+:global(.safety-drawer .el-drawer__body) { container-type: inline-size; }
+.detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 24px; align-items: start; }
+.detail-main, .review-side { min-width: 0; }
 .detail-meta { margin-block-end: 16px; }
 .detail-cover { width: 100%; max-height: 260px; border-radius: 10px; margin-block-end: 16px; }
 .rich-content { line-height: 1.8; word-break: break-word; }
 .rich-content :deep(img) { max-width: 100%; height: auto; }
 .review-side { display: grid; align-content: start; gap: 20px; }
-@media (max-width: 760px) { .detail-layout { grid-template-columns: 1fr; } }
+@container (max-width: 760px) {
+  .detail-layout { grid-template-columns: minmax(0, 1fr); }
+}
 </style>

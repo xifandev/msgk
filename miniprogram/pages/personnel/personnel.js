@@ -1,7 +1,15 @@
 // pages/personnel/personnel.js
-// 人员公开页：旧版 renyuan 页面的 1:1 还原（全部使用自研 ms-* 组件）
+// 人员公开页：竖版证件照 + 职务/教职标签列表（全部使用自研 ms-* 组件）
 const { get } = require('../../utils/request');
 const { getVenueId, redirectHome } = require('../../utils/venue');
+
+// 把"安全生产组织成员 财务管理组织成员"这类合并填写拆成独立标签
+function splitRoles(value) {
+  return String(value || '')
+    .split(/[\s,，、;；\/]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
 
 Page({
   data: {
@@ -16,21 +24,19 @@ Page({
       .then((res) => {
         const members = (res.members || [])
           .slice()
-          .sort((a, b) => (a.sort || 0) - (b.sort || 0));
+          .sort((a, b) => (a.sort || 0) - (b.sort || 0))
+          .map((member) => ({
+            ...member,
+            // 职务/教职可能一次填多个（空格、顿号、逗号、斜杠、换行分隔），拆成独立标签一行一个展示
+            positions: splitRoles(member.position),
+            clergies: splitRoles(member.clergy),
+          }));
         this.setData({ members, loaded: true });
       })
       .catch(() => {
         // 加载失败不白屏，展示空态
         this.setData({ loaded: true });
       });
-  },
-
-  // 拨打电话
-  callPhone(e) {
-    const phone = e.currentTarget.dataset.phone;
-    if (phone) {
-      wx.makePhoneCall({ phoneNumber: String(phone) });
-    }
   },
 
   onLoad(options) {

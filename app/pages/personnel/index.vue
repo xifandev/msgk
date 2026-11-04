@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, Rank } from '@element-plus/icons-vue'
+import Sortable from 'sortablejs'
 import { reviewActionMessage } from '~~/shared/review'
 
 interface Member {
+  key: number
   sort: number
   imageUrl: string | null
   name: string
@@ -18,8 +20,11 @@ const loading = ref(false)
 const saving = ref(false)
 const record = ref<Record<string, any> | null>(null)
 const members = ref<Member[]>([])
+const memberListRef = ref<HTMLElement | null>(null)
 const dirty = ref(false)
 let suppressDirty = false
+let memberKey = 0
+let memberSortable: Sortable | null = null
 const QUICK_POSITIONS = ['民主管理组织负责人', '民主管理组织成员', '财务管理组织出纳', '财务管理组织会计', '财务管理组织资产管理', '安全生产组织成员']
 const editable = computed(() => !!record.value && ['draft', 'rejected'].includes(record.value.state))
 const canEdit = computed(() => hasPerm('personnel:edit') && editable.value)
@@ -29,7 +34,7 @@ function markDirty() {
 }
 
 function emptyMember(): Member {
-  return { sort: members.value.length + 1, imageUrl: null, name: '', gender: '', clergy: '', position: '', phone: '' }
+  return { key: ++memberKey, sort: members.value.length + 1, imageUrl: null, name: '', gender: '', clergy: '', position: '', phone: '' }
 }
 
 function addMember() {
@@ -59,6 +64,7 @@ async function load() {
     record.value = response
     suppressDirty = true
     members.value = (response.members ?? []).map((member: any, index: number) => ({
+      key: ++memberKey,
       sort: Number(member.sort) || index + 1,
       imageUrl: member.imageUrl ?? null,
       name: member.name ?? '',
@@ -74,11 +80,32 @@ async function load() {
   } finally { loading.value = false; suppressDirty = false }
 }
 
-function move(index: number, offset: number) {
-  const target = index + offset
-  if (target < 0 || target >= members.value.length) return
-  const [item] = members.value.splice(index, 1)
-  members.value.splice(target, 0, item!)
+function destroyMemberSortable() {
+  memberSortable?.destroy()
+  memberSortable = null
+}
+
+async function initMemberSortable() {
+  await nextTick()
+  destroyMemberSortable()
+  if (!memberListRef.value) return
+  memberSortable = Sortable.create(memberListRef.value, {
+    animation: 180,
+    handle: '.drag-handle',
+    draggable: '.member-card',
+    disabled: !canEdit.value,
+    ghostClass: 'sortable-ghost',
+    chosenClass: 'sortable-chosen',
+    fallbackOnBody: true,
+    onEnd: reorderMember
+  })
+}
+
+function reorderMember(event: Sortable.SortableEvent) {
+  if (event.oldIndex === undefined || event.newIndex === undefined || event.oldIndex === event.newIndex) return
+  const [member] = members.value.splice(event.oldIndex, 1)
+  if (!member) return
+  members.value.splice(event.newIndex, 0, member)
   markDirty()
 }
 
@@ -107,7 +134,15 @@ async function save() {
   }
   saving.value = true
   try {
-    const payload = members.value.map((member, index) => ({ ...member, name: member.name.trim(), position: member.position.trim(), sort: index + 1 }))
+    const payload = members.value.map((member, index) => ({
+      sort: index + 1,
+      imageUrl: member.imageUrl,
+      name: member.name.trim(),
+      gender: member.gender,
+      clergy: member.clergy,
+      position: member.position.trim(),
+      phone: member.phone
+    }))
     record.value = await $fetch<Record<string, any>>(`/api/admin/personnel/${venueId.value}`, { method: 'PUT', body: { members: payload } })
     ElMessage.success('人员名册已保存')
     await load()
@@ -136,7 +171,9 @@ async function publish(value: string | number | boolean) {
 }
 
 watch(venueId, load)
+watch([memberListRef, canEdit], initMemberSortable, { flush: 'post' })
 onMounted(() => { if (!venueId.value && venues.value.length) venueId.value = venues.value[0]!.id })
+onBeforeUnmount(destroyMemberSortable)
 </script>
 
 <template>
@@ -154,33 +191,61 @@ onMounted(() => { if (!venueId.value && venues.value.length) venueId.value = ven
             <el-button v-if="canEdit" type="primary" :icon="Plus" @click="addMember">添加人员</el-button>
           </div>
         </div>
-        <p v-if="canEdit" class="muted hint-text">人员信息编辑完成后，点击右侧“提交审核”即可。</p>
+        <p v-if="canEdit" class="muted hint-text">拖动成员卡片行首手柄调整顺序，保存名册后生效。</p>
         <p v-if="!editable" class="muted">当前内容正在审核或已经通过，如需修改请先重新编辑。</p>
         <el-empty v-if="!members.length" description="尚未添加人员" />
-        <div v-for="(member, index) in members" :key="index" class="member-card">
-          <div class="member-head"><span class="member-no" aria-hidden="true">{{ index + 1 }}</span><strong>第 {{ index + 1 }} 位成员</strong><span v-if="member.name" class="member-name">{{ member.name }}</span><div v-if="canEdit" class="member-actions"><el-button size="small" :disabled="index === 0" @click="move(index, -1)">上移</el-button><el-button size="small" :disabled="index === members.length - 1" @click="move(index, 1)">下移</el-button><el-button size="small" type="danger" plain @click="removeMember(index)">删除</el-button></div></div>
-          <div class="member-body">
-            <ImageUpload v-if="canEdit" v-model="member.imageUrl" :label="`${member.name || '成员'}照片`" />
-            <el-image v-else-if="member.imageUrl" :src="member.imageUrl" :preview-src-list="[member.imageUrl]" fit="contain" class="photo-preview" :alt="`${member.name}照片`" />
-            <span v-else class="photo-preview photo-empty">尚未上传照片</span>
-            <el-form label-position="top" :disabled="!canEdit" class="member-form" @change="markDirty"><div class="member-grid">
-              <el-form-item label="姓名" required><el-input v-model="member.name" maxlength="50" placeholder="请输入姓名" /></el-form-item>
-              <el-form-item label="性别"><el-select v-model="member.gender" clearable><el-option label="男" value="男" /><el-option label="女" value="女" /></el-select></el-form-item>
-              <el-form-item label="教职"><el-input v-model="member.clergy" maxlength="50" placeholder="没有可不填" /></el-form-item>
-              <el-form-item label="联系电话"><el-input v-model="member.phone" maxlength="30" placeholder="请输入联系电话" /></el-form-item>
-              <el-form-item label="职务" required class="span-2">
-                <div class="position-row">
-                  <el-input v-model="member.position" type="textarea" :rows="2" maxlength="100" placeholder="请输入职务" />
-                  <el-select v-if="canEdit" placeholder="快速添加职务" clearable class="position-quick" @change="(value: string) => quickPosition(index, value)">
-                    <el-option v-for="item in QUICK_POSITIONS" :key="item" :value="item" :label="item" />
-                  </el-select>
-                </div>
-              </el-form-item>
-            </div></el-form>
-          </div>
+        <div ref="memberListRef" class="member-list">
+          <article v-for="(member, index) in members" :key="member.key" class="member-card" :class="{ 'is-editing': canEdit }">
+            <template v-if="canEdit">
+              <div class="member-head">
+                <button type="button" class="drag-handle member-handle" :aria-label="`拖动第${index + 1}位成员`" title="拖动排序">
+                  <el-icon><Rank /></el-icon>
+                </button>
+                <span class="member-no" aria-hidden="true">{{ index + 1 }}</span>
+                <strong>第 {{ index + 1 }} 位成员</strong>
+                <span v-if="member.name" class="member-name">{{ member.name }}</span>
+                <div class="member-actions"><el-button size="small" type="danger" plain @click="removeMember(index)">删除</el-button></div>
+              </div>
+              <div class="member-body">
+                <ImageUpload v-model="member.imageUrl" :label="`${member.name || '成员'}照片`" />
+                <el-form label-position="top" class="member-form" @change="markDirty"><div class="member-grid">
+                  <el-form-item label="姓名" required><el-input v-model="member.name" maxlength="50" placeholder="请输入姓名" /></el-form-item>
+                  <el-form-item label="性别"><el-select v-model="member.gender" clearable><el-option label="男" value="男" /><el-option label="女" value="女" /></el-select></el-form-item>
+                  <el-form-item label="教职"><el-input v-model="member.clergy" maxlength="50" placeholder="没有可不填" /></el-form-item>
+                  <el-form-item label="联系电话"><el-input v-model="member.phone" maxlength="30" placeholder="请输入联系电话" /></el-form-item>
+                  <el-form-item label="职务" required class="span-2">
+                    <div class="position-row">
+                      <el-input v-model="member.position" type="textarea" :rows="2" maxlength="100" placeholder="请输入职务" />
+                      <el-select placeholder="快速添加职务" clearable class="position-quick" @change="(value: string) => quickPosition(index, value)">
+                        <el-option v-for="item in QUICK_POSITIONS" :key="item" :value="item" :label="item" />
+                      </el-select>
+                    </div>
+                  </el-form-item>
+                </div></el-form>
+              </div>
+            </template>
+            <template v-else>
+              <div class="member-photo">
+                <el-image v-if="member.imageUrl" :src="member.imageUrl" :preview-src-list="[member.imageUrl]" fit="contain" class="photo-preview" :alt="`${member.name}照片`" />
+                <span v-else class="photo-empty">暂无<br>照片</span>
+              </div>
+              <div class="member-info">
+                <header class="member-head">
+                  <h3>{{ member.name || '未填写姓名' }}</h3>
+                  <span v-if="member.gender" class="member-gender">{{ member.gender }}</span>
+                  <span class="member-index">第 {{ index + 1 }} 位</span>
+                </header>
+                <p class="member-clergy">{{ member.clergy || '教职未填写' }}</p>
+                <dl class="member-fields">
+                  <div><dt>职务</dt><dd class="pre">{{ member.position || '未填写' }}</dd></div>
+                  <div><dt>联系电话</dt><dd>{{ member.phone || '未填写' }}</dd></div>
+                </dl>
+              </div>
+            </template>
+          </article>
         </div>
       </section>
-      <aside class="panel review-side"><ReviewTimeline :record="record" /><el-switch v-if="hasPerm('personnel:publish')" :model-value="!!record.published" :disabled="record.state !== 'approved'" active-text="向公众公开" inactive-text="未公开" :aria-label="`${venueId}号场所人员名册公开状态`" @change="publish" /><ReviewActions :state="record.state" edit-permission="personnel:edit" review-permission="personnel:review" :submit-validator="validateSubmit" @action="review" /></aside>
+      <aside class="panel review-side"><ReviewTimeline :record="record" /><div v-if="hasPerm('personnel:publish')" class="publish-box"><span>是否公开</span><el-switch :model-value="!!record.published" :disabled="record.state !== 'approved'" :aria-label="`${venueId}号场所人员名册是否公开`" @change="publish" /></div><ReviewActions :state="record.state" edit-permission="personnel:edit" review-permission="personnel:review" :submit-validator="validateSubmit" @action="review" /></aside>
     </div>
     <el-empty v-else-if="!loading" description="请选择要维护的场所" />
   </div>
@@ -189,10 +254,17 @@ onMounted(() => { if (!venueId.value && venues.value.length) venueId.value = ven
 <style scoped>
 .detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; align-items: start; }
 .review-side { display: grid; gap: 20px; align-content: start; }
+.publish-box { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; }
 .review-side :deep(.review-status > .el-tag) { justify-self: start; }
-.member-card { border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-block-end: 14px; background: var(--surface); transition: border-color 0.15s, box-shadow 0.15s; }
+.member-list { display: grid; gap: 12px; }
+.member-card { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); transition: border-color 0.15s, box-shadow 0.15s; }
 .member-card:hover { border-color: var(--el-color-primary-light-7); box-shadow: 0 6px 18px rgb(16 24 40 / 5%); }
-.member-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-block-end: 12px; }
+.member-card:not(.is-editing) { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; padding: 16px; }
+.member-card.is-editing { padding: 16px; }
+.member-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.is-editing .member-head { gap: 10px; margin-block-end: 12px; }
+.member-head h3 { margin: 0; font-size: 18px; }
+.member-handle { flex: none; margin-inline-start: -6px; }
 .member-no { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--brand-soft); color: var(--brand); font-size: 13px; font-weight: 700; }
 .member-name { padding: 1px 8px; border-radius: 6px; background: #f2f4f7; color: var(--muted); font-size: 12px; font-weight: 400; }
 .member-actions { display: flex; gap: 8px; margin-inline-start: auto; }
@@ -205,8 +277,24 @@ onMounted(() => { if (!venueId.value && venues.value.length) venueId.value = ven
 .position-row { display: grid; gap: 8px; width: 100%; }
 .position-quick { max-width: 260px; }
 .hint-text { margin-block-start: -6px; }
-.photo-preview { width: 104px; height: 136px; border-radius: 10px; border: 1px solid var(--line); background: #f3f5f8; flex: none; }
-.photo-empty { display: grid; place-items: center; text-align: center; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.member-photo { width: 104px; height: 136px; border: 1px solid var(--line); border-radius: 10px; overflow: clip; background: #f3f5f8; }
+.photo-preview { display: block; width: 100%; height: 100%; background: #f3f5f8; }
+.photo-empty { display: grid; place-items: center; width: 100%; height: 100%; color: var(--muted); font-size: 13px; line-height: 1.5; text-align: center; }
+.member-info { min-width: 0; }
+.member-gender { padding: 1px 8px; border-radius: 6px; background: #eef4fc; color: var(--brand); font-size: 12px; }
+.member-index { margin-inline-start: auto; color: var(--muted); font-size: 12px; }
+.member-clergy { margin: 6px 0 10px; color: var(--muted); font-size: 13px; }
+.member-fields { display: grid; gap: 8px; margin: 0; }
+.member-fields > div { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 10px; align-items: start; }
+.member-fields dt { color: var(--muted); font-size: 13px; }
+.member-fields dd { margin: 0; font-size: 14px; }
+.pre { white-space: pre-line; }
 .muted { color: var(--muted); font-size: 13px; }
 @media (max-width: 900px) { .detail-layout { grid-template-columns: 1fr; } .member-body { grid-template-columns: 1fr; } .member-grid { grid-template-columns: 1fr; } }
+@media (max-width: 560px) {
+  .member-card:not(.is-editing) { grid-template-columns: 76px minmax(0, 1fr); gap: 12px; padding: 12px; }
+  .member-photo { width: 76px; height: 104px; }
+  .member-index { flex-basis: 100%; margin-inline-start: 0; }
+  .member-fields > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+}
 </style>

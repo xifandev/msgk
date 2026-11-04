@@ -184,7 +184,10 @@ onMounted(() => {
       </section>
       <aside class="panel review-side">
         <ReviewTimeline :record="profile" />
-        <el-switch v-if="hasPerm('venues:publish')" :model-value="!!profile.published" :disabled="profile.state !== 'approved'" active-text="向公众公开" inactive-text="未公开" :aria-label="`${profile.venue_id}号场所介绍公开状态`" @change="publish" />
+        <div v-if="hasPerm('venues:publish')" class="publish-box">
+          <span>是否公开</span>
+          <el-switch :model-value="!!profile.published" :disabled="profile.state !== 'approved'" :aria-label="`${profile.venue_id}号场所介绍是否公开`" @change="publish" />
+        </div>
         <ReviewActions :state="profile.state" edit-permission="venues:edit" review-permission="venues:review" hide-submit @action="review" />
       </aside>
     </div>
@@ -197,6 +200,7 @@ onMounted(() => {
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 18px; }
 .span-2 { grid-column: span 2; }
 .review-side { display: grid; gap: 20px; align-content: start; }
+.publish-box { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; }
 .summary-view { border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; width: 100%; min-height: 120px; }
 .extra-list { display: grid; gap: 10px; width: 100%; }
 .extra-row { display: grid; grid-template-columns: auto minmax(110px, 200px) minmax(0, 1fr) auto; gap: 10px; align-items: center; }

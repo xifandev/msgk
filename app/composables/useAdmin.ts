@@ -8,6 +8,7 @@ export interface AdminUser {
   permissions: string[]
   venueIds: number[]
   allVenues: boolean
+  organization: string | null
   noticeEnabled: boolean
 }
 

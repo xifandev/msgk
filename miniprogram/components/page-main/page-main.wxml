@@ -13,7 +13,7 @@
         aria-role="button"
         aria-label="返回"
       >
-        <ms-icon name="arrow" size="34rpx" color="{{ theme === 'green' ? '#0c5a38' : '#ffffff' }}" />
+        <ms-icon name="arrow-left" size="34rpx" color="{{ theme === 'green' ? '#0c5a38' : '#ffffff' }}" />
       </view>
     </view>
     <view class="top-title">{{ title }}</view>

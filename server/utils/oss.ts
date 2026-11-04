@@ -25,3 +25,12 @@ export async function uploadImage(buffer: Buffer, contentType: string, extension
   const config = useRuntimeConfig()
   return { key, url: `https://${config.ossBucket}.${config.ossRegion}.aliyuncs.com/${key}` }
 }
+
+export async function readObject(key: string) {
+  const result = await getClient().get(key)
+  const headers = result.res.headers as Record<string, string | undefined>
+  return {
+    data: result.content,
+    contentType: String(headers['content-type'] || 'application/octet-stream')
+  }
+}

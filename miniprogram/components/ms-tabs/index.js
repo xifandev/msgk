@@ -29,6 +29,8 @@ Component({
     ellipsis: { type: Boolean, value: true },
     color: { type: String, value: '#d31027' },
     lineWidth: { type: String, value: '48rpx' },
+    // 吸顶：内容滚动时标题栏固定在滚动容器顶部
+    sticky: { type: Boolean, value: false },
   },
 
   data: {

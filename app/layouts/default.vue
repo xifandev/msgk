@@ -2,18 +2,39 @@
 import { ElMessage } from 'element-plus'
 import {
   Avatar, Bell, DataAnalysis, Document, DocumentChecked, Guide, Key, List,
-  Message, OfficeBuilding, Reading, Setting, User, UserFilled, Wallet, Warning
+  Message, OfficeBuilding, Reading, Setting, Switch, User, UserFilled, Wallet, Warning
 } from '@element-plus/icons-vue'
 import { NAVIGATION, navigationFor } from '~~/shared/navigation'
 
-const { admin, hasPerm, logout, impersonator, stopImpersonate } = useAdmin()
+const { admin, venues, hasPerm, logout, impersonator, stopImpersonate } = useAdmin()
 const route = useRoute()
 const mobileMenu = ref(false)
-const icons = { Avatar, Bell, DataAnalysis, Document, DocumentChecked, Guide, Key, List, Message, OfficeBuilding, Reading, Setting, User, UserFilled, Wallet, Warning }
-const items = computed(() => NAVIGATION.filter((item) => hasPerm(item.permission)))
+const icons = { Avatar, Bell, DataAnalysis, Document, DocumentChecked, Guide, Key, List, Message, OfficeBuilding, Reading, Setting, Switch, User, UserFilled, Wallet, Warning }
+const items = computed(() => NAVIGATION.filter((item) => {
+  if (item.excludeRoleCodes?.includes(admin.value?.roleCode ?? '')) return false
+  return Array.isArray(item.permission) ? item.permission.some((code) => hasPerm(code)) : hasPerm(item.permission)
+}))
 const mainItems = computed(() => items.value.filter((item) => !item.superOnly))
+const hasEditingNav = computed(() => mainItems.value.some((item) => item.path === '/profiles' || item.path === '/personnel'))
+const hasReviewNav = computed(() => mainItems.value.some((item) => item.path === '/review'))
 const opsItems = computed(() => items.value.filter((item) => item.superOnly && admin.value?.roleCode === 'super'))
 watch(() => route.path, () => { mobileMenu.value = false })
+
+const accountUnit = computed(() => {
+  const a = admin.value
+  if (!a) return ''
+  // 场所账号：直接显示场所名
+  if (a.roleCode === 'venue' && venues.value.length) {
+    return venues.value.map((venue) => venue.name).join('、')
+  }
+  // 镇级/县级/其他：显示所属单位（如"道托镇"、"县委"）
+  if (a.organization) return a.organization
+  // 兜底：仅有场所范围时退回显示场所名
+  if (!a.allVenues && venues.value.length) {
+    return venues.value.map((venue) => venue.name).join('、')
+  }
+  return ''
+})
 
 const currentPage = computed(() => navigationFor(route.path))
 const pageTitle = computed(() => currentPage.value?.label ?? '后台管理')
@@ -40,15 +61,33 @@ async function switchBack() {
       </NuxtLink>
       <nav class="nav" aria-label="后台主导航">
         <el-menu :default-active="route.path" router>
-          <el-menu-item
-            v-for="item in mainItems"
-            :key="item.path"
-            :index="item.path"
-            :aria-current="route.path === item.path ? 'page' : undefined"
-          >
-            <el-icon><component :is="icons[item.icon as keyof typeof icons]" /></el-icon>
-            <span>{{ item.label }}</span>
-          </el-menu-item>
+          <template v-for="item in mainItems" :key="item.path">
+            <div
+              v-if="item.path === '/venues'"
+              class="nav-meteor-divider"
+              role="separator"
+              aria-label="场所与账号管理"
+            />
+            <div
+              v-if="item.path === '/profiles' && hasReviewNav"
+              class="nav-meteor-divider"
+              role="separator"
+              aria-label="内容维护与审核"
+            />
+            <el-menu-item
+              :index="item.path"
+              :aria-current="route.path === item.path ? 'page' : undefined"
+            >
+              <el-icon><component :is="icons[item.icon as keyof typeof icons]" /></el-icon>
+              <span>{{ item.label }}</span>
+            </el-menu-item>
+            <div
+              v-if="item.path === '/review' && hasEditingNav"
+              class="nav-meteor-divider"
+              role="separator"
+              aria-label="内容维护与审核"
+            />
+          </template>
           <el-menu-item-group v-if="opsItems.length" title="运维工具">
             <el-menu-item
               v-for="item in opsItems"
@@ -67,15 +106,33 @@ async function switchBack() {
     <el-drawer v-model="mobileMenu" class="nav-drawer" direction="ltr" size="240px" title="沂水宗教码上公开">
       <nav aria-label="移动端主导航">
         <el-menu :default-active="route.path" router>
-          <el-menu-item
-            v-for="item in mainItems"
-            :key="item.path"
-            :index="item.path"
-            :aria-current="route.path === item.path ? 'page' : undefined"
-          >
-            <el-icon><component :is="icons[item.icon as keyof typeof icons]" /></el-icon>
-            <span>{{ item.label }}</span>
-          </el-menu-item>
+          <template v-for="item in mainItems" :key="item.path">
+            <div
+              v-if="item.path === '/venues'"
+              class="nav-meteor-divider"
+              role="separator"
+              aria-label="场所与账号管理"
+            />
+            <div
+              v-if="item.path === '/profiles' && hasReviewNav"
+              class="nav-meteor-divider"
+              role="separator"
+              aria-label="内容维护与审核"
+            />
+            <el-menu-item
+              :index="item.path"
+              :aria-current="route.path === item.path ? 'page' : undefined"
+            >
+              <el-icon><component :is="icons[item.icon as keyof typeof icons]" /></el-icon>
+              <span>{{ item.label }}</span>
+            </el-menu-item>
+            <div
+              v-if="item.path === '/review' && hasEditingNav"
+              class="nav-meteor-divider"
+              role="separator"
+              aria-label="内容维护与审核"
+            />
+          </template>
           <el-menu-item-group v-if="opsItems.length" title="运维工具">
             <el-menu-item
               v-for="item in opsItems"
@@ -105,6 +162,7 @@ async function switchBack() {
           </div>
           <div class="account">
             <span class="account-name">{{ admin?.name }}</span>
+            <el-tag v-if="accountUnit" class="account-unit" type="info" effect="plain" :title="accountUnit">{{ accountUnit }}</el-tag>
             <el-tag effect="plain">{{ admin?.roleName }}</el-tag>
             <el-button size="small" plain @click="logout">退出登录</el-button>
           </div>
@@ -187,8 +245,10 @@ async function switchBack() {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.account { display: flex; align-items: center; gap: 12px; flex: none; }
+.account { display: flex; align-items: center; gap: 12px; flex: none; min-width: 0; }
 .account-name { font-weight: 650; color: #344054; }
+.account-unit { max-width: 260px; }
+.account-unit :deep(span) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .content { padding: 24px 28px 36px; }
 .impersonate-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 8px 28px; background: #fdf6ec; border-block-end: 1px solid #f3d19e; color: #7a5a12; font-size: 14px; }
 .impersonate-text strong { color: #5c4300; }
@@ -204,6 +264,7 @@ async function switchBack() {
   .content { padding: 16px 14px 28px; }
   .account { gap: 6px; }
   .account-name { display: none; }
+  .account-unit { max-width: 130px; }
 }
 </style>
 
@@ -217,6 +278,28 @@ async function switchBack() {
   --el-menu-text-color: #c3d0dd;
   --el-menu-hover-bg-color: rgb(255 255 255 / 7%);
   --el-menu-active-color: #fff;
+}
+/* 内容维护与审核分组上下边界：流星头部在左，光尾向右渐隐 */
+.sidebar .nav-meteor-divider,
+.nav-drawer .nav-meteor-divider {
+  position: relative;
+  height: 1px;
+  margin: 12px 20px 12px 18px;
+  border: 0;
+  background: linear-gradient(90deg, rgb(190 226 255 / 80%) 0%, rgb(105 180 235 / 42%) 32%, rgb(105 180 235 / 12%) 68%, transparent 100%);
+}
+.sidebar .nav-meteor-divider::before,
+.nav-drawer .nav-meteor-divider::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #e1f2ff;
+  box-shadow: 0 0 7px 1px rgb(124 196 248 / 55%);
+  transform: translateY(-50%);
 }
 .sidebar .el-menu-item-group ul,
 .nav-drawer .el-menu-item-group ul { margin: 0; padding: 0; }
@@ -238,11 +321,11 @@ async function switchBack() {
   padding: 0 12px 0 16px;
   border-radius: 8px;
   color: #c3d0dd;
-  font-size: 14px;
+  font-size: 15px;
   transition: background-color .18s ease, color .18s ease;
 }
 .sidebar .el-menu-item .el-icon,
-.nav-drawer .el-menu-item .el-icon { color: #8fa3b6; font-size: 17px; }
+.nav-drawer .el-menu-item .el-icon { color: #8fa3b6; font-size: 19px; }
 .sidebar .el-menu-item:hover,
 .nav-drawer .el-menu-item:hover { background: rgb(255 255 255 / 8%); color: #fff; }
 .sidebar .el-menu-item:hover .el-icon,

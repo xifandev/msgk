@@ -16,50 +16,48 @@
 </view>
 
 <ms-cell-group inset>
-  <view class="card-all">
-    <view class="bian-box">
-      <view class="card-bian" wx:if="{{ showCard }}">
-        <view class="yezhuxinxi">
-          <view class="card-xiaoqu-title" bind:tap="openVenueSelect">
-            <text>{{ venueName || '点击选择场所' }}</text>
-            <ms-icon
-              class="{{ venueName ? 'card-xiaoqu-qiehuan' : 'card-xiaoqu-denglu' }}"
-              name="{{ venueName ? 'sort' : 'arrow-up' }}"
-              size="28rpx"
-              color="#333333"
-            />
-          </view>
-        </view>
-      </view>
+  <view
+    class="venue-selector {{ venueName ? '' : 'venue-selector--empty' }}"
+    bind:tap="openVenueSelect"
+    hover-class="venue-selector--hover"
+    hover-stay-time="80"
+    aria-role="button"
+    aria-label="{{ venueName ? '切换场所，当前为' + venueName : '请选择场所' }}"
+  >
+    <view class="venue-selector__main">
+      <view wx:if="{{ venueName }}" class="venue-selector__label">当前场所</view>
+      <view class="venue-selector__name">{{ venueName || '点击选择场所' }}</view>
     </view>
-    <view class="yuan-box">
-      <view class="card-yuan"></view>
+    <view class="venue-selector__action">
+      <text>{{ venueName ? '切换' : '选择' }}</text>
+      <ms-icon class="venue-selector__arrow" name="arrow" size="24rpx" color="#d31027" />
     </view>
   </view>
 
+  <view class="venue-divider"></view>
   <view class="grid-gap"></view>
   <ms-grid column-num="4" class="grid-4">
     <ms-grid-item bind:click="navigate" data-url="/pages/venue/venue" data-need-venue="{{ true }}">
-      <view class="icon-baoxiu">
-        <image class="icon-baoxiu-img" src="/assets/images/changsuo.png" mode="aspectFit" />
+      <view class="icon-size icon-changsuo">
+        <ms-icon name="location" size="58rpx" color="#ffffff" />
       </view>
       <view class="app-title-top">场所介绍</view>
     </ms-grid-item>
     <ms-grid-item bind:click="navigate" data-url="/pages/personnel/personnel" data-need-venue="{{ true }}">
       <view class="icon-size icon-renyuan">
-        <ms-icon name="manager" size="46rpx" color="#ffffff" />
+        <ms-icon name="manager" size="58rpx" color="#ffffff" />
       </view>
       <view class="app-title-top">人员公开</view>
     </ms-grid-item>
     <ms-grid-item bind:click="navigate" data-url="/pages/safety/safety" data-need-venue="{{ true }}">
       <view class="icon-size icon-red">
-        <ms-icon name="bell" size="46rpx" color="#ffffff" />
+        <ms-icon name="bell" size="56rpx" color="#ffffff" />
       </view>
       <view class="app-title-top">场所安全</view>
     </ms-grid-item>
     <ms-grid-item bind:click="navigate" data-url="/pages/register/register" data-need-venue="{{ true }}">
       <view class="icon-size icon-lan">
-        <ms-icon name="id-card" size="46rpx" color="#ffffff" />
+        <ms-icon name="id-card" size="58rpx" color="#ffffff" />
       </view>
       <view class="app-title-top">注册信息</view>
     </ms-grid-item>
@@ -72,7 +70,7 @@
   <ms-grid column-num="2" direction="horizontal">
     <ms-grid-item bind:click="navigate" data-url="/pages/finance/finance" data-need-venue="{{ true }}">
       <view class="icon-size icon-huang">
-        <ms-icon name="balance-pay" size="52rpx" color="#ffffff" />
+        <ms-icon name="balance-pay" size="64rpx" color="#ffffff" />
       </view>
       <view class="app-box">
         <view class="app-title">财务公开</view>
@@ -81,7 +79,7 @@
     </ms-grid-item>
     <ms-grid-item bind:click="navigate" data-url="/pages/news/news">
       <view class="icon-size icon-shouzhi">
-        <ms-icon name="column" size="52rpx" color="#ffffff" />
+        <ms-icon name="column" size="64rpx" color="#ffffff" />
       </view>
       <view class="app-box">
         <view class="app-title">政策法规</view>
@@ -94,8 +92,11 @@
 <view class="block-gap"></view>
 
 <ms-cell-group inset>
-  <ms-tabs tabs="{{ ['最新动态'] }}" active="{{ 0 }}">
-    <view class="tab-content">
+  <view class="news-section-head">
+    <view class="news-section-accent"></view>
+    <text class="news-section-title">最新动态</text>
+  </view>
+  <view class="tab-content">
       <ms-empty wx:if="{{ itemsLoaded && items.length === 0 }}" description="暂无公告" />
       <view wx:else>
         <view wx:for="{{ items }}" wx:key="id">
@@ -121,14 +122,25 @@
           </view>
           <view wx:if="{{ index < items.length - 1 }}" class="news-hairline"></view>
         </view>
+        <view
+          wx:if="{{ items.length === 10 }}"
+          class="news-more"
+          bind:tap="navigate"
+          data-url="/pages/news/news"
+          hover-class="news-more--hover"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="查看更多政策法规"
+        >
+          <text>查看更多</text>
+          <ms-icon name="arrow" size="22rpx" color="#969799" />
+        </view>
       </view>
-    </view>
-  </ms-tabs>
+  </view>
 </ms-cell-group>
 
 <view class="foot-title">
-  <view>当前版本号：{{ version }}</view>
-  <view bind:tap="openCompany">技术支持：山东盖特网络有限公司</view>
+  <view class="foot-support" hover-class="foot-support--hover" bind:tap="openCompany">技术支持：山东盖特网络有限公司</view>
 </view>
 
 <!-- 场所选择（全屏） -->
@@ -215,14 +227,33 @@
 
 <!-- 技术支持 -->
 <ms-action-sheet show="{{ companyShow }}" title="软件技术支持" bind:close="closeCompany">
-  <view class="gongsi-content">
-    <ms-cell-group inset>
-      <ms-cell
-        title="开发公司"
-        label="山东盖特网络有限公司，由沂水县共青团组织的支持下成立，公司以“专注软件开发”为宗旨，不断探索创新、为社会提供高效可靠的软件解决方案。"
-      />
-      <ms-cell title="联系电话" value="15224499331" border="{{ false }}" is-link bind:click="callCompany" />
-    </ms-cell-group>
-    <view class="contact-text">有任何软件问题，可以电话联系我们。</view>
+  <view class="support">
+    <view class="support__head">
+      <view class="support__badge">
+        <ms-icon name="contact" size="56rpx" color="#d31027" />
+      </view>
+      <view class="support__intro">使用过程中遇到技术问题，可添加技术人员微信协助处理。</view>
+    </view>
+
+    <view class="support__card" hover-class="support__card--hover" bind:tap="copyCompany">
+      <view class="support__card-icon">
+        <ms-icon name="phone" size="40rpx" color="#ffffff" />
+      </view>
+      <view class="support__card-main">
+        <text class="support__card-label">技术支持微信（同手机号）</text>
+        <text class="support__card-phone">152 2449 9331</text>
+      </view>
+      <view class="support__card-action">
+        <text class="support__card-action-text">复制</text>
+        <ms-icon name="arrow" size="22rpx" color="#d31027" />
+      </view>
+    </view>
+
+    <view class="support__foot">
+      <view class="support__foot-icon">
+        <ms-icon name="bulb-o" size="26rpx" color="#969799" />
+      </view>
+      <text class="support__foot-text">复制后打开微信搜索添加好友，并说明使用场所与问题现象，便于快速处理。</text>
+    </view>
   </view>
 </ms-action-sheet>

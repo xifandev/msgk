@@ -16,8 +16,9 @@ Page({
     sections: [],
     total: 0,
     townshipCount: 0,
-    // 已点选场所、播放对号动画并等待返回
+    // 场所切换：先展示加载状态，再展示完成状态
     switching: false,
+    switchDone: false,
   },
 
   onLoad() {
@@ -86,8 +87,11 @@ Page({
     this.setData({ keyword: '', results: [] });
   },
 
-  // 选择场所：写入 cid 并返回
+  // 选择场所：写入 cid，先展示载入状态，再提示完成并返回
   onPick(e) {
+    if (this.data.switching) {
+      return;
+    }
     const id = e.currentTarget.dataset.id;
     if (id == null) {
       return;
@@ -99,13 +103,20 @@ Page({
 
     wx.vibrateShort({ type: 'light' });
     wx.setStorageSync('cid', String(id));
-    // 自绘切换动画：对号弹出 + 载入中文案，随后返回首页
-    this.setData({ switching: true });
-    setTimeout(() => {
+    this.setData({ switching: true, switchDone: false });
+    this.switchDoneTimer = setTimeout(() => {
+      this.setData({ switchDone: true });
+    }, 500);
+    this.switchBackTimer = setTimeout(() => {
       wx.navigateBack({
         fail: () => wx.reLaunch({ url: '/pages/index/index' }),
       });
-    }, 900);
+    }, 1050);
+  },
+
+  onUnload() {
+    clearTimeout(this.switchDoneTimer);
+    clearTimeout(this.switchBackTimer);
   },
 
   goBack() {

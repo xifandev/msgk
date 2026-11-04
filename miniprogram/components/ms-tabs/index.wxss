@@ -18,6 +18,14 @@
   -webkit-overflow-scrolling: touch;
 }
 
+/* 吸顶模式：标题栏相对 page-main 内的 scroll-view 固定，内容从其下方滚过。
+   z-index 保证标题栏压在内容之上；父级链上不能出现 overflow/transform，否则 sticky 失效 */
+.ms-tabs.is-sticky .ms-tabs__nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
 .ms-tabs__item {
   position: relative;
   flex: 1;

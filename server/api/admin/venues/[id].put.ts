@@ -13,12 +13,11 @@ export default defineEventHandler(async (event) => {
   const township = text(body?.township, '所属乡镇', 50)
   const sortOrder = intOrDefault(body?.sort_order, '排序值')
   const imageUrl = optionalUrl(body?.image_url, '场所图片')
-  const qrCodeUrl = optionalUrl(body?.qr_code_url, '二维码图片')
   const safetyNote = text(body?.safety_note, '安全提示', 2000, false) || null
 
   await execute(
-    'UPDATE venues SET name = ?, township = ?, sort_order = ?, image_url = ?, qr_code_url = ?, safety_note = ? WHERE id = ?',
-    [name, township, sortOrder, imageUrl, qrCodeUrl, safetyNote, id]
+    'UPDATE venues SET name = ?, township = ?, sort_order = ?, image_url = ?, safety_note = ? WHERE id = ?',
+    [name, township, sortOrder, imageUrl, safetyNote, id]
   )
   await logAction(admin, 'venues', `场所#${id}`, `更新场所「${name}」`, event)
   return await queryOne('SELECT * FROM venues WHERE id = ?', [id])

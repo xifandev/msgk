@@ -19,7 +19,6 @@ Page({
     // 当前场所
     cid: '',
     venueName: '',
-    showCard: false,
     // 场所选择弹层
     venuePopup: false,
     venueTree: [],
@@ -32,8 +31,6 @@ Page({
     itemsLoaded: false,
     // 技术支持
     companyShow: false,
-    // 版本号
-    version: '',
   },
 
   // 拉取场所列表与分组树
@@ -90,13 +87,9 @@ Page({
     );
   },
 
-  // 拉取首页动态
+  // 拉取首页动态（未选场所时展示全局已发布内容，公告与政策法规对所有场所生效）
   loadHome() {
     const { cid } = this.data;
-    if (!cid) {
-      this.setData({ items: [], itemsLoaded: true });
-      return;
-    }
     get('/api/public/home', { venueId: cid }, { loading: false })
       .then((res) => {
         const items = (res.items || []).map((item) => ({
@@ -216,8 +209,13 @@ Page({
     this.setData({ companyShow: false });
   },
 
-  callCompany() {
-    wx.makePhoneCall({ phoneNumber: '15224499331' });
+  copyCompany() {
+    wx.setClipboardData({
+      data: '15224499331',
+      success() {
+        wx.showToast({ title: '已复制，请微信添加好友', icon: 'none' });
+      },
+    });
   },
 
   onLoad(options) {
@@ -229,8 +227,6 @@ Page({
     this.setData({ cid: String(cid) });
     this.loadVenues();
     this.loadHome();
-    // 延迟触发场所卡片的上滑动画
-    setTimeout(() => this.setData({ showCard: true }), 120);
   },
 
   // 计算并同步顶部安全区，onReady 再校正一次（个别机型 onLoad 取不到胶囊信息）
@@ -252,8 +248,6 @@ Page({
 
   onReady() {
     this.updateSafeArea();
-    const accountInfo = wx.getAccountInfoSync();
-    this.setData({ version: accountInfo.miniProgram.version || '开发版' });
   },
 
   onShareAppMessage() {

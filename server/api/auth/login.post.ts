@@ -17,7 +17,8 @@ export default defineEventHandler(async (event) => {
   if (!record || record.attempts >= 5) throw createError({ statusCode: 401, message: '验证码已失效，请重新获取' })
   const secret = useRuntimeConfig().authSecret
   const expected = createHmac('sha256', secret).update(`${phone}:${code}`).digest('hex')
-  const valid = timingSafeEqual(Buffer.from(expected), Buffer.from(record.code_hash))
+  const stored = Buffer.from(record.code_hash)
+  const valid = stored.length === expected.length && timingSafeEqual(Buffer.from(expected), stored)
   if (!valid) {
     await execute('UPDATE login_codes SET attempts = attempts + 1, used_at = IF(attempts >= 4, NOW(), used_at) WHERE id = ?', [record.id])
     throw createError({ statusCode: 401, message: '验证码错误' })

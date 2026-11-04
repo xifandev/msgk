@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
-import { CircleCloseFilled, Clock, OfficeBuilding, Refresh, WarningFilled } from '@element-plus/icons-vue'
 import { townshipRank } from '~~/shared/townships'
 
 type PeriodState = 'published' | 'approved' | 'pending' | 'rejected' | 'draft' | 'missing'
@@ -65,7 +64,6 @@ interface Payload {
 
 const { admin } = useAdmin()
 const loading = ref(true)
-const refreshing = ref(false)
 const month = ref('')
 const data = ref<Payload | null>(null)
 const tableFilter = ref<'all' | PeriodState>('all')
@@ -82,24 +80,22 @@ const months = computed(() => data.value?.months ?? [])
 const rows = computed(() => data.value?.rows ?? [])
 const matrix = computed(() => data.value?.matrix ?? { level: 'township' as const, rows: [] as MatrixRow[] })
 const townshipMode = computed(() => matrix.value.level === 'township')
-/** 已报送 = 应报 − 未报送（含审核中、未通过、编辑中） */
+/** 已上报 = 应报 − 未上报（含审核中、未通过、编辑中） */
 const submittedOf = (bucket: { total: number, missing: number }) => Math.max(bucket.total - bucket.missing, 0)
-const submitted = computed(() => submittedOf(period.value))
-const submitRate = computed(() => period.value.total ? submitted.value / period.value.total : 0)
 
 const STATE_TEXT: Record<PeriodState, string> = {
   published: '已公开',
   approved: '待公开',
-  pending: '待审核',
+  pending: '审核中',
   rejected: '未通过',
   draft: '编辑中',
-  missing: '未报送'
+  missing: '未上报'
 }
 
 // el-table 的行类型为 DefaultRow，这里按需读取字段
 function stateText(row: any) {
-  if (row.rawState === 'pending_town') return '待镇级审核'
-  if (row.rawState === 'pending_county') return '待县级审核'
+  if (row.rawState === 'pending_town') return '镇级审核中'
+  if (row.rawState === 'pending_county') return '县级审核中'
   return STATE_TEXT[row.state as PeriodState]
 }
 
@@ -146,22 +142,13 @@ const totalSummary = computed(() => rowSummary(
 function cellTip(label: string, point: MatrixCell) {
   const parts = [`应报 ${point.total}`, `已报 ${point.submitted}`]
   if (point.missing) parts.push(`未报 ${point.missing}`)
-  if (point.pending) parts.push(`待审核 ${point.pending}`)
+  if (point.pending) parts.push(`审核中 ${point.pending}`)
   if (point.rejected) parts.push(`未通过 ${point.rejected}`)
   if (point.draft) parts.push(`编辑中 ${point.draft}`)
   if (point.approved) parts.push(`待公开 ${point.approved}`)
   if (point.published) parts.push(`已公开 ${point.published}`)
   return `${label} ${monthLabelOf(point.month)}：${parts.join('，')}`
 }
-
-const delta = computed(() => {
-  const prev = data.value?.previous
-  if (!prev) return null
-  return submitted.value - submittedOf(prev)
-})
-
-const townPending = computed(() => rows.value.filter((row) => row.rawState === 'pending_town').length)
-const countyPending = computed(() => rows.value.filter((row) => row.rawState === 'pending_county').length)
 
 const backlog = computed(() => {
   const rank: Record<PeriodState, number> = { missing: 0, rejected: 1, pending: 2, draft: 3, approved: 4, published: 5 }
@@ -175,8 +162,8 @@ const GROUP_LIMIT = 8
 
 const todoGroups = computed(() => {
   const groups: { key: string, label: string, filter: 'all' | PeriodState, items: VenueRow[] }[] = [
-    { key: 'missing', label: '未报送', filter: 'missing', items: backlog.value.filter((row) => row.state === 'missing') },
-    { key: 'pending', label: '待审核', filter: 'pending', items: backlog.value.filter((row) => row.state === 'pending') },
+    { key: 'missing', label: '未上报', filter: 'missing', items: backlog.value.filter((row) => row.state === 'missing') },
+    { key: 'pending', label: '审核中', filter: 'pending', items: backlog.value.filter((row) => row.state === 'pending') },
     { key: 'rejected', label: '审核未通过', filter: 'rejected', items: backlog.value.filter((row) => row.state === 'rejected') },
     { key: 'active', label: '编辑中 / 待公开', filter: 'all', items: backlog.value.filter((row) => row.state === 'draft' || row.state === 'approved') }
   ]
@@ -185,7 +172,7 @@ const todoGroups = computed(() => {
     .map((group) => ({ ...group, shown: group.items.slice(0, GROUP_LIMIT), rest: Math.max(group.items.length - GROUP_LIMIT, 0) }))
 })
 
-/** 近 12 个月报送率走势与均值 */
+/** 近 12 个月上报率走势与均值 */
 const trend = computed(() => {
   const points = monthly.value.map((point) => ({
     ...point,
@@ -211,8 +198,8 @@ const tableFilters = computed(() => {
   const count = (state: PeriodState) => rows.value.filter((row) => row.state === state).length
   return [
     { key: 'all' as const, label: '全部', count: rows.value.length },
-    { key: 'missing' as const, label: '未报送', count: count('missing') },
-    { key: 'pending' as const, label: '待审核', count: count('pending') },
+    { key: 'missing' as const, label: '未上报', count: count('missing') },
+    { key: 'pending' as const, label: '审核中', count: count('pending') },
     { key: 'rejected' as const, label: '未通过', count: count('rejected') },
     { key: 'published' as const, label: '已公开', count: count('published') }
   ]
@@ -227,22 +214,8 @@ function focusTable(state: 'all' | PeriodState) {
   void nextTick(() => document.getElementById('venue-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
 }
 
-const CIRC = 2 * Math.PI * 42
-const dash = computed(() => {
-  const ratio = Math.max(0, Math.min(1, submitRate.value))
-  // 0% 时保留一个端点，避免进度环看起来像渲染失败
-  return Math.max(ratio * CIRC, 2)
-})
-
-function outsideRange(date: Date) {
-  if (!months.value.length) return false
-  const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-  return !months.value.includes(value)
-}
-
 async function load(silent = false) {
-  if (silent) refreshing.value = true
-  else loading.value = true
+  if (!silent) loading.value = true
   try {
     const response = await $fetch<Payload>('/api/admin/dashboard', { query: month.value ? { month: month.value } : {} })
     data.value = response
@@ -251,7 +224,6 @@ async function load(silent = false) {
     ElMessage.error(errorMessage(error))
   } finally {
     loading.value = false
-    refreshing.value = false
   }
 }
 
@@ -285,92 +257,28 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
 
 <template>
   <div class="page dash" v-loading="loading">
-    <header class="head">
-      <p class="head-sub">
-        {{ venueMode ? '本场所' : `${data?.townshipTotal ?? 0} 个镇级 · ${data?.venueTotal ?? 0} 个场所` }}
-        <span class="sep">·</span>{{ monthLabel }}
-        <NuxtLink v-if="data?.unread" class="notice-link" to="/my-notices">{{ data.unread }} 条未读通知</NuxtLink>
-      </p>
-      <div class="head-actions">
-        <el-date-picker
-          :model-value="month"
-          type="month"
-          value-format="YYYY-MM"
-          :clearable="false"
-          :disabled-date="outsideRange"
-          aria-label="统计月份"
-          @update:model-value="changeMonth"
-        />
-        <el-button :icon="Refresh" :loading="refreshing" @click="load()">刷新</el-button>
-      </div>
-    </header>
-
-    <section class="kpis" aria-label="本期关键指标">
-      <article class="kpi hero">
-        <div class="ring" role="img" :aria-label="`报送率 ${pct(submitRate)}`">
-          <svg viewBox="0 0 100 100" aria-hidden="true">
-            <circle class="ring-track" cx="50" cy="50" r="42" />
-            <circle class="ring-value" cx="50" cy="50" r="42" :stroke-dasharray="`${dash} ${CIRC}`" />
-          </svg>
-          <span class="ring-num">{{ pct(submitRate) }}</span>
-        </div>
-        <div class="kpi-copy">
-          <span class="kpi-label">本期已报送</span>
-          <span class="kpi-line">
-            <span class="kpi-value">{{ submitted }}<small>/ {{ period.total }}</small></span>
-            <span v-if="delta !== null" class="delta-pill" :class="{ down: delta < 0, up: delta > 0 }">
-              {{ delta === 0 ? '与上月持平' : `${delta > 0 ? '+' : ''}${delta} 家` }}
-            </span>
-          </span>
-        </div>
-      </article>
-
-      <button type="button" class="kpi" @click="focusTable('missing')">
-        <span class="kpi-icon is-red" aria-hidden="true"><el-icon><CircleCloseFilled /></el-icon></span>
-        <span class="kpi-copy">
-          <span class="kpi-label">未报送</span>
-          <span class="kpi-line"><span class="kpi-value">{{ period.missing }}</span></span>
-        </span>
-      </button>
-
-      <button type="button" class="kpi" @click="focusTable('pending')">
-        <span class="kpi-icon is-amber" aria-hidden="true"><el-icon><Clock /></el-icon></span>
-        <span class="kpi-copy">
-          <span class="kpi-label">待审核</span>
-          <span class="kpi-line">
-            <span class="kpi-value">{{ period.pending }}</span>
-            <span class="kpi-foot">镇 {{ townPending }} · 县 {{ countyPending }}</span>
-          </span>
-        </span>
-      </button>
-
-      <button type="button" class="kpi" @click="focusTable('rejected')">
-        <span class="kpi-icon is-rose" aria-hidden="true"><el-icon><WarningFilled /></el-icon></span>
-        <span class="kpi-copy">
-          <span class="kpi-label">审核未通过</span>
-          <span class="kpi-line"><span class="kpi-value">{{ period.rejected }}</span></span>
-        </span>
-      </button>
-
-      <div class="kpi">
-        <span class="kpi-icon is-blue" aria-hidden="true"><el-icon><OfficeBuilding /></el-icon></span>
-        <span class="kpi-copy">
-          <span class="kpi-label">应报场所</span>
-          <span class="kpi-line"><span class="kpi-value">{{ period.total }}</span></span>
-        </span>
+    <section class="banner" aria-label="平台名称与统计月份">
+      <div class="banner-copy">
+        <p class="banner-title">沂水宗教码上公开</p>
+        <p class="banner-sub-title">宗教活动场所信息公开管理系统</p>
+        <p class="banner-sub">
+          {{ venueMode ? '本场所' : `${data?.townshipTotal ?? 0} 个镇级 · ${data?.venueTotal ?? 0} 个场所` }}
+          <span class="sep">·</span>{{ monthLabel }}
+          <NuxtLink v-if="data?.unread && admin?.roleCode !== 'county'" class="notice-link" to="/my-notices">{{ data.unread }} 条未读通知</NuxtLink>
+        </p>
       </div>
     </section>
 
-    <div class="split split-wide">
+    <div class="split split-wide" :class="{ 'is-single': venueMode }">
       <section class="card heat-card" aria-labelledby="heat-title">
         <header class="card-head">
           <h2 id="heat-title">
-            {{ venueMode ? '近 12 个月报送记录' : townshipMode ? '镇级报送情况' : '场所报送情况' }}
+            {{ venueMode ? '近 12 个月上报记录' : townshipMode ? '镇级上报情况' : '场所上报情况' }}
           </h2>
           <ul v-if="!venueMode" class="legend">
             <li><i class="cell-done" aria-hidden="true">✓</i>报齐已公开</li>
-            <li><i class="cell-wait" aria-hidden="true">✓</i>报齐待审核</li>
-            <li><i class="cell-miss" aria-hidden="true">✕</i>有未报送</li>
+            <li><i class="cell-wait" aria-hidden="true">✓</i>报齐审核中</li>
+            <li><i class="cell-miss" aria-hidden="true">✕</i>有未上报</li>
           </ul>
         </header>
 
@@ -417,7 +325,7 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
                   class="heat-cell"
                   :class="cellClass(point)"
                   :title="cellTip(row.label, point)"
-                  :aria-label="`${row.label} ${monthLabelOf(point.month)}：${isMiss(point) ? '有场所未报送' : '已全部报送'}，应报 ${point.total} 个，已报 ${point.submitted} 个`"
+                  :aria-label="`${row.label} ${monthLabelOf(point.month)}：${isMiss(point) ? '有场所未上报' : '已全部上报'}，应报 ${point.total} 个，已报 ${point.submitted} 个`"
                   @click="changeMonth(point.month)"
                 >{{ isMiss(point) ? '✕' : '✓' }}</button>
                 <div class="heat-sum" :class="{ bad: rowSummary(row.history).missMonths }">
@@ -448,7 +356,7 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
         </div>
       </section>
 
-      <section class="card todo-card" aria-labelledby="todo-title">
+      <section v-if="!venueMode" class="card todo-card" aria-labelledby="todo-title">
         <header class="card-head">
           <h2 id="todo-title">本期待办</h2>
           <span class="count-pill">{{ backlog.length }}</span>
@@ -483,7 +391,7 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
     <div class="split split-even" :class="{ 'is-single': venueMode }">
       <section v-if="!venueMode" class="card" aria-labelledby="trend-title">
         <header class="card-head">
-          <h2 id="trend-title">报送率走势 · 近 12 个月</h2>
+          <h2 id="trend-title">上报率走势 · 近 12 个月</h2>
           <span class="avg-pill">均值 {{ pct(trend.average) }}</span>
         </header>
         <div class="trend" :style="{ '--avg-line': `${Math.min(1, trend.average) * 122}px` }">
@@ -560,94 +468,78 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
 .dash { --card-pad: 26px; display: grid; gap: 18px; min-width: 0; }
 .dash > * { min-width: 0; }
 
-/* ---------- 顶部 ---------- */
-.head { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; padding-block: 2px; }
-.head-sub { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0; color: #98a2b3; font-size: 13.5px; }
-.sep { color: #d0d5dd; }
-.notice-link { padding: 2px 10px; border-radius: 999px; background: #fffaeb; border: 1px solid #fedf89; color: #b54708; font-size: 12px; }
-.notice-link:hover { background: #fef0c7; }
-.head-actions { display: flex; align-items: center; gap: 10px; }
-.head-actions :deep(.el-date-editor) { width: 142px; }
-.head-actions .el-button { margin: 0; }
-
-/* ---------- KPI ---------- */
-/* 横向排布：图标 | 标签+数值，整体高度压到 78px 左右 */
-.kpis { display: grid; grid-template-columns: 1.7fr repeat(4, minmax(0, 1fr)); gap: 12px; }
-.kpi {
+/* ---------- 顶部品牌横幅 ---------- */
+/* 汇报演示场景：大幅红色政务风背景 + 本地 DingTalk JinBuTi 标题字，截图时突出平台名称 */
+@font-face {
+  font-family: "DingTalk JinBuTi";
+  src: url("/DingTalkJinBuTi.woff2") format("woff2");
+  font-display: swap;
+}
+.banner {
   position: relative;
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-  min-height: 78px;
-  padding: 12px 16px;
-  border: 1px solid #e9edf3;
-  border-radius: 14px;
-  background: #fff;
-  text-align: start;
-  font: inherit;
-  cursor: default;
-  box-shadow: 0 1px 4px rgb(16 24 40 / 3%);
-  transition: border-color .18s, box-shadow .18s;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 216px;
+  padding: 30px 38px 28px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(115deg, #d0715f 0%, #c7573f 46%, #bc4534 100%);
+  box-shadow: 0 14px 30px rgb(188 69 52 / 20%);
 }
-button.kpi { cursor: pointer; }
-button.kpi:hover, button.kpi:focus-visible { border-color: #c2d3e8; box-shadow: 0 4px 14px rgb(16 24 40 / 8%); }
-.kpi-icon {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  font-size: 16px;
+/* 右侧长城图：只占右半幅，左缘 mask 渐隐融入底色；brightness 提亮去厚重感 */
+.banner::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 56%;
+  background: url("/images/dashboard-banner.jpg") no-repeat right center / cover;
+  filter: brightness(1.22) saturate(0.92);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 52%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 52%);
+  pointer-events: none;
 }
-.kpi-icon.is-red { background: #fef1f0; color: #d92d20; }
-.kpi-icon.is-amber { background: #fff4e2; color: #dc6803; }
-.kpi-icon.is-rose { background: #fdeef4; color: #c0357b; }
-.kpi-icon.is-blue { background: #eef4fc; color: #17549c; }
-.kpi-copy { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.kpi-label { color: #667085; font-size: 12.5px; line-height: 1.3; }
-.kpi-line { display: flex; align-items: baseline; gap: 7px; min-width: 0; }
-.kpi-value { color: #101828; font-size: 24px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
-.kpi-value small { margin-inline-start: 3px; color: #98a2b3; font-size: 12.5px; font-weight: 500; }
-.kpi-foot { color: #98a2b3; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-.kpi.hero {
-  gap: 14px;
-  padding: 12px 18px;
-  border: 0;
+/* 接缝过渡罩层：与底色同系的红色渐变，盖住图片左缘暗部，消除黑色炫光 */
+.banner::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 56%;
+  background: linear-gradient(90deg, #c35541 0%, rgb(195 85 65 / 55%) 38%, rgb(195 85 65 / 0%) 72%);
+  pointer-events: none;
+}
+.banner-copy { position: relative; align-self: flex-end; min-width: 0; }
+.banner-title {
+  margin: 0;
   color: #fff;
-  background: radial-gradient(130% 190% at 100% 0%, #2178c4 0%, #17549c 48%, #0d3f74 100%);
-  box-shadow: 0 10px 24px rgb(13 63 116 / 20%);
+  font-family: "DingTalk JinBuTi", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 46px;
+  line-height: 1.2;
+  letter-spacing: 8px;
+  text-shadow: 0 2px 20px rgb(0 0 0 / 38%);
 }
-.kpi.hero .kpi-line { align-items: center; gap: 10px; }
-.kpi.hero .kpi-label { color: rgb(255 255 255 / 72%); }
-.kpi.hero .kpi-value { color: #fff; font-size: 26px; }
-.kpi.hero .kpi-value small { color: rgb(255 255 255 / 62%); font-size: 13px; }
-.delta-pill {
-  display: inline-flex;
-  flex: none;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgb(255 255 255 / 14%);
-  color: rgb(255 255 255 / 86%);
-  font-size: 11px;
-  white-space: nowrap;
+.banner-sub-title {
+  margin: 8px 0 14px;
+  color: rgb(255 255 255 / 78%);
+  font-size: 15px;
+  letter-spacing: 5px;
 }
-.delta-pill.up { background: rgb(134 239 172 / 22%); color: #bbf7d0; }
-.delta-pill.down { background: rgb(254 202 202 / 22%); color: #fecaca; }
-.ring { position: relative; flex: none; width: 54px; height: 54px; }
-.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.ring circle { fill: none; stroke-width: 9; }
-.ring-track { stroke: rgb(255 255 255 / 18%); }
-.ring-value { stroke: #fff; stroke-linecap: round; transition: stroke-dasharray .5s ease; }
-.ring-num { position: absolute; inset: 0; display: grid; place-items: center; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.banner-sub { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0; color: rgb(255 255 255 / 82%); font-size: 13.5px; }
+.banner-sub .sep { color: rgb(255 255 255 / 45%); }
+.banner-sub .notice-link { padding: 2px 10px; border-radius: 999px; background: rgb(255 255 255 / 16%); border: 1px solid rgb(255 255 255 / 38%); color: #fff; font-size: 12px; }
+.banner-sub .notice-link:hover { background: rgb(255 255 255 / 26%); }
 
 /* ---------- 通用卡片 ---------- */
 .split { display: grid; gap: 18px; align-items: start; }
 .split-wide { grid-template-columns: minmax(0, 1.72fr) minmax(320px, 0.9fr); }
 .split-even { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .split-even.is-single { grid-template-columns: minmax(0, 1fr); }
+.split-wide.is-single { grid-template-columns: minmax(0, 1fr); }
 
 .card {
   padding: var(--card-pad);
@@ -665,7 +557,7 @@ button.kpi:hover, button.kpi:focus-visible { border-color: #c2d3e8; box-shadow: 
 .legend li { display: flex; align-items: center; gap: 5px; }
 .legend i { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 5px; font-size: 11px; font-style: normal; font-weight: 700; }
 
-/* ---------- 报送矩阵 ---------- */
+/* ---------- 上报矩阵 ---------- */
 /* 设计原则：大面积保持浅灰绿底，只有信息（✓/✕）有对比度；去渐变、去阴影、去悬浮放大，消除“按钮墙”感 */
 .heat-board { display: block; }
 .heat-scroll { overflow-x: auto; padding-block-end: 2px; }
@@ -871,27 +763,19 @@ button.kpi:hover, button.kpi:focus-visible { border-color: #c2d3e8; box-shadow: 
 
 /* ---------- 响应式 ---------- */
 @media (max-width: 1280px) {
-  .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .kpi.hero { grid-column: span 2; }
   .split-wide { grid-template-columns: minmax(0, 1fr); }
   .todo-scroll { max-height: 420px; }
 }
 @media (max-width: 900px) {
   .split-even { grid-template-columns: minmax(0, 1fr); }
-  .head { align-items: flex-start; }
+  .banner { flex-direction: column; gap: 18px; }
+  .banner-copy { align-self: flex-start; }
 }
 @media (max-width: 720px) {
   .dash { --card-pad: 18px; gap: 12px; }
-  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .kpi { min-height: 68px; padding: 10px 12px; gap: 10px; }
-  .kpi-icon { width: 28px; height: 28px; font-size: 15px; border-radius: 8px; }
-  .kpi.hero { grid-column: span 2; padding: 12px 14px; }
-  .kpi-value { font-size: 21px; }
-  .kpi.hero .kpi-value { font-size: 22px; }
-  .ring { width: 48px; height: 48px; }
-  .ring-num { font-size: 12.5px; }
-  .head-actions { width: 100%; }
-  .head-actions :deep(.el-date-editor) { flex: 1; width: auto; }
+  .banner { min-height: 0; padding: 22px 20px 20px; }
+  .banner-title { font-size: 30px; letter-spacing: 4px; }
+  .banner-sub-title { font-size: 12.5px; letter-spacing: 3px; margin-block: 6px 10px; }
   .info-list a { grid-template-columns: 64px minmax(0, 1fr) 46px; }
   .info-pending { display: none; }
 }

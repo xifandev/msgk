@@ -12,7 +12,7 @@
   aria-role="button"
   aria-label="返回"
 >
-  <ms-icon name="arrow" size="34rpx" color="#ffffff" />
+  <ms-icon name="arrow-left" size="34rpx" color="#ffffff" />
 </view>
 
 <view class="page-head" style="padding-top:{{ safeTop }}px">

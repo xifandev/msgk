@@ -34,6 +34,7 @@ onBeforeUnmount(() => { editorRef.value?.destroy() })
 <style scoped>
 .editor { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
 .toolbar { border-block-end: 1px solid var(--line); }
-/* 编辑区随视口高度自适应：矮屏也不会把弹窗撑出屏幕，同时保留可用的输入高度 */
-.editor-content { min-height: clamp(160px, 32dvh, 320px); }
+/* Editor 组件根节点自带内联 height:100%，必须用 !important 才能让确定高度生效；
+   高度生效后 wangEditor 会在内部 .w-e-scroll 上启用 overflow-y:auto，长文在编辑区内滚动，工具栏保持吸顶 */
+.editor-content { height: clamp(200px, 42dvh, 480px) !important; overflow-y: hidden; }
 </style>

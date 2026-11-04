@@ -18,14 +18,16 @@ export default defineEventHandler(async (event) => {
     where.push('b.bill_month = ?')
     params.push(input.month)
   }
+  if (search) {
+    where.push('v.name LIKE ?')
+    params.push(`%${search}%`)
+  }
+  const baseCondition = where.join(' AND ')
+  const baseParams = [...params]
   if (input.state) {
     if (!REVIEW_STATES.includes(String(input.state) as ReviewState)) throw createError({ statusCode: 400, message: '审核状态不正确' })
     where.push('b.state = ?')
     params.push(input.state)
-  }
-  if (search) {
-    where.push('v.name LIKE ?')
-    params.push(`%${search}%`)
   }
   const condition = where.join(' AND ')
   const total = await queryOne<{ count: number }>(`SELECT COUNT(*) AS count FROM bills b JOIN venues v ON v.id = b.venue_id WHERE ${condition}`, params)
@@ -34,5 +36,16 @@ export default defineEventHandler(async (event) => {
      WHERE ${condition} ORDER BY b.bill_month DESC, b.id DESC LIMIT ${pageSize} OFFSET ${offset}`,
     params
   )
-  return { list, total: Number(total?.count ?? 0), page, pageSize }
+  const rows = await query<{ state: string, total: number | string }>(
+    `SELECT b.state, COUNT(*) AS total FROM bills b JOIN venues v ON v.id = b.venue_id
+     WHERE ${baseCondition} GROUP BY b.state`,
+    baseParams
+  )
+  const counts: Record<string, number> = { all: 0 }
+  for (const value of REVIEW_STATES) counts[value] = 0
+  for (const row of rows) {
+    counts[row.state] = Number(row.total)
+    counts.all = (counts.all ?? 0) + Number(row.total)
+  }
+  return { list, total: Number(total?.count ?? 0), counts, page, pageSize }
 })

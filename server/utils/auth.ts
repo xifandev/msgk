@@ -16,6 +16,7 @@ export interface AdminContext {
   permissions: string[]
   venueIds: number[]
   allVenues: boolean
+  organization: string | null
   noticeEnabled: boolean
 }
 
@@ -29,6 +30,7 @@ interface AdminRow {
   permissions: unknown
   venue_ids: unknown
   all_venues: number
+  organization: string | null
   notice_enabled: number
 }
 
@@ -81,7 +83,7 @@ export function clearAuthCookie(event: H3Event) {
 export async function loadAdmin(id: number): Promise<AdminContext | null> {
   const row = await queryOne<AdminRow>(
     `SELECT a.id, a.phone, a.name, a.role_id, r.name AS role_name,
-            r.code AS role_code, r.permissions, a.venue_ids, a.all_venues, a.notice_enabled
+            r.code AS role_code, r.permissions, a.venue_ids, a.all_venues, a.organization, a.notice_enabled
      FROM admins a LEFT JOIN roles r ON r.id = a.role_id
      WHERE a.id = ? AND a.status = 1`,
     [id]
@@ -97,6 +99,7 @@ export async function loadAdmin(id: number): Promise<AdminContext | null> {
     permissions: parseJson<string[]>(row.permissions, []),
     venueIds: parseJson<unknown[]>(row.venue_ids, []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0),
     allVenues: row.all_venues === 1,
+    organization: row.organization,
     noticeEnabled: row.notice_enabled === 1
   }
 }

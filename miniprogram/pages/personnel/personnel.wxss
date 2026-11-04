@@ -1,45 +1,80 @@
-/* 人员公开页（沿用旧版类名与数值，px/rpx 单位与旧版一致） */
+/* 人员公开页 */
 
-/* 头像：旧版宽 190rpx / 圆角 10px，新版固定宽高 + aspectFill */
-.touxiang {
-  width: 190rpx;
-  height: 190rpx;
-  border-radius: 10px;
+/* 竖版证件照：3:4 比例，aspectFill 正好取半身像，避免正方形裁切竖版照片 */
+.member__photo {
+  width: 148rpx;
+  height: 196rpx;
+  border-radius: 12rpx;
+  border: 1rpx solid #eceef1;
   flex-shrink: 0;
 }
 
-/* 无头像时灰底占位 */
-.touxiang--fallback {
+/* 无照片时灰底占位 */
+.member__photo--fallback {
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: #f2f3f5;
 }
 
-.box {
+.member {
   display: flex;
-  justify-items: center;
   align-items: center;
+  width: 100%;
 }
 
-.name {
-  margin-left: 15px;
-  font-size: 20px;
-  font-weight: bolder;
-  margin-bottom: 5px;
-  margin-top: 5px;
+.member__info {
+  margin-left: 28rpx;
+  min-width: 0;
 }
 
-.zhiwu {
-  margin-left: 15px;
-  font-size: 15px;
-  color: #999;
-  overflow: hidden;
+.member__name {
+  font-size: 38rpx;
+  font-weight: 600;
+  color: #323233;
+  line-height: 1.4;
 }
 
-.zhiwei {
-  margin-left: 15px;
-  font-size: 15px;
-  color: #999;
-  overflow: hidden;
+/* 标签在姓名下方一行一个竖排 */
+.member__tags {
+  margin-top: 12rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.member__tag {
+  font-size: 27rpx;
+  line-height: 1.3;
+  padding: 9rpx 20rpx;
+  border-radius: 10rpx;
+  margin-top: 10rpx;
+}
+
+.member__tag:first-child {
+  margin-top: 0;
+}
+
+/* 职务：低饱和暗红淡底，呼应页头主题色 */
+.member__tag--position {
+  color: #b2473f;
+  background: #faeeee;
+}
+
+/* 教职身份：中性灰底 */
+.member__tag--clergy {
+  color: #7d7e80;
+  background: #f4f4f5;
+}
+
+.member__phone {
+  margin-top: 14rpx;
+  display: flex;
+  align-items: center;
+  font-size: 26rpx;
+  color: #969799;
+}
+
+.member__phone text {
+  margin-left: 8rpx;
 }

@@ -3,11 +3,46 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { REVIEW_LABELS, REVIEW_TAG_TYPES, reviewActionMessage } from '~~/shared/review'
 const route = useRoute()
-const { hasPerm } = useAdmin()
+const router = useRouter()
+const { admin, hasPerm } = useAdmin()
 const loading = ref(false)
 const list = ref<any[]>([])
 const total = ref(0)
+const counts = ref<Record<string, number>>({})
 const filters = reactive({ page: 1, pageSize: 10, venueId: null as number | null, month: '', state: '' })
+
+interface StateTab { value: string, label: string, count: number }
+const canReview = computed(() => hasPerm('finance:review'))
+const myState = computed(() => {
+  const code = admin.value?.roleCode ?? ''
+  if (code === 'town') return 'pending_town'
+  if (['county', 'super'].includes(code)) return 'pending_county'
+  return ''
+})
+const stateTabs = computed<StateTab[]>(() => {
+  if (!canReview.value) return []
+  const items: StateTab[] = []
+  if (myState.value) items.push({ value: 'mine', label: '待我审核', count: counts.value[myState.value] ?? 0 })
+  if (myState.value !== 'pending_town') items.push({ value: 'pending_town', label: '待镇级审核', count: counts.value.pending_town ?? 0 })
+  if (myState.value !== 'pending_county') items.push({ value: 'pending_county', label: '待县级审核', count: counts.value.pending_county ?? 0 })
+  items.push({ value: 'draft', label: '正在编辑', count: counts.value.draft ?? 0 })
+  items.push({ value: 'approved', label: '审核通过', count: counts.value.approved ?? 0 })
+  items.push({ value: 'rejected', label: '审核失败', count: counts.value.rejected ?? 0 })
+  items.push({ value: '', label: '全部', count: counts.value.all ?? 0 })
+  return items
+})
+const activeTab = computed(() => {
+  if (!canReview.value) return ''
+  if (filters.state && filters.state === myState.value) return 'mine'
+  return filters.state
+})
+function setStateTab(value: string) {
+  const state = value === 'mine' ? myState.value : value
+  if (filters.state === state) return
+  filters.state = state
+  filters.page = 1
+  void router.replace({ query: { ...route.query, state: state || undefined } })
+}
 const addVisible = ref(false)
 const adding = ref(false)
 const addForm = reactive({ venueId: null as number | null, month: '' })
@@ -46,9 +81,10 @@ function disableOutsideMonth(date: Date) {
 async function load() {
   loading.value = true
   try {
-    const response = await $fetch<{ list: any[], total: number }>('/api/admin/finance', { query: filters })
+    const response = await $fetch<{ list: any[], total: number, counts?: Record<string, number> }>('/api/admin/finance', { query: filters })
     list.value = response.list
     total.value = response.total
+    counts.value = response.counts ?? {}
   } catch (error) { ElMessage.error(errorMessage(error)) } finally { loading.value = false }
 }
 async function addBill() {
@@ -164,12 +200,28 @@ onMounted(() => {
   if (Number.isSafeInteger(venueId) && venueId > 0) filters.venueId = venueId
   const month = String(route.query.month ?? '')
   if (/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) filters.month = month
-  load()
+  load().then(() => {
+    if (!state && canReview.value && myState.value && (counts.value[myState.value] ?? 0) > 0) setStateTab('mine')
+  })
 })
 </script>
 
 <template>
   <div class="page">
+    <nav v-if="stateTabs.length" class="state-tabs" role="tablist" aria-label="审核状态快速筛选">
+      <button
+        v-for="tab in stateTabs"
+        :key="tab.value || 'all'"
+        type="button"
+        role="tab"
+        class="state-tab"
+        :class="{ active: activeTab === tab.value }"
+        :aria-selected="activeTab === tab.value"
+        @click="setStateTab(tab.value)"
+      >
+        {{ tab.label }}<em>{{ tab.count }}</em>
+      </button>
+    </nav>
     <section class="panel">
       <div class="toolbar">
         <VenueSelect v-model="filters.venueId" clearable style="width: 260px" />
@@ -228,13 +280,16 @@ onMounted(() => {
       </template>
     </el-dialog>
 
-    <el-drawer v-model="detailVisible" size="min(900px, 96vw)" :title="`${current.venue_name ?? ''} ${current.bill_month ?? ''}`" :before-close="confirmClose">
+    <el-drawer v-model="detailVisible" class="finance-drawer" size="min(1000px, 96vw)" :title="`${current.venue_name ?? ''} ${current.bill_month ?? ''}`" :before-close="confirmClose">
       <div class="detail-layout">
-        <section>
+        <section class="detail-main">
           <div class="summary-grid">
-            <el-input v-model="current.previous_balance" aria-label="上月结余" :disabled="!billEditable" @input="prevDirty = true">
-              <template #prepend>¥ 上月结余</template>
-            </el-input>
+            <section class="previous-balance-card" aria-label="上月结余填写与保存">
+              <el-input v-model="current.previous_balance" aria-label="上月结余" :disabled="!billEditable" @input="prevDirty = true">
+                <template #prepend>¥ 上月结余</template>
+              </el-input>
+              <el-button v-if="hasPerm('finance:edit') && billEditable" type="primary" plain aria-label="保存上月结余" @click="saveBill">保存</el-button>
+            </section>
             <el-descriptions :column="2" border>
               <el-descriptions-item label="本月收入">{{ formatMoney(current.income) }}</el-descriptions-item>
               <el-descriptions-item label="本月支出">{{ formatMoney(current.expense) }}</el-descriptions-item>
@@ -244,17 +299,16 @@ onMounted(() => {
           </div>
           <div class="toolbar">
             <el-button v-if="hasPerm('finance:edit') && billEditable" type="primary" @click="editItem()">添加收支</el-button>
-            <el-button v-if="hasPerm('finance:edit') && billEditable" @click="saveBill">关闭并保存</el-button>
           </div>
-          <el-table :data="items">
-            <el-table-column type="index" label="序号" width="64" />
-            <el-table-column prop="occurred_on" label="日期" width="115" />
-            <el-table-column label="收支类型" width="100">
+          <el-table :data="items" class="finance-items-table" aria-label="收支明细">
+            <el-table-column type="index" label="序号" width="64" class-name="finance-nowrap-cell" label-class-name="finance-nowrap-cell" />
+            <el-table-column prop="occurred_on" label="日期" width="115" class-name="finance-nowrap-cell" label-class-name="finance-nowrap-cell" />
+            <el-table-column label="收支类型" width="80">
               <template #default="{ row }"><el-tag :type="row.kind === 'income' ? 'success' : 'info'">{{ row.kind === 'income' ? '收入' : '支出' }}</el-tag></template>
             </el-table-column>
-            <el-table-column prop="summary" label="简要描述" min-width="140" />
-            <el-table-column label="金额" width="120" align="right"><template #default="{ row }">{{ formatMoney(row.amount) }}</template></el-table-column>
-            <el-table-column label="操作" width="132" align="right">
+            <el-table-column prop="summary" label="简要描述" min-width="100" />
+            <el-table-column label="金额" width="104" align="right"><template #default="{ row }">{{ formatMoney(row.amount) }}</template></el-table-column>
+            <el-table-column label="操作" width="128" fixed="right" align="right">
               <template #default="{ row }">
                 <TableActions v-if="billEditable">
                   <el-button size="small" type="primary" :aria-label="`编辑明细${row.summary}`" @click="editItem(row)">编辑</el-button>
@@ -263,6 +317,26 @@ onMounted(() => {
               </template>
             </el-table-column>
           </el-table>
+          <div class="finance-item-cards">
+            <el-empty v-if="!items.length" description="尚未添加收支明细" />
+            <ol v-else aria-label="收支明细">
+              <li v-for="(item, index) in items" :key="item.id" class="finance-item-card">
+                <header>
+                  <span>第 {{ index + 1 }} 条</span>
+                  <el-tag :type="item.kind === 'income' ? 'success' : 'info'">{{ item.kind === 'income' ? '收入' : '支出' }}</el-tag>
+                </header>
+                <dl>
+                  <div><dt>日期</dt><dd>{{ item.occurred_on }}</dd></div>
+                  <div><dt>简要描述</dt><dd>{{ item.summary }}</dd></div>
+                  <div><dt>金额</dt><dd>{{ formatMoney(item.amount) }}</dd></div>
+                </dl>
+                <TableActions v-if="billEditable">
+                  <el-button size="small" type="primary" :aria-label="`编辑明细${item.summary}`" @click="editItem(item)">编辑</el-button>
+                  <el-button v-if="hasPerm('finance:delete')" size="small" type="danger" plain :aria-label="`删除明细${item.summary}`" @click="deleteItem(item)">删除</el-button>
+                </TableActions>
+              </li>
+            </ol>
+          </div>
         </section>
         <aside class="review-side">
           <ReviewTimeline :record="current" />
@@ -293,10 +367,60 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.state-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.state-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: #475467;
+  cursor: pointer;
+  font-size: 13px;
+  transition: border-color .15s, background-color .15s, color .15s;
+}
+.state-tab em { min-width: 22px; padding: 0 6px; border-radius: 999px; background: #eef1f5; color: var(--muted); font-style: normal; font-size: 11px; line-height: 20px; text-align: center; font-variant-numeric: tabular-nums; }
+.state-tab:hover { border-color: var(--el-color-primary-light-5); color: var(--brand); }
+.state-tab.active { border-color: var(--brand); background: var(--brand); color: #fff; }
+.state-tab.active em { background: rgb(255 255 255 / 20%); color: #fff; }
+.state-tab:focus-visible { outline: 3px solid #84adff; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .state-tab { transition: none; } }
 .el-select, .el-date-picker { min-width: 180px; }
 .muted { color: var(--muted); font-size: 13px; }
-.detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 24px; }
+:global(.finance-drawer .el-drawer__body) { container-type: inline-size; }
+:global(.finance-drawer .el-drawer__close-btn) { flex: none; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 1px solid transparent; border-radius: 50%; color: #475467; font-size: 24px; transition: color .15s, background-color .15s, border-color .15s, transform .15s; }
+:global(.finance-drawer .el-drawer__close-btn:hover),
+:global(.finance-drawer .el-drawer__close-btn:focus-visible) { border-color: #b9cce1; background: var(--brand-soft); color: var(--brand); transform: scale(1.08); }
+:global(.finance-drawer .el-drawer__close-btn:focus-visible) { outline: 3px solid #84adff; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  :global(.finance-drawer .el-drawer__close-btn) { transition: none; }
+  :global(.finance-drawer .el-drawer__close-btn:hover),
+  :global(.finance-drawer .el-drawer__close-btn:focus-visible) { transform: none; }
+}
+.detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 24px; align-items: start; }
+.detail-main, .review-side { min-width: 0; }
 .review-side { display: grid; align-content: start; gap: 20px; }
 .summary-grid { display: grid; gap: 16px; margin-block-end: 18px; }
-@media (max-width: 760px) { .detail-layout { grid-template-columns: 1fr; } }
+.previous-balance-card { display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: #f8fafc; }
+.previous-balance-card .el-input { flex: 0 1 240px; width: 240px; min-width: 0; }
+.previous-balance-card .el-button { flex: none; margin: 0; }
+.finance-items-table :deep(.finance-nowrap-cell .cell) { white-space: nowrap; }
+.finance-item-cards { display: none; }
+.finance-item-cards ol { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.finance-item-card { padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.finance-item-card header { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 13px; }
+.finance-item-card dl { display: grid; gap: 8px; margin: 12px 0; }
+.finance-item-card dl > div { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 10px; }
+.finance-item-card dt { color: var(--muted); }
+.finance-item-card dd { margin: 0; overflow-wrap: anywhere; }
+.finance-item-card .table-actions { padding-block-start: 12px; border-block-start: 1px solid var(--line); }
+@container (max-width: 880px) {
+  .detail-layout { grid-template-columns: minmax(0, 1fr); }
+}
+@container (max-width: 600px) {
+  .finance-items-table { display: none; }
+  .finance-item-cards { display: block; }
+}
 </style>

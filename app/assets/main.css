@@ -101,6 +101,28 @@ img { max-width: 100%; }
 .table-actions .el-button.is-link,
 .table-actions .el-button.is-text { padding: 5px 11px; border: 1px solid var(--el-color-primary-light-5); background: var(--el-color-primary-light-9); }
 .table-region:focus-visible { outline: 3px solid #84adff; }
+
+/* 拖拽排序：行首手柄 + 轻量占位状态 */
+.drag-handle {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: grab;
+  touch-action: none;
+  transition: background-color 0.15s, color 0.15s;
+}
+.drag-handle:hover, .drag-handle:focus-visible { background: var(--brand-soft); color: var(--brand); }
+.drag-handle:active { cursor: grabbing; }
+.drag-handle:disabled { cursor: not-allowed; opacity: .45; }
+.sortable-ghost { opacity: .45; background: var(--brand-soft) !important; }
+.sortable-chosen { background: var(--brand-soft); }
+.sortable-fallback { opacity: .9; background: var(--surface); box-shadow: 0 10px 24px rgb(16 24 40 / 12%); }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 20px; }
 .form-grid .full { grid-column: 1 / -1; }
 .empty-state { padding: 48px 20px; text-align: center; color: var(--muted); }

@@ -1,5 +1,5 @@
 <page-main theme="green" custom-nav title="财务公开" title1="收支公开透明化" title2="阳光监督新举措">
-  <ms-tabs tabs="{{ ['月度收支', '年度收支'] }}" active="{{ active }}" animated swipeable color="#0a7d59" bind:change="onTabChange">
+  <ms-tabs tabs="{{ ['月度收支', '年度收支'] }}" active="{{ active }}" animated swipeable sticky color="#0a7d59" bind:change="onTabChange">
     <view class="pane">
       <!-- ================= 月度收支 ================= -->
       <block wx:if="{{ active === 0 }}">
@@ -33,12 +33,10 @@
                 <text class="flow__label">上月结余</text>
                 <text class="flow__value">{{ bill.previousText }}</text>
               </view>
-              <view class="flow__split"></view>
               <view class="flow">
                 <text class="flow__label">本月收入</text>
                 <text class="flow__value">{{ bill.incomeText }}</text>
               </view>
-              <view class="flow__split"></view>
               <view class="flow">
                 <text class="flow__label">本月支出</text>
                 <text class="flow__value">{{ bill.expenseText }}</text>
@@ -100,7 +98,7 @@
 
           <view class="empty-card" wx:else>
             <ms-empty description="该月暂无公开明细">
-              <text class="empty-card__hint">收支明细由场所按月报送，审核通过后公开</text>
+              <text class="empty-card__hint">收支明细由场所按月上报，审核通过后公开</text>
             </ms-empty>
           </view>
         </block>
@@ -234,7 +232,7 @@
 
       <view class="notice">
         <ms-icon name="passed" size="24rpx" color="#5d9a80" />
-        <text class="notice__text">数据由场所按月报送，经审核后公开，接受社会监督</text>
+        <text class="notice__text">数据由场所按月上报，经审核后公开，接受社会监督</text>
       </view>
     </view>
   </ms-tabs>

@@ -8,22 +8,26 @@
 }
 
 /* ---------- 时间选择条 ---------- */
+/* 不再做成独立卡片：去掉白底、描边和阴影，直接落在浅绿内容区上，
+   靠字号、留白和右侧文字链接区分层级，避免顶部堆三条横线 */
 .period {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 20rpx 24rpx 0;
-  padding: 0 22rpx 0 24rpx;
-  height: 84rpx;
-  border-radius: 18rpx;
-  background: #fff;
-  border: 1rpx solid #e6f0ea;
-  box-shadow: 0 2rpx 10rpx rgba(6, 89, 63, 0.05);
+  /* 左右内缩与下方结余卡的内文对齐（卡片外边距 24 + 内边距 28），保持视觉轴线一致 */
+  margin: 16rpx 24rpx 0;
+  padding: 10rpx 26rpx 6rpx;
+  min-height: 80rpx;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
   box-sizing: border-box;
 }
 
-.period--hover {
-  background: #f7fbf9;
+/* 无卡片时用文字变主色反馈，避免点按时整行闪白 */
+.period--hover .period__text,
+.period--hover .period__right {
+  color: #0a7d59;
 }
 
 .period__left {
@@ -33,8 +37,8 @@
 }
 
 .period__text {
-  margin-left: 12rpx;
-  font-size: 30rpx;
+  margin-left: 10rpx;
+  font-size: 32rpx;
   font-weight: 600;
   color: #17211c;
   letter-spacing: 0.5rpx;
@@ -51,15 +55,22 @@
   margin-right: 6rpx;
 }
 
+/* 吸顶标签栏与浅绿内容区之间靠色差分界，去掉组件自带的分隔线（addGlobalClass 已开启）；
+   只留一层极淡的投影，内容滚到栏下方时才有层次，静止时几乎看不见 */
+.ms-tabs.is-sticky .ms-tabs__nav {
+  border-bottom: 0;
+  box-shadow: 0 3rpx 10rpx rgba(6, 89, 63, 0.04);
+}
+
 /* ---------- 结余主卡 ---------- */
 .balance {
   position: relative;
-  margin: 20rpx 24rpx 0;
+  margin: 14rpx 24rpx 0;
   padding: 32rpx 28rpx 26rpx;
   border-radius: 28rpx;
-  background: linear-gradient(148deg, #e5fff0 0%, #c9f5dc 48%, #a8eac6 100%);
-  border: 1rpx solid #9cdeb7;
-  box-shadow: 0 16rpx 36rpx rgba(32, 143, 91, 0.14);
+  /* 去掉描边后靠渐变自身的深浅拉开与浅绿底色的差别（浅端不能太接近 #f4faf6），再加投影分层 */
+  background: linear-gradient(148deg, #d9fae8 0%, #c2f2d7 50%, #a2e7c2 100%);
+  box-shadow: 0 14rpx 32rpx rgba(32, 143, 91, 0.13);
   overflow: hidden;
 }
 
@@ -154,11 +165,12 @@
   display: flex;
   align-items: center;
   margin-top: 26rpx;
-  padding: 18rpx 4rpx;
+  padding: 18rpx 10rpx;
   border-radius: 18rpx;
   background: rgba(255, 255, 255, 0.52);
 }
 
+/* 三栏之间靠间距分隔，不画竖线 */
 .flow {
   flex: 1;
   display: flex;
@@ -179,12 +191,6 @@
   color: #12573a;
   letter-spacing: 0;
   word-break: break-all;
-}
-
-.flow__split {
-  width: 1rpx;
-  height: 52rpx;
-  background: #a4d9ba;
 }
 
 /* 收支占比条 */
@@ -406,11 +412,10 @@
 
 /* ---------- 年度账单卡 ---------- */
 .year {
-  margin: 20rpx 24rpx 0;
+  margin: 18rpx 24rpx 0;
   padding: 26rpx 24rpx 22rpx;
   border-radius: 26rpx;
   background: linear-gradient(160deg, #ffffff 0%, #f2faf6 100%);
-  border: 1rpx solid #e8f3ed;
   box-shadow: 0 10rpx 28rpx rgba(6, 89, 63, 0.07);
 }
 
@@ -445,13 +450,14 @@
   box-shadow: 0 6rpx 14rpx rgba(10, 125, 89, 0.24);
 }
 
+/* 三栏汇总用浅底块分组，不画上下两条横线 */
 .year__totals {
   display: flex;
   align-items: stretch;
   margin-top: 22rpx;
   padding: 20rpx 0;
-  border-top: 1rpx solid #e6f1eb;
-  border-bottom: 1rpx solid #e6f1eb;
+  border-radius: 16rpx;
+  background: #f5faf7;
 }
 
 .total {
@@ -666,10 +672,9 @@
 
 /* ---------- 空态 / 骨架 / 说明 ---------- */
 .empty-card {
-  margin: 20rpx 24rpx 0;
+  margin: 18rpx 24rpx 0;
   background: #fff;
   border-radius: 20rpx;
-  border: 1rpx solid #eaf3ee;
   overflow: hidden;
 }
 

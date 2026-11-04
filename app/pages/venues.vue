@@ -15,12 +15,19 @@ const editForm = reactive({
   township: '',
   sort_order: 0,
   image_url: null as string | null,
-  qr_code_url: null as string | null,
   safety_note: ''
 })
 const qrVisible = ref(false)
 const qrRow = ref<Record<string, any> | null>(null)
-const qrDownloading = ref(false)
+const qrLoading = ref(false)
+const qrError = ref('')
+const qrBlob = ref<Blob | null>(null)
+const qrImageUrl = ref('')
+const posterCanvas = ref<HTMLCanvasElement | null>(null)
+const posterReady = ref(false)
+const posterError = ref('')
+const posterDownloading = ref(false)
+let qrRequestId = 0
 
 async function load() {
   loading.value = true
@@ -41,10 +48,9 @@ function editVenue(row?: any) {
         township: row.township,
         sort_order: row.sort_order,
         image_url: row.image_url,
-        qr_code_url: row.qr_code_url,
         safety_note: row.safety_note ?? ''
       }
-    : { id: 0, name: '', township: '', sort_order: 0, image_url: null, qr_code_url: null, safety_note: '' })
+    : { id: 0, name: '', township: '', sort_order: 0, image_url: null, safety_note: '' })
   editVisible.value = true
 }
 async function saveVenue() {
@@ -61,9 +67,9 @@ async function saveVenue() {
     const body = {
       name: editForm.name,
       township: editForm.township,
-      sort_order: editForm.sort_order,
+      // 排序值不在表单中展示：编辑时保留原值，新增时传 null 由服务端排到乡镇末尾
+      sort_order: editForm.id ? editForm.sort_order : null,
       image_url: editForm.image_url,
-      qr_code_url: editForm.qr_code_url,
       safety_note: editForm.safety_note
     }
     if (editForm.id) {
@@ -86,24 +92,203 @@ async function remove(row: any) {
     await load()
   } catch (error) { ElMessage.error(errorMessage(error)) }
 }
-function openQr(row: any) {
+function clearQr() {
+  qrRequestId += 1
+  if (qrImageUrl.value) URL.revokeObjectURL(qrImageUrl.value)
+  qrImageUrl.value = ''
+  qrBlob.value = null
+  qrError.value = ''
+  posterReady.value = false
+  posterError.value = ''
+}
+function resetQr() {
+  clearQr()
+  qrRow.value = null
+}
+async function openQr(row: any) {
+  clearQr()
   qrRow.value = row
   qrVisible.value = true
+  qrLoading.value = true
+  const requestId = qrRequestId
+  try {
+    const blob = await $fetch<Blob>(`/api/admin/venues/${row.id}/qrcode`, { responseType: 'blob' })
+    if (requestId !== qrRequestId) return
+    qrBlob.value = blob
+    qrImageUrl.value = URL.createObjectURL(blob)
+  } catch (error) {
+    if (requestId === qrRequestId) qrError.value = errorMessage(error)
+  } finally {
+    if (requestId === qrRequestId) qrLoading.value = false
+  }
+  if (requestId !== qrRequestId || !qrBlob.value) return
+  await nextTick()
+  try {
+    await renderPoster()
+  } catch {
+    if (requestId === qrRequestId) posterError.value = '海报合成失败，仍可单独下载二维码后重试'
+  }
+}
+function loadImage(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image()
+    image.onload = () => resolve(image)
+    image.onerror = () => reject(new Error('图片加载失败'))
+    image.src = src
+  })
+}
+// 微信 createwxaqrcode 返回的图片里，二维码本体之外还有上下留白和底部“微信扫一扫，使用小程序”提示条。
+// 逐行/逐列扫描深色像素密度，取最长的连续高密度区段即为二维码本体，裁出正方形区域；失败时回退为整图顶部正方形。
+function detectQrSquare(image: HTMLImageElement): { x: number, y: number, size: number } {
+  const width = image.naturalWidth
+  const height = image.naturalHeight
+  const fallback = { x: 0, y: 0, size: Math.min(width, height) }
+  if (!width || !height) return fallback
+  try {
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })
+    if (!ctx) return fallback
+    ctx.drawImage(image, 0, 0)
+    const { data } = ctx.getImageData(0, 0, width, height)
+    const rowRange = longestDarkRun(data, width, height, true)
+    const colRange = longestDarkRun(data, width, height, false)
+    if (!rowRange || !colRange) return fallback
+    const size = Math.min(Math.max(rowRange.end - rowRange.start, colRange.end - colRange.start), width, height)
+    if (size < fallback.size * 0.5) return fallback
+    const centerX = (colRange.start + colRange.end) / 2
+    const centerY = (rowRange.start + rowRange.end) / 2
+    return {
+      x: Math.min(Math.max(Math.round(centerX - size / 2), 0), width - size),
+      y: Math.min(Math.max(Math.round(centerY - size / 2), 0), height - size),
+      size
+    }
+  } catch {
+    return fallback
+  }
+}
+function longestDarkRun(data: Uint8ClampedArray, width: number, height: number, byRow: boolean): { start: number, end: number } | null {
+  const step = 4
+  const outer = byRow ? height : width
+  const inner = byRow ? width : height
+  let best: { start: number, end: number } | null = null
+  let current: { start: number, end: number } | null = null
+  for (let o = 0; o < outer; o += step) {
+    let dark = 0
+    let total = 0
+    for (let i = 0; i < inner; i += step) {
+      const x = byRow ? i : o
+      const y = byRow ? o : i
+      const p = (y * width + x) * 4
+      total++
+      if (data[p]! + data[p + 1]! + data[p + 2]! < 384) dark++
+    }
+    if (total > 0 && dark / total >= 0.1) {
+      current = current ? { start: current.start, end: o } : { start: o, end: o }
+    } else if (current) {
+      if (!best || current.end - current.start > best.end - best.start) best = current
+      current = null
+    }
+  }
+  if (current && (!best || current.end - current.start > best.end - best.start)) best = current
+  return best
+}
+async function renderPoster() {
+  const canvas = posterCanvas.value
+  const row = qrRow.value
+  if (!canvas || !row || !qrImageUrl.value) return
+  const [background, qrImage] = await Promise.all([
+    loadImage('/api/public/venue-poster-background'),
+    loadImage(qrImageUrl.value),
+    document.fonts.ready
+  ])
+  canvas.width = background.naturalWidth
+  canvas.height = background.naturalHeight
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('当前浏览器不支持海报合成')
+  ctx.drawImage(background, 0, 0)
+
+  const title = {
+    x: canvas.width * 0.1475,
+    y: canvas.height * 0.286,
+    width: canvas.width * 0.724,
+    height: canvas.height * 0.056
+  }
+  const titleGradient = ctx.createLinearGradient(0, title.y, 0, title.y + title.height)
+  titleGradient.addColorStop(0, '#5c98dc')
+  titleGradient.addColorStop(1, '#3475ce')
+  ctx.fillStyle = titleGradient
+  ctx.fillRect(title.x, title.y, title.width, title.height)
+  let fontSize = canvas.width * 0.04
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  do {
+    ctx.font = `bold ${fontSize}px "Songti SC", "STSong", "SimSun", serif`
+    fontSize -= 2
+  } while (ctx.measureText(row.name).width > title.width - 140 && fontSize > 44)
+  ctx.fillStyle = '#fff'
+  ctx.fillText(row.name, title.x + title.width / 2, title.y + title.height / 2)
+
+  const qrBox = {
+    x: canvas.width * 0.268,
+    y: canvas.height * 0.357,
+    size: canvas.width * 0.477
+  }
+  ctx.fillStyle = '#fff'
+  ctx.fillRect(qrBox.x, qrBox.y, qrBox.size, qrBox.size)
+  const padding = canvas.width * 0.009
+  ctx.imageSmoothingEnabled = false
+  const qrSquare = detectQrSquare(qrImage)
+  ctx.drawImage(qrImage, qrSquare.x, qrSquare.y, qrSquare.size, qrSquare.size, qrBox.x + padding, qrBox.y + padding, qrBox.size - padding * 2, qrBox.size - padding * 2)
+  posterReady.value = true
+}
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 async function downloadQr() {
   const row = qrRow.value
-  if (!row?.qr_code_url) return
-  qrDownloading.value = true
+  if (!qrBlob.value || !row || !qrImageUrl.value) return
+  // 裁掉微信接口自带的底部提示条，导出纯二维码（保留中间小程序头像图标）
   try {
-    const blob = await $fetch<Blob>(row.qr_code_url, { responseType: 'blob' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = `${row.name}-场所二维码.png`
-    link.click()
-    URL.revokeObjectURL(link.href)
+    const image = await loadImage(qrImageUrl.value)
+    const square = detectQrSquare(image)
+    const canvas = document.createElement('canvas')
+    canvas.width = square.size
+    canvas.height = square.size
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('当前浏览器不支持图片裁剪')
+    ctx.imageSmoothingEnabled = false
+    ctx.drawImage(image, square.x, square.y, square.size, square.size, 0, 0, square.size, square.size)
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
+    if (!blob) throw new Error('二维码导出失败')
+    downloadBlob(blob, `${row.name}-场所二维码.png`)
   } catch {
-    ElMessage.error('下载失败，可在图片上点击鼠标右键保存')
-  } finally { qrDownloading.value = false }
+    ElMessage.warning('二维码裁剪失败，已下载原始图片')
+    downloadBlob(qrBlob.value, `${row.name}-场所二维码.jpg`)
+  }
+}
+async function downloadPoster() {
+  const canvas = posterCanvas.value
+  if (!canvas || !qrRow.value || !posterReady.value) return
+  posterDownloading.value = true
+  try {
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((result) => result ? resolve(result) : reject(new Error('海报导出失败')), 'image/png')
+    })
+    downloadBlob(blob, `${qrRow.value.name}-场所海报.png`)
+  } catch {
+    ElMessage.error('海报下载失败，请稍后重试')
+  } finally {
+    posterDownloading.value = false
+  }
 }
 function search() {
   filters.page = 1
@@ -129,17 +314,10 @@ onMounted(load)
           <el-table-column type="index" label="序号" width="64" :index="rowIndex" />
           <el-table-column prop="name" label="场所名称" min-width="150" />
           <el-table-column prop="township" label="所在乡镇" min-width="110" />
-          <el-table-column prop="sort_order" label="排序值" width="80" />
-          <el-table-column label="场所图片" width="100">
-            <template #default="{ row }">
-              <el-image v-if="row.image_url" :src="row.image_url" :preview-src-list="[row.image_url]" fit="cover" preview-teleported style="width: 56px; height: 40px; border-radius: 6px" :alt="`${row.name}场所图片`" />
-              <span v-else class="muted">未上传</span>
-            </template>
-          </el-table-column>
           <el-table-column label="操作" width="280" fixed="right" align="right">
             <template #default="{ row }">
               <TableActions>
-                <el-button size="small" type="primary" plain :aria-label="`查看${row.name}的场所二维码`" @click="openQr(row)">查看场所二维码</el-button>
+                <el-button size="small" type="primary" plain :aria-label="`下载${row.name}的场所二维码`" @click="openQr(row)">下载场所二维码</el-button>
                 <el-button v-if="hasPerm('venues:edit')" size="small" type="primary" :aria-label="`编辑${row.name}`" @click="editVenue(row)">编辑</el-button>
                 <el-button v-if="hasPerm('venues:delete')" size="small" type="danger" plain :aria-label="`删除${row.name}`" @click="remove(row)">删除</el-button>
               </TableActions>
@@ -161,21 +339,6 @@ onMounted(load)
             <el-option v-for="township in TOWNSHIPS" :key="township" :value="township" :label="township" />
           </el-select>
         </el-form-item>
-        <el-form-item label="排序值"><el-input-number v-model="editForm.sort_order" :min="0" :max="99999" /> <span class="muted">数值越小越靠前</span></el-form-item>
-        <el-form-item label="场所图片">
-          <div class="upload-row">
-            <ImageUpload v-model="editForm.image_url" label="场所图片" />
-            <el-button v-if="editForm.image_url" size="small" type="danger" plain @click="editForm.image_url = null">清除图片</el-button>
-          </div>
-        </el-form-item>
-        <el-form-item label="场所二维码">
-          <div class="upload-row">
-            <ImageUpload v-model="editForm.qr_code_url" label="场所二维码" />
-            <el-button v-if="editForm.qr_code_url" size="small" type="danger" plain @click="editForm.qr_code_url = null">清除二维码</el-button>
-          </div>
-          <p class="muted upload-hint">二维码用于打印张贴，信众扫码直达该场所公开页。</p>
-        </el-form-item>
-        <el-form-item label="安全提示"><el-input v-model="editForm.safety_note" type="textarea" :rows="4" maxlength="2000" show-word-limit placeholder="面向公众展示的安全注意事项" /></el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-actions">
@@ -185,14 +348,22 @@ onMounted(load)
       </template>
     </el-dialog>
 
-    <el-dialog v-model="qrVisible" :title="qrRow ? `${qrRow.name} · 场所二维码` : '场所二维码'" width="min(460px, 94vw)">
+    <el-dialog v-model="qrVisible" :title="qrRow ? `${qrRow.name} · 二维码与海报` : '场所二维码与海报'" width="min(620px, 94vw)" @closed="resetQr">
       <div v-if="qrRow" class="qr-body">
-        <img v-if="qrRow.qr_code_url" :src="qrRow.qr_code_url" class="qr-image" :alt="`${qrRow.name}场所二维码`">
-        <el-empty v-else description="尚未上传二维码，可点击列表“编辑”在弹窗中上传" :image-size="90" />
-        <p v-if="qrRow.qr_code_url" class="qr-hint">鼠标右键可保存图片，打印张贴后信众扫码即可查看该场所公开信息。</p>
-        <div v-if="qrRow.qr_code_url" class="qr-actions">
-          <el-button type="primary" :loading="qrDownloading" @click="downloadQr">下载二维码</el-button>
-        </div>
+        <div v-if="qrLoading" v-loading="true" element-loading-text="正在生成中，请稍等" class="qr-status" role="status" />
+        <el-empty v-else-if="qrError" :description="qrError" :image-size="90">
+          <el-button type="primary" @click="openQr(qrRow)">重新获取</el-button>
+        </el-empty>
+        <template v-else-if="qrBlob">
+          <canvas v-show="posterReady" ref="posterCanvas" class="poster-preview" role="img" :aria-label="`${qrRow.name}场所海报预览`">当前浏览器不支持海报预览，可单独下载二维码。</canvas>
+          <p v-if="!posterReady && !posterError" class="qr-hint" role="status">正在合成高清海报…</p>
+          <p v-if="posterError" class="poster-error" role="alert">{{ posterError }}</p>
+          <p class="qr-hint">扫码直达该场所公开信息。重复获取不会使已经张贴的旧二维码失效。</p>
+          <div class="qr-actions">
+            <el-button type="primary" :disabled="!posterReady" :loading="posterDownloading" @click="downloadPoster">下载高清海报</el-button>
+            <el-button @click="downloadQr">仅下载二维码</el-button>
+          </div>
+        </template>
       </div>
       <template #footer>
         <div class="dialog-actions">
@@ -205,12 +376,12 @@ onMounted(load)
 
 <style scoped>
 .toolbar .el-input { min-width: 200px; }
-.upload-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.upload-hint { margin: 6px 0 0; }
 .el-select { width: 100%; }
 .muted { color: var(--muted); font-size: 13px; }
 .qr-body { display: grid; justify-items: center; gap: 14px; }
-.qr-image { width: min(360px, 72vw); border: 1px solid var(--line); border-radius: 12px; }
-.qr-hint { margin: 0; color: #1c88cf; font-size: 15px; text-align: center; }
-.qr-actions { display: flex; gap: 10px; }
+.qr-status { width: 100%; min-height: 240px; }
+.poster-preview { display: block; width: min(100%, 340px); height: auto; border: 1px solid var(--line); border-radius: 8px; }
+.qr-hint { margin: 0; color: #1c88cf; font-size: 14px; line-height: 1.6; text-align: center; }
+.poster-error { margin: 0; color: #c45656; font-size: 14px; }
+.qr-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
 </style>

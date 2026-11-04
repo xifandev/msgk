@@ -86,18 +86,17 @@ START TRANSACTION;
 
 -- ============================================================================
 -- 第 1 节：场所 changsuo → venues（保留旧主键 cid → id）
--- 说明：changsuo.code 是旧服务器本地二维码路径（/storage/code/xxx.png），
--- 仅当旧 storage 文件一并搬迁且路径仍可访问时才有意义，否则迁移后需在新
--- 后台重新生成；这里原样保留以便追溯。旧表无图片字段，image_url 置 NULL。
+-- 说明：旧二维码 path 中的 cid 与新库 id 相同，旧海报可继续扫码使用；
+-- changsuo.code 只是旧服务器上的图片路径，新后台改为实时向微信取码，不再迁移。
+-- 旧表无图片字段，image_url 置 NULL。
 -- ============================================================================
-INSERT INTO venues (id, name, township, sort_order, image_url, qr_code_url, safety_note, created_at)
+INSERT INTO venues (id, name, township, sort_order, image_url, safety_note, created_at)
 SELECT
   c.cid,
   c.name,
   COALESCE(NULLIF(c.xiangzhen, ''), '未分类'),
   COALESCE(c.xuhao, 0),
   NULL,
-  NULLIF(c.code, ''),
   NULL,
   CASE WHEN c.time REGEXP '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
        THEN CAST(c.time AS DATETIME) ELSE NOW() END
@@ -333,11 +332,12 @@ WHERE NOT EXISTS (
 -- 关联，新系统按关联场所查询，需人工确认是否补关联。
 -- anquan.zid 为发布者 aid，经 tmp_admin_map 映射到 created_by/updated_by；
 -- 旧 rid 按 1/2/3/999 映射为 county/town/venue/super；其他自定义角色置 NULL。
+-- 旧库无独立更新时间列，updated_at 同 created_at 取 anquan.time。
 -- ============================================================================
 INSERT INTO safety_articles (
   id, title, cover_url, content, author_name, author_role,
   state, published, submitted_at, town_note, town_reviewed_at,
-  county_note, county_reviewed_at, created_by, updated_by, created_at
+  county_note, county_reviewed_at, created_by, updated_by, created_at, updated_at
 )
 SELECT
   a.aid,
@@ -365,6 +365,8 @@ SELECT
        THEN CAST(a.xianji_time AS DATETIME) ELSE NULL END,
   m.new_id,
   m.new_id,
+  CASE WHEN a.time REGEXP '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+       THEN CAST(a.time AS DATETIME) ELSE NOW() END,
   CASE WHEN a.time REGEXP '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
        THEN CAST(a.time AS DATETIME) ELSE NOW() END
 FROM msgk_legacy.anquan a
