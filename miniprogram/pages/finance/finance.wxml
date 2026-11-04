@@ -1,11 +1,11 @@
-<page-main title="财务公开" title1="收支公开透明化" title2="阳光监督新举措">
-  <ms-tabs tabs="{{ ['月度收支', '年度收支'] }}" active="{{ active }}" animated swipeable bind:change="onTabChange">
+<page-main theme="green" title="财务公开" title1="收支公开透明化" title2="阳光监督新举措">
+  <ms-tabs tabs="{{ ['月度收支', '年度收支'] }}" active="{{ active }}" animated swipeable color="#0a7d59" bind:change="onTabChange">
     <view class="pane">
       <!-- ================= 月度收支 ================= -->
       <block wx:if="{{ active === 0 }}">
         <view class="period" bind:tap="openMonthPicker" hover-class="period--hover" aria-role="button" aria-label="切换月份">
           <view class="period__left">
-            <ms-icon name="calendar" size="30rpx" color="#646566" />
+            <ms-icon name="calendar" size="30rpx" color="#0a7d59" />
             <text class="period__text">{{ monthText }}</text>
           </view>
           <view class="period__right">
@@ -18,6 +18,7 @@
           <!-- 结余主卡 -->
           <view class="balance">
             <view class="balance__glow"></view>
+            <view class="balance__sheen"></view>
             <view class="balance__top">
               <text class="balance__label">本月结余（元）</text>
               <view class="balance__delta {{ bill.deltaFlat ? 'is-flat' : (bill.deltaUp ? 'is-up' : 'is-down') }}">
@@ -72,7 +73,10 @@
 
             <view class="day" wx:for="{{ groups }}" wx:key="date">
               <view class="day__head">
-                <text class="day__date">{{ item.label }}</text>
+                <view class="day__date">
+                  <view class="day__dot"></view>
+                  <text>{{ item.label }}</text>
+                </view>
                 <view class="day__sum">
                   <text wx:if="{{ item.incomeText }}">收入 {{ item.incomeText }}</text>
                   <text wx:if="{{ item.expenseText }}">支出 {{ item.expenseText }}</text>
@@ -94,22 +98,30 @@
             </view>
           </view>
 
-          <view class="empty-wrap" wx:else>
-            <ms-empty description="本月暂无公开明细" />
+          <view class="empty-card" wx:else>
+            <ms-empty description="本月暂无公开明细">
+              <text class="empty-card__hint">收支明细由场所按月报送，审核通过后公开</text>
+            </ms-empty>
           </view>
         </block>
 
-        <view class="empty-wrap" wx:elif="{{ monthLoaded && !bill }}">
-          <ms-empty description="本月暂无公开数据" />
+        <view class="empty-card" wx:elif="{{ monthLoaded && !bill }}">
+          <ms-empty description="本月暂无公开数据">
+            <text class="empty-card__hint">可切换月份查看历史公开记录</text>
+          </ms-empty>
         </view>
-        <view class="skeleton" wx:else></view>
+        <view class="skeleton" wx:else>
+          <view class="skeleton__hero"></view>
+          <view class="skeleton__row"></view>
+          <view class="skeleton__row"></view>
+        </view>
       </block>
 
       <!-- ================= 年度收支 ================= -->
       <block wx:else>
         <view class="period" bind:tap="openYearPicker" hover-class="period--hover" aria-role="button" aria-label="切换年份">
           <view class="period__left">
-            <ms-icon name="calendar" size="30rpx" color="#646566" />
+            <ms-icon name="calendar" size="30rpx" color="#0a7d59" />
             <text class="period__text">{{ year }} 年</text>
           </view>
           <view class="period__right">
@@ -208,11 +220,22 @@
           </view>
         </block>
 
-        <view class="empty-wrap" wx:elif="{{ yearLoaded && months.length === 0 }}">
-          <ms-empty description="本年暂无公开数据" />
+        <view class="empty-card" wx:elif="{{ yearLoaded && months.length === 0 }}">
+          <ms-empty description="本年暂无公开数据">
+            <text class="empty-card__hint">可切换年份查看历史公开记录</text>
+          </ms-empty>
         </view>
-        <view class="skeleton" wx:else></view>
+        <view class="skeleton" wx:else>
+          <view class="skeleton__hero"></view>
+          <view class="skeleton__row"></view>
+          <view class="skeleton__row"></view>
+        </view>
       </block>
+
+      <view class="notice">
+        <ms-icon name="passed" size="24rpx" color="#5d9a80" />
+        <text class="notice__text">数据由场所按月报送，经审核后公开，接受社会监督</text>
+      </view>
     </view>
   </ms-tabs>
 </page-main>

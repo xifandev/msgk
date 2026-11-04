@@ -1,4 +1,4 @@
-<view class="bgc"></view>
+<view class="bgc bgc--{{ theme }}"></view>
 <view class="top-box">
   <view class="top-title">{{ title }}</view>
   <view class="top-title2">

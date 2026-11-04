@@ -8,5 +8,10 @@
     "ms-datetime-picker": "/components/ms-datetime-picker/index",
     "ms-picker": "/components/ms-picker/index"
   },
+  "navigationBarTitleText": "财务公开",
+  "navigationBarBackgroundColor": "#05654a",
+  "navigationBarTextStyle": "white",
+  "backgroundColorTop": "#05654a",
+  "backgroundColor": "#f2f6f3",
   "disableScroll": true
 }

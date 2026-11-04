@@ -1,11 +1,36 @@
 .bgc {
-  background: linear-gradient(180deg, #d31027 0%, #ea384d 22%, #f1f2f4 70%);
   width: 100vw;
   height: 100vh;
   position: fixed;
   top: 0;
   left: 0;
   z-index: -1;
+  overflow: hidden;
+}
+
+/* 默认主题：红 */
+.bgc--red {
+  background: linear-gradient(180deg, #d31027 0%, #ea384d 22%, #f1f2f4 70%);
+}
+
+/* 绿色主题：横向由深翠过渡到亮绿（左深右亮，保证标题可读），纵向再淡出到页面底色；
+   最上层叠一条导航栏色的纵向过渡，消除与原生导航栏之间的色阶断层 */
+.bgc--green {
+  background:
+    linear-gradient(180deg, #05654a 0%, rgba(5, 101, 74, 0.72) 4%, rgba(5, 101, 74, 0) 11%),
+    linear-gradient(180deg, rgba(242, 246, 243, 0) 0%, rgba(242, 246, 243, 0) 17%, #f2f6f3 40%),
+    linear-gradient(112deg, #034e39 0%, #0a7454 34%, #15a173 70%, #3fc394 100%);
+}
+
+.bgc--green::after {
+  content: '';
+  position: absolute;
+  right: -180rpx;
+  top: -220rpx;
+  width: 520rpx;
+  height: 520rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, rgba(224, 255, 238, 0.5) 0%, rgba(224, 255, 238, 0) 66%);
 }
 
 .top-box {
@@ -21,6 +46,7 @@
   margin-left: 40rpx;
   font-weight: bold;
   line-height: 1.3;
+  letter-spacing: 1rpx;
 }
 
 .top-title2 {
