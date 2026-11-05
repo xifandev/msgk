@@ -134,17 +134,15 @@ Page({
     return patch;
   },
 
-  // 结余卡：当月结余（当月收入 − 当月支出）+ 当月收入/支出
+  // 结余卡：当月结余（截至当月末的累计结余）+ 当月收入/支出
   buildBill(raw) {
     if (!raw) {
       return null;
     }
-    const income = Number(raw.income) || 0;
-    const expense = Number(raw.expense) || 0;
-    const current = Math.round((income - expense) * 100) / 100;
+    const current = Number(raw.currentBalance) || 0;
     return {
-      incomeText: formatAmount(income),
-      expenseText: formatAmount(expense),
+      incomeText: formatAmount(Number(raw.income) || 0),
+      expenseText: formatAmount(Number(raw.expense) || 0),
       currentText: formatAmount(current),
       currentNegative: current < 0,
     };
@@ -219,9 +217,9 @@ Page({
           };
         });
 
-        // 月度明细：当月收入 / 当月支出 / 月结余（收 − 支）
+        // 月度明细：当月收入 / 当月支出 / 月结余（截至当月末的累计结余）
         const months = rows.map((item) => {
-          const currentNum = Math.round((item.incomeNum - item.expenseNum) * 100) / 100;
+          const currentNum = Number(item.currentBalance) || 0;
           return {
             month: item.month,
             monthText: item.monthText,
@@ -235,8 +233,9 @@ Page({
         const rawTotals = res.totals || { income: 0, expense: 0 };
         const incomeNum = Number(rawTotals.income) || 0;
         const expenseNum = Number(rawTotals.expense) || 0;
-        // 年结余 = 全年收入 − 全年支出，与卡面两个总数自洽
-        const balanceNum = Math.round((incomeNum - expenseNum) * 100) / 100;
+        // 期末结余 = 最后一个公开月份的累计月结余
+        const last = rows.length > 0 ? rows[rows.length - 1] : null;
+        const balanceNum = last ? Number(last.currentBalance) || 0 : 0;
         const totals = {
           incomeText: formatAmount(incomeNum),
           expenseText: formatAmount(expenseNum),

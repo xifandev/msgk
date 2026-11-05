@@ -96,7 +96,7 @@
         </view>
 
         <block wx:if="{{ yearLoaded && months.length > 0 }}">
-          <!-- 年度账单卡：只放数值结论（年结余 / 总收入 / 总支出） -->
+          <!-- 年度账单卡：只放数值结论（期末结余 / 总收入 / 总支出） -->
           <view class="year">
             <view class="year__glow"></view>
 
@@ -107,7 +107,7 @@
 
             <block wx:if="{{ totals }}">
               <view class="year__hero">
-                <text class="year__hero-label">年结余（元）</text>
+                <text class="year__hero-label">期末结余（元）</text>
                 <text class="year__hero-value {{ totals.balanceNegative ? 'is-negative' : '' }}">{{ totals.balanceText }}</text>
               </view>
 
