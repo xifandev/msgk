@@ -22,6 +22,8 @@ const isTown = computed(() => admin.value?.roleCode === 'town')
 const showPublishColumn = computed(() => hasPerm('finance:publish') && (!effectiveState.value || effectiveState.value === 'approved'))
 // 镇级管理员无填报权限，查看“正在填报”列表时隐藏整列操作
 const showActionColumn = computed(() => !(isTown.value && effectiveState.value === 'draft'))
+// 账单删除入口暂时屏蔽；保留逻辑，后续需要时开启
+const enableBillDelete = false
 const myState = computed(() => myReviewState(admin.value?.roleCode ?? ''))
 const stateTab = useReviewStateTab(myState, canReview)
 const mounted = ref(false)
@@ -222,7 +224,7 @@ onMounted(() => {
               <TableActions v-else class="compact">
                 <el-button v-if="hasPerm('finance:edit') && ['draft', 'rejected'].includes(row.state)" type="primary" :aria-label="`录入${row.venue_name}${row.bill_month}的收支明细`" @click="openBill(row)">录入明细</el-button>
                 <el-button v-else type="primary" plain :aria-label="`查看${row.venue_name}${row.bill_month}的审核`" @click="openBill(row)">查看审核</el-button>
-                <el-button v-if="hasPerm('finance:delete') && row.state === 'draft'" type="danger" plain :aria-label="`删除${row.venue_name}${row.bill_month}账单`" @click="remove(row)">删除</el-button>
+                <el-button v-if="enableBillDelete && hasPerm('finance:delete') && row.state === 'draft'" type="danger" plain :aria-label="`删除${row.venue_name}${row.bill_month}账单`" @click="remove(row)">删除</el-button>
               </TableActions>
             </template>
           </el-table-column>
