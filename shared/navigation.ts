@@ -21,7 +21,7 @@ export const NAVIGATION: NavigationItem[] = [
   { path: '/review', label: '场所信息审核', description: '统一处理场所介绍与人员名册审核，按待办和状态快速定位。', permission: ['venues:review', 'personnel:review'], icon: 'DocumentChecked' },
   { path: '/safety', label: '场所安全', description: '县级统一发布安全知识文章，发布后自动向全部场所公开；镇级和场所仅阅读。', permission: 'safety:view', icon: 'Reading' },
   { path: '/news', label: '政策法规', description: '维护政策法规文章及分类，发布后在小程序展示；镇级、场所管理员可在本页学习。', permission: 'news:view', icon: 'Reading' },
-  { path: '/notices', label: '公告管理', description: '小程序公告面向公众展示，内部公告仅后台管理员可见。', permission: 'notices:edit', icon: 'Bell' },
+  { path: '/notices', label: '公告管理', description: '小程序公告面向公众展示，内部公告仅后台管理员可见。', permission: 'notices:edit', icon: 'Reading' },
   { path: '/my-notices', label: '我的通知', description: '面向管理员的内部公告，打开详情后自动标记为已读。', permission: 'notices:view', icon: 'Message', excludeRoleCodes: ['county'] },
   { path: '/admins', label: '管理员', description: '配置登录手机号、功能角色和可管理的场所。', permission: 'system:admins', icon: 'Avatar' },
   { path: '/venues', label: '场所管理', description: '维护宗教活动场所的基础信息，实时获取场所二维码和高清海报。', permission: 'venues:view', icon: 'OfficeBuilding' },

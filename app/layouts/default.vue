@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
 import {
-  Avatar, Bell, DataAnalysis, Document, DocumentChecked, Guide, Key, List,
+  Avatar, DataAnalysis, Document, DocumentChecked, Guide, Key, List,
   Message, OfficeBuilding, Reading, Setting, Switch, User, UserFilled, Wallet
 } from '@element-plus/icons-vue'
 import { NAVIGATION, navigationFor } from '~~/shared/navigation'
@@ -9,7 +9,7 @@ import { NAVIGATION, navigationFor } from '~~/shared/navigation'
 const { admin, venues, hasPerm, logout, impersonator, stopImpersonate } = useAdmin()
 const route = useRoute()
 const mobileMenu = ref(false)
-const icons = { Avatar, Bell, DataAnalysis, Document, DocumentChecked, Guide, Key, List, Message, OfficeBuilding, Reading, Setting, Switch, User, UserFilled, Wallet }
+const icons = { Avatar, DataAnalysis, Document, DocumentChecked, Guide, Key, List, Message, OfficeBuilding, Reading, Setting, Switch, User, UserFilled, Wallet }
 const items = computed(() => NAVIGATION.filter((item) => {
   if (item.excludeRoleCodes?.includes(admin.value?.roleCode ?? '')) return false
   return Array.isArray(item.permission) ? item.permission.some((code) => hasPerm(code)) : hasPerm(item.permission)
