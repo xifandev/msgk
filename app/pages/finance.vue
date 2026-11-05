@@ -243,7 +243,7 @@ onMounted(() => {
           <el-table-column v-if="showActionColumn" label="操作" width="160" fixed="right" align="right">
             <template #default="{ row }">
               <span v-if="isTown && row.state === 'draft'" class="muted" aria-hidden="true">—</span>
-              <TableActions v-else>
+              <TableActions v-else class="compact">
                 <el-button v-if="hasPerm('finance:edit') && ['draft', 'rejected'].includes(row.state)" type="primary" :aria-label="`录入${row.venue_name}${row.bill_month}的收支明细`" @click="openBill(row)">录入明细</el-button>
                 <el-button v-else type="primary" plain :aria-label="`查看${row.venue_name}${row.bill_month}的审核`" @click="openBill(row)">查看审核</el-button>
                 <el-button v-if="hasPerm('finance:delete') && row.state === 'draft'" type="danger" plain :aria-label="`删除${row.venue_name}${row.bill_month}账单`" @click="remove(row)">删除</el-button>
@@ -255,7 +255,10 @@ onMounted(() => {
       <div class="pagination"><el-pagination v-model:current-page="filters.page" v-model:page-size="filters.pageSize" :total="total" :page-sizes="[5, 10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" /></div>
     </section>
 
-    <el-drawer v-model="detailVisible" class="finance-drawer" size="min(1000px, 96vw)" :title="`${current.venue_name ?? ''} ${current.bill_month ?? ''}`" :before-close="confirmClose">
+    <el-drawer v-model="detailVisible" class="finance-drawer" size="min(1000px, 96vw)" :before-close="confirmClose">
+      <template #header>
+        <span class="finance-drawer-title">{{ current.venue_name ?? '' }} <strong class="finance-drawer-month">{{ current.bill_month ?? '' }}</strong></span>
+      </template>
       <div class="detail-layout">
         <section class="detail-main">
           <div class="summary-grid">
@@ -367,7 +370,10 @@ onMounted(() => {
 @media (prefers-reduced-motion: reduce) { .state-tab { transition: none; } }
 .el-select, .el-date-picker { min-width: 180px; }
 .muted { color: var(--muted); font-size: 13px; }
+.table-actions.compact :deep(.el-button) { height: 26px; padding-inline: 10px; font-size: 13px; }
 :global(.finance-drawer .el-drawer__body) { container-type: inline-size; }
+:global(.finance-drawer .finance-drawer-title) { font-size: 19px; font-weight: 600; color: #1f2937; }
+:global(.finance-drawer .finance-drawer-month) { font-weight: 700; font-variant-numeric: tabular-nums; }
 :global(.finance-drawer .el-drawer__close-btn) { flex: none; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 1px solid transparent; border-radius: 50%; color: #475467; font-size: 24px; transition: color .15s, background-color .15s, border-color .15s, transform .15s; }
 :global(.finance-drawer .el-drawer__close-btn:hover),
 :global(.finance-drawer .el-drawer__close-btn:focus-visible) { border-color: #b9cce1; background: var(--brand-soft); color: var(--brand); transform: scale(1.08); }
