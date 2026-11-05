@@ -376,7 +376,7 @@ onMounted(() => { void load() })
   pointer-events: none;
 }
 /* 文字整体略偏左，抵消右侧长城图的视觉重量，画面更平衡 */
-.banner-copy { position: relative; z-index: 1; min-width: 0; margin-inline-end: 12%; text-align: center; }
+.banner-copy { position: relative; z-index: 1; min-width: 0; margin-inline-end: 19%; text-align: center; }
 .banner-title {
   margin: 0;
   color: #fff;
@@ -588,7 +588,7 @@ onMounted(() => { void load() })
   .dash { --card-pad: 18px; gap: 12px; }
   .banner { min-height: 0; padding: 26px 20px; }
   .banner::before { width: 60%; }
-  .banner-copy { margin-inline-end: 6%; }
+  .banner-copy { margin-inline-end: 10%; }
   .banner-title { font-size: 28px; letter-spacing: 6px; text-indent: 6px; }
   .banner-ornament { margin-block: 10px 8px; }
   .banner-sub-title { font-size: 12.5px; letter-spacing: 4px; text-indent: 4px; }
