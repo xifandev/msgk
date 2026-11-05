@@ -3,9 +3,9 @@ export default defineEventHandler(async (event) => {
   const id = positiveId(getRouterParam(event, 'id'), '文章ID')
   const article = await queryOne<{ id: number }>('SELECT id FROM safety_articles WHERE id = ?', [id])
   if (!article) throw createError({ statusCode: 404, message: '文章不存在' })
-  const venueRows = await query<{ venue_id: number, venue_name: string }>(
-    `SELECT sv.venue_id, v.name AS venue_name
-     FROM safety_article_venues sv JOIN venues v ON v.id = sv.venue_id
+  const venueRows = await query<{ venue_id: number }>(
+    `SELECT sv.venue_id
+     FROM safety_article_venues sv
      WHERE sv.article_id = ? ORDER BY sv.venue_id`,
     [id]
   )
@@ -13,17 +13,20 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, message: '文章不存在' })
   }
   const row = await queryOne(
-    `SELECT id, title, cover_url AS coverUrl, content, author_name AS authorName, author_role AS authorRole,
-            state, published, submitted_at AS submittedAt,
-            town_note AS townNote, town_reviewed_at AS townReviewedAt,
-            county_note AS countyNote, county_reviewed_at AS countyReviewedAt,
-            created_at AS createdAt, updated_at AS updatedAt
-     FROM safety_articles WHERE id = ?`,
+    `SELECT a.id, a.title, a.cover_url AS coverUrl, a.content, a.author_name AS authorName, a.author_role AS authorRole,
+            a.publish_unit AS publishUnit, cr.code AS publisherRole,
+            a.state, a.published, a.submitted_at AS submittedAt,
+            a.town_note AS townNote, a.town_reviewed_at AS townReviewedAt,
+            a.county_note AS countyNote, a.county_reviewed_at AS countyReviewedAt,
+            a.created_at AS createdAt, a.updated_at AS updatedAt
+     FROM safety_articles a
+     LEFT JOIN admins cb ON cb.id = a.created_by
+     LEFT JOIN roles cr ON cr.id = cb.role_id
+     WHERE a.id = ?`,
     [id]
   )
   return {
     ...row,
-    venueIds: venueRows.map((venue) => venue.venue_id),
-    venueNames: venueRows.map((venue) => venue.venue_name).join('、')
+    venueIds: venueRows.map((venue) => venue.venue_id)
   }
 })

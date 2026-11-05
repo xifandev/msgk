@@ -9,6 +9,14 @@ function parseVenueIds(value: unknown): number[] {
   return ids
 }
 
+/** 发布单位：管理员的所属单位；场所管理员未填单位时回退其场所名。 */
+function resolvePublishUnit(admin: { organization: string | null, roleCode: string }, venueNames: string[]) {
+  const organization = (admin.organization ?? '').trim()
+  if (organization) return organization
+  if (admin.roleCode === 'venue' && venueNames.length) return venueNames.join('、')
+  return null
+}
+
 export default defineEventHandler(async (event) => {
   const admin = await requirePermission(event, 'safety:edit')
   const body = await readBody(event)
@@ -19,12 +27,13 @@ export default defineEventHandler(async (event) => {
   const venueIds = parseVenueIds(body?.venueIds)
   for (const venueId of venueIds) requireVenueScope(admin, venueId)
   const placeholders = venueIds.map(() => '?').join(',')
-  const venues = await query(`SELECT id FROM venues WHERE id IN (${placeholders})`, venueIds)
+  const venues = await query<{ id: number, name: string }>(`SELECT id, name FROM venues WHERE id IN (${placeholders})`, venueIds)
   if (venues.length !== venueIds.length) throw createError({ statusCode: 400, message: '包含不存在的场所' })
+  const publishUnit = resolvePublishUnit(admin, venues.map((venue) => venue.name))
   const id = await withTransaction(async (conn) => {
     const [result] = await conn.execute<ResultSetHeader>(
-      'INSERT INTO safety_articles (title, cover_url, content, author_name, author_role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [title, coverUrl || null, content, admin.name, admin.roleCode, admin.id, admin.id]
+      'INSERT INTO safety_articles (title, cover_url, content, author_name, author_role, publish_unit, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [title, coverUrl || null, content, admin.name, admin.roleCode, publishUnit, admin.id, admin.id]
     )
     const articleId = result.insertId
     await conn.execute(

@@ -1,8 +1,18 @@
 export default defineEventHandler(async (event) => {
   const admin = await requirePermission(event, 'safety:delete')
   const id = positiveId(getRouterParam(event, 'id'), '文章ID')
-  const existing = await queryOne<{ id: number, title: string, state: string }>('SELECT id, title, state FROM safety_articles WHERE id = ?', [id])
+  const existing = await queryOne<{ id: number, title: string, state: string, creatorRole: string | null }>(
+    `SELECT a.id, a.title, a.state, cr.code AS creatorRole
+     FROM safety_articles a
+     LEFT JOIN admins cb ON cb.id = a.created_by
+     LEFT JOIN roles cr ON cr.id = cb.role_id
+     WHERE a.id = ?`,
+    [id]
+  )
   if (!existing) throw createError({ statusCode: 404, message: '文章不存在' })
+  if (admin.roleCode === 'venue' && existing.creatorRole !== 'venue') {
+    throw createError({ statusCode: 403, message: '县级发布的文章仅有阅读权限' })
+  }
   if (!['draft', 'rejected'].includes(existing.state)) {
     throw createError({ statusCode: 409, message: '只有编辑中或审核失败的文章可以删除，请先“重新编辑”退回后再删除' })
   }

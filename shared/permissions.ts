@@ -46,7 +46,8 @@ export const TOWN_PERMISSIONS = [
   'dashboard:view',
   'venues:view', 'venues:review', 'venues:publish',
   'personnel:view', 'personnel:review', 'personnel:publish',
-  'safety:view', 'safety:review', 'safety:publish',
+  // 场所安全：镇级仅查看/阅读
+  'safety:view',
   'news:view', 'notices:view',
   'finance:view', 'finance:review', 'finance:publish'
 ]
@@ -55,7 +56,8 @@ export const VENUE_PERMISSIONS = [
   'dashboard:view',
   'venues:view', 'venues:edit',
   'personnel:view', 'personnel:edit',
-  'safety:view', 'safety:edit',
+  // 场所安全：场所可发布（编辑 + 公开），审核仍由县级负责
+  'safety:view', 'safety:edit', 'safety:publish',
   'news:view', 'notices:view',
   'finance:view', 'finance:edit'
 ]

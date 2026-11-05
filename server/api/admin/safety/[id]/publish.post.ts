@@ -3,10 +3,17 @@ export default defineEventHandler(async (event) => {
   const id = positiveId(getRouterParam(event, 'id'), '文章ID')
   const body = await readBody(event)
   if (typeof body?.published !== 'boolean') throw createError({ statusCode: 400, message: '请指定发布状态' })
-  const article = await queryOne<{ id: number, title: string, state: string }>(
-    'SELECT id, title, state FROM safety_articles WHERE id = ?', [id]
+  const article = await queryOne<{ id: number, title: string, state: string, creatorRole: string | null }>(
+    `SELECT a.id, a.title, a.state, cr.code AS creatorRole
+     FROM safety_articles a
+     LEFT JOIN admins cb ON cb.id = a.created_by
+     LEFT JOIN roles cr ON cr.id = cb.role_id
+     WHERE a.id = ?`, [id]
   )
   if (!article) throw createError({ statusCode: 404, message: '文章不存在' })
+  if (admin.roleCode === 'venue' && article.creatorRole !== 'venue') {
+    throw createError({ statusCode: 403, message: '县级发布的文章仅有阅读权限' })
+  }
   const venueIds = (await query<{ venue_id: number }>(
     'SELECT venue_id FROM safety_article_venues WHERE article_id = ?', [id]
   )).map((row) => row.venue_id)

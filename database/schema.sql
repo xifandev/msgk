@@ -102,6 +102,7 @@ CREATE TABLE IF NOT EXISTS safety_articles (
   content MEDIUMTEXT NOT NULL,
   author_name VARCHAR(50) NULL,
   author_role VARCHAR(32) NULL,
+  publish_unit VARCHAR(100) NULL,
   state VARCHAR(32) NOT NULL DEFAULT 'draft',
   published TINYINT(1) NOT NULL DEFAULT 0,
   submitted_at DATETIME NULL,
@@ -230,8 +231,8 @@ CREATE TABLE IF NOT EXISTS operation_logs (
 
 INSERT INTO roles (id, code, name, permissions) VALUES
   (1, 'county', '县级管理员', JSON_ARRAY('dashboard:view','venues:view','venues:edit','venues:delete','venues:review','venues:publish','personnel:view','personnel:edit','personnel:review','personnel:publish','safety:view','safety:edit','safety:delete','safety:review','safety:publish','news:view','news:edit','news:delete','news:publish','notices:view','notices:edit','notices:delete','notices:publish','finance:view','finance:edit','finance:delete','finance:review','finance:publish')),
-  (2, 'town', '镇级管理员', JSON_ARRAY('dashboard:view','venues:view','venues:review','venues:publish','personnel:view','personnel:review','personnel:publish','safety:view','safety:review','safety:publish','news:view','notices:view','finance:view','finance:review','finance:publish')),
-  (3, 'venue', '场所管理员', JSON_ARRAY('dashboard:view','venues:view','venues:edit','personnel:view','personnel:edit','safety:view','safety:edit','news:view','notices:view','finance:view','finance:edit')),
+  (2, 'town', '镇级管理员', JSON_ARRAY('dashboard:view','venues:view','venues:review','venues:publish','personnel:view','personnel:review','personnel:publish','safety:view','news:view','notices:view','finance:view','finance:review','finance:publish')),
+  (3, 'venue', '场所管理员', JSON_ARRAY('dashboard:view','venues:view','venues:edit','personnel:view','personnel:edit','safety:view','safety:edit','safety:publish','news:view','notices:view','finance:view','finance:edit')),
   (999, 'super', '系统管理员', JSON_ARRAY('*'))
 ON DUPLICATE KEY UPDATE name = VALUES(name);
 

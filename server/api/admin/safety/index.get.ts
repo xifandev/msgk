@@ -6,13 +6,13 @@ interface SafetyListRow {
   coverUrl: string | null
   authorName: string | null
   authorRole: string | null
+  publishUnit: string | null
+  publisherRole: string | null
   state: string
   published: number
   submittedAt: string | null
   createdAt: string
   updatedAt: string
-  venueIdsRaw: string | null
-  venueNames: string | null
 }
 
 export default defineEventHandler(async (event) => {
@@ -49,18 +49,15 @@ export default defineEventHandler(async (event) => {
   const totalRow = await queryOne<{ total: number }>(`SELECT COUNT(*) AS total FROM safety_articles a ${whereSql}`, params)
   const rows = await query<SafetyListRow>(
     `SELECT a.id, a.title, a.cover_url AS coverUrl, a.author_name AS authorName, a.author_role AS authorRole,
-            a.state, a.published, a.submitted_at AS submittedAt, a.created_at AS createdAt, a.updated_at AS updatedAt,
-            (SELECT GROUP_CONCAT(sv.venue_id ORDER BY sv.venue_id) FROM safety_article_venues sv WHERE sv.article_id = a.id) AS venueIdsRaw,
-            (SELECT GROUP_CONCAT(v.name ORDER BY v.id SEPARATOR '、') FROM safety_article_venues sv JOIN venues v ON v.id = sv.venue_id WHERE sv.article_id = a.id) AS venueNames
+            a.publish_unit AS publishUnit, cr.code AS publisherRole,
+            a.state, a.published, a.submitted_at AS submittedAt, a.created_at AS createdAt, a.updated_at AS updatedAt
      FROM safety_articles a
+     LEFT JOIN admins cb ON cb.id = a.created_by
+     LEFT JOIN roles cr ON cr.id = cb.role_id
      ${whereSql}
      ORDER BY a.id DESC
      LIMIT ? OFFSET ?`,
     [...params, pageSize, offset]
   )
-  const list = rows.map(({ venueIdsRaw, ...row }) => ({
-    ...row,
-    venueIds: venueIdsRaw ? venueIdsRaw.split(',').map(Number) : []
-  }))
-  return { list, total: totalRow?.total ?? 0, page, pageSize }
+  return { list: rows, total: totalRow?.total ?? 0, page, pageSize }
 })

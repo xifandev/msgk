@@ -11,6 +11,7 @@ const filters = reactive({ page: 1, pageSize: 10, search: '', state: '', publish
 const editorVisible = ref(false)
 const saving = ref(false)
 const form = reactive({ id: 0, title: '', venueIds: [] as number[], coverUrl: '', authorName: '', authorRole: '', content: '' })
+const { snapshot: snapshotForm, confirmClose: confirmCloseEditor } = useDirtyClose(form)
 const detailVisible = ref(false)
 const current = ref<Record<string, any>>({})
 const timelineRecord = computed(() => ({
@@ -21,6 +22,12 @@ const timelineRecord = computed(() => ({
   county_reviewed_at: current.value.countyReviewedAt,
   county_note: current.value.countyNote
 }))
+// 县级发布的文章对场所管理员只读；场所发布的文章场所可正常管理
+const isVenueAdmin = computed(() => admin.value?.roleCode === 'venue')
+function manageArticle(row: Record<string, any>) {
+  return !isVenueAdmin.value || row.publisherRole === 'venue'
+}
+const detailEditPermission = computed(() => (manageArticle(current.value) ? 'safety:edit' : ''))
 
 async function load() {
   loading.value = true
@@ -51,16 +58,18 @@ async function editArticle(row?: any) {
   if (!row) {
     Object.assign(form, { id: 0, title: '', venueIds: defaultVenueIds(), coverUrl: '', authorName: '', authorRole: '', content: '' })
     editorVisible.value = true
+    snapshotForm()
     return
   }
   try {
     const detail = await $fetch<any>(`/api/admin/safety/${row.id}`)
     Object.assign(form, {
       id: detail.id, title: detail.title, venueIds: [...detail.venueIds],
-      coverUrl: detail.coverUrl ?? '', authorName: detail.authorName ?? '',
-      authorRole: detail.authorRole ?? '', content: detail.content ?? ''
+      coverUrl: '', authorName: detail.authorName ?? '',
+      authorRole: '', content: detail.content ?? ''
     })
     editorVisible.value = true
+    snapshotForm()
   } catch (error) { ElMessage.error(errorMessage(error)) }
 }
 function rowIndex(index: number) {
@@ -132,8 +141,8 @@ onMounted(() => {
         <el-table v-loading="loading" :data="list">
           <el-table-column type="index" label="序号" width="64" :index="rowIndex" />
           <el-table-column prop="title" label="安全标题" min-width="200" show-overflow-tooltip />
-          <el-table-column prop="venueNames" label="场所名称" min-width="160" show-overflow-tooltip><template #default="{ row }">{{ row.venueNames || '—' }}</template></el-table-column>
-          <el-table-column prop="authorName" label="编辑角色" width="100"><template #default="{ row }">{{ row.authorName || '—' }}</template></el-table-column>
+          <el-table-column prop="authorName" label="发布人" width="100"><template #default="{ row }">{{ row.authorName || '—' }}</template></el-table-column>
+          <el-table-column prop="publishUnit" label="发布单位" min-width="140" show-overflow-tooltip><template #default="{ row }">{{ row.publishUnit || '—' }}</template></el-table-column>
           <el-table-column label="状态" width="110">
             <template #default="{ row }"><el-tag :type="REVIEW_TAG_TYPES[row.state]">{{ REVIEW_LABELS[row.state] }}</el-tag></template>
           </el-table-column>
@@ -141,7 +150,7 @@ onMounted(() => {
           <el-table-column v-if="hasPerm('safety:publish')" label="是否公开" width="100">
             <template #default="{ row }">
               <el-tooltip content="审核通过后才能公开" :disabled="row.state === 'approved'" placement="top">
-                <el-switch v-model="row.published" :active-value="1" :inactive-value="0" :disabled="row.state !== 'approved'" :aria-label="`《${row.title}》公开状态`" @change="publish(row)" />
+                <el-switch v-model="row.published" :active-value="1" :inactive-value="0" :disabled="row.state !== 'approved' || !manageArticle(row)" :aria-label="`《${row.title}》公开状态`" @change="publish(row)" />
               </el-tooltip>
             </template>
           </el-table-column>
@@ -149,8 +158,8 @@ onMounted(() => {
             <template #default="{ row }">
               <TableActions>
                 <el-button size="small" type="primary" :aria-label="`查看并处理《${row.title}》`" @click="openDetail(row)">查看/处理</el-button>
-                <el-button v-if="hasPerm('safety:edit') && ['draft', 'rejected'].includes(row.state)" size="small" type="primary" plain :aria-label="`编辑《${row.title}》`" @click="editArticle(row)">编辑</el-button>
-                <el-button v-if="hasPerm('safety:delete') && ['draft', 'rejected'].includes(row.state)" size="small" type="danger" plain :aria-label="`删除《${row.title}》`" @click="removeArticle(row)">删除</el-button>
+                <el-button v-if="hasPerm('safety:edit') && manageArticle(row) && ['draft', 'rejected'].includes(row.state)" size="small" type="primary" plain :aria-label="`编辑《${row.title}》`" @click="editArticle(row)">编辑</el-button>
+                <el-button v-if="hasPerm('safety:delete') && manageArticle(row) && ['draft', 'rejected'].includes(row.state)" size="small" type="danger" plain :aria-label="`删除《${row.title}》`" @click="removeArticle(row)">删除</el-button>
               </TableActions>
             </template>
           </el-table-column>
@@ -159,20 +168,18 @@ onMounted(() => {
       <div class="pagination"><el-pagination v-model:current-page="filters.page" v-model:page-size="filters.pageSize" :total="total" :page-sizes="[5, 10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" /></div>
     </section>
 
-    <el-dialog v-model="editorVisible" :title="form.id ? '编辑安全文章' : '新建安全文章'" width="min(960px, 94vw)" destroy-on-close>
+    <el-dialog v-model="editorVisible" :title="form.id ? '编辑安全文章' : '新建安全文章'" width="min(960px, 94vw)" destroy-on-close :before-close="confirmCloseEditor">
       <el-form label-position="top" @submit.prevent="saveArticle">
         <el-form-item label="关联场所" required><VenueSelect v-model="form.venueIds" multiple /></el-form-item>
         <el-form-item label="标题" required><el-input v-model="form.title" maxlength="200" show-word-limit /></el-form-item>
         <div class="form-grid">
-          <el-form-item label="作者"><el-input v-model="form.authorName" maxlength="50" /></el-form-item>
-          <el-form-item label="作者身份"><el-input v-model="form.authorRole" maxlength="32" placeholder="如：安全员、场所负责人" /></el-form-item>
+          <el-form-item label="发布人"><el-input v-model="form.authorName" maxlength="50" /></el-form-item>
         </div>
-        <el-form-item label="封面图片"><ImageUpload v-model="form.coverUrl" label="文章封面" /></el-form-item>
         <el-form-item label="正文内容" required><RichTextEditor v-model="form.content" /></el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-actions">
-          <el-button @click="editorVisible = false">取消</el-button>
+          <el-button @click="confirmCloseEditor(() => editorVisible = false)">取消</el-button>
           <el-button type="primary" :loading="saving" @click="saveArticle">保存文章</el-button>
         </div>
       </template>
@@ -182,19 +189,17 @@ onMounted(() => {
       <div class="detail-layout">
         <section class="detail-main">
           <el-descriptions :column="2" border class="detail-meta">
-            <el-descriptions-item label="关联场所" :span="2">{{ current.venueNames || '—' }}</el-descriptions-item>
-            <el-descriptions-item label="作者">{{ current.authorName || '—' }}</el-descriptions-item>
-            <el-descriptions-item label="作者身份">{{ current.authorRole || '—' }}</el-descriptions-item>
+            <el-descriptions-item label="发布人">{{ current.authorName || '—' }}</el-descriptions-item>
+            <el-descriptions-item label="发布单位">{{ current.publishUnit || '—' }}</el-descriptions-item>
             <el-descriptions-item label="更新时间">{{ current.updatedAt || '—' }}</el-descriptions-item>
             <el-descriptions-item label="公开状态">{{ current.published ? '已公开' : '未公开' }}</el-descriptions-item>
           </el-descriptions>
-          <el-image v-if="current.coverUrl" :src="current.coverUrl" fit="cover" class="detail-cover" alt="文章封面" />
           <article class="rich-content" v-html="current.content" />
         </section>
         <aside class="review-side">
           <ReviewTimeline :record="timelineRecord" />
-          <ReviewActions :state="current.state" edit-permission="safety:edit" review-permission="safety:review" @action="review" />
-          <el-button v-if="hasPerm('safety:edit') && ['draft', 'rejected'].includes(current.state)" @click="detailVisible = false; editArticle(current)">修改内容</el-button>
+          <ReviewActions :state="current.state" :edit-permission="detailEditPermission" review-permission="safety:review" @action="review" />
+          <el-button v-if="hasPerm('safety:edit') && manageArticle(current) && ['draft', 'rejected'].includes(current.state)" @click="detailVisible = false; editArticle(current)">修改内容</el-button>
         </aside>
       </div>
     </el-drawer>
@@ -210,7 +215,6 @@ onMounted(() => {
 .detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 24px; align-items: start; }
 .detail-main, .review-side { min-width: 0; }
 .detail-meta { margin-block-end: 16px; }
-.detail-cover { width: 100%; max-height: 260px; border-radius: 10px; margin-block-end: 16px; }
 .rich-content { line-height: 1.8; word-break: break-word; }
 .rich-content :deep(img) { max-width: 100%; height: auto; }
 .review-side { display: grid; align-content: start; gap: 20px; }

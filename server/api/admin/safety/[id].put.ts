@@ -10,8 +10,18 @@ function parseVenueIds(value: unknown): number[] {
 export default defineEventHandler(async (event) => {
   const admin = await requirePermission(event, 'safety:edit')
   const id = positiveId(getRouterParam(event, 'id'), '文章ID')
-  const existing = await queryOne<{ id: number, state: string }>('SELECT id, state FROM safety_articles WHERE id = ?', [id])
+  const existing = await queryOne<{ id: number, state: string, creatorRole: string | null }>(
+    `SELECT a.id, a.state, cr.code AS creatorRole
+     FROM safety_articles a
+     LEFT JOIN admins cb ON cb.id = a.created_by
+     LEFT JOIN roles cr ON cr.id = cb.role_id
+     WHERE a.id = ?`,
+    [id]
+  )
   if (!existing) throw createError({ statusCode: 404, message: '文章不存在' })
+  if (admin.roleCode === 'venue' && existing.creatorRole !== 'venue') {
+    throw createError({ statusCode: 403, message: '县级发布的文章仅有阅读权限' })
+  }
   const currentVenueIds = (await query<{ venue_id: number }>(
     'SELECT venue_id FROM safety_article_venues WHERE article_id = ?', [id]
   )).map((row) => row.venue_id)
