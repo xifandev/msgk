@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
-import { ChatLineSquare, Edit, InfoFilled, Iphone } from '@element-plus/icons-vue'
+import { ChatLineSquare, Edit, InfoFilled, Iphone, Tools } from '@element-plus/icons-vue'
 
 definePageMeta({ layout: 'auth' })
 const { admin } = useAdmin()
@@ -94,6 +94,20 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
           <el-icon><Edit /></el-icon>
           <span>欢迎登录</span>
         </h1>
+
+        <aside class="maintenance-notice" aria-labelledby="maintenance-title">
+          <div class="maintenance-icon" aria-hidden="true">
+            <el-icon><Tools /></el-icon>
+          </div>
+          <div class="maintenance-content">
+            <div class="maintenance-heading">
+              <h2 id="maintenance-title">系统维护</h2>
+              <span class="maintenance-badge">升级中</span>
+            </div>
+            <p>系统正在优化升级中，预计 <strong>11月9日之前</strong> 完成，请稍后登录，感谢支持。</p>
+            <p class="maintenance-contact">有紧急问题可联系技术人员微信：<strong>15224499331</strong></p>
+          </div>
+        </aside>
 
         <label class="sr-only" for="login-phone">手机号</label>
         <el-input
@@ -205,6 +219,70 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   color: #303133;
 }
 .login-form h1 .el-icon { font-size: 28px; color: #409eff; }
+
+.maintenance-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  margin: -4px 0 24px;
+  padding: 17px 18px;
+  border: 1px solid #f2dfb8;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #fffaf0 0%, #fff6e5 100%);
+  color: #6b542e;
+}
+.maintenance-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  margin-block-start: 1px;
+  border-radius: 11px;
+  background: #f5e4bc;
+  color: #a97419;
+  font-size: 21px;
+}
+.maintenance-content { min-width: 0; }
+.maintenance-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-block-end: 7px;
+}
+.maintenance-heading h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 1.4;
+  color: #725116;
+}
+.maintenance-badge {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #f3e2b9;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #9a6a17;
+}
+.maintenance-content p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.75;
+}
+.maintenance-content p strong { font-weight: 650; color: #8b601a; }
+.maintenance-content .maintenance-contact {
+  margin-block-start: 6px;
+  padding-block-start: 7px;
+  border-block-start: 1px dashed #e8d4aa;
+  font-size: 13px;
+}
+.maintenance-contact strong {
+  font-size: 15px;
+  letter-spacing: .4px;
+  white-space: nowrap;
+}
 
 .login-form .el-input { margin-block-end: 20px; }
 .login-form :deep(.el-input__wrapper) {
