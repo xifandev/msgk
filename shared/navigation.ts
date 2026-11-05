@@ -16,9 +16,8 @@ export interface NavigationItem {
 export const NAVIGATION: NavigationItem[] = [
   { path: '/dashboard', label: '工作台', description: '全县公开上报进度、待办事项与本月数据总览。', permission: 'dashboard:view', icon: 'DataAnalysis' },
   { path: '/finance', label: '财务公开', description: '按月维护收支明细与结余，提交审核通过后向公众公开。', permission: 'finance:view', icon: 'Wallet' },
-  { path: '/profiles', label: '场所介绍', description: '按场所维护登记信息与简介，提交审核通过后可向公众公开。', permission: 'venues:edit', icon: 'Document' },
-  { path: '/personnel', label: '人员公开', description: '按场所维护教职与工作人员名册，审核通过后向公众公开。', permission: 'personnel:edit', icon: 'User' },
-  { path: '/review', label: '场所信息审核', description: '统一处理场所介绍与人员名册审核，按待办和状态快速定位。', permission: ['venues:review', 'personnel:review'], icon: 'DocumentChecked' },
+  { path: '/profiles', label: '场所公开', description: '按场所维护登记信息与简介，提交审核通过后向公众公开。', permission: 'venues:view', icon: 'Document' },
+  { path: '/personnel', label: '人员公开', description: '按场所维护教职与工作人员名册，审核通过后向公众公开。', permission: 'personnel:view', icon: 'User' },
   { path: '/safety', label: '场所安全', description: '县级统一发布安全知识文章，发布后自动向全部场所公开；镇级和场所仅阅读。', permission: 'safety:view', icon: 'Reading' },
   { path: '/news', label: '政策法规', description: '维护政策法规文章及分类，发布后在小程序展示；镇级、场所管理员可在本页学习。', permission: 'news:view', icon: 'Reading' },
   { path: '/notices', label: '公告管理', description: '小程序公告面向公众展示，内部公告仅后台管理员可见。', permission: 'notices:edit', icon: 'Reading' },

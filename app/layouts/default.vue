@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
 import {
-  Avatar, DataAnalysis, Document, DocumentChecked, Guide, Key, List,
+  Avatar, DataAnalysis, Document, Guide, Key, List,
   Message, OfficeBuilding, Reading, Setting, Switch, User, UserFilled, Wallet
 } from '@element-plus/icons-vue'
 import { NAVIGATION, navigationFor } from '~~/shared/navigation'
@@ -9,14 +9,12 @@ import { NAVIGATION, navigationFor } from '~~/shared/navigation'
 const { admin, venues, hasPerm, logout, impersonator, stopImpersonate } = useAdmin()
 const route = useRoute()
 const mobileMenu = ref(false)
-const icons = { Avatar, DataAnalysis, Document, DocumentChecked, Guide, Key, List, Message, OfficeBuilding, Reading, Setting, Switch, User, UserFilled, Wallet }
+const icons = { Avatar, DataAnalysis, Document, Guide, Key, List, Message, OfficeBuilding, Reading, Setting, Switch, User, UserFilled, Wallet }
 const items = computed(() => NAVIGATION.filter((item) => {
   if (item.excludeRoleCodes?.includes(admin.value?.roleCode ?? '')) return false
   return Array.isArray(item.permission) ? item.permission.some((code) => hasPerm(code)) : hasPerm(item.permission)
 }))
 const mainItems = computed(() => items.value.filter((item) => !item.superOnly))
-const hasEditingNav = computed(() => mainItems.value.some((item) => item.path === '/profiles' || item.path === '/personnel'))
-const hasReviewNav = computed(() => mainItems.value.some((item) => item.path === '/review'))
 const opsItems = computed(() => items.value.filter((item) => item.superOnly && admin.value?.roleCode === 'super'))
 watch(() => route.path, () => { mobileMenu.value = false })
 
@@ -69,10 +67,10 @@ async function switchBack() {
               aria-label="场所与账号管理"
             />
             <div
-              v-if="item.path === '/profiles' && hasReviewNav"
+              v-if="item.path === '/profiles'"
               class="nav-meteor-divider"
               role="separator"
-              aria-label="内容维护与审核"
+              aria-label="公开内容维护"
             />
             <el-menu-item
               :index="item.path"
@@ -81,12 +79,6 @@ async function switchBack() {
               <el-icon><component :is="icons[item.icon as keyof typeof icons]" /></el-icon>
               <span>{{ item.label }}</span>
             </el-menu-item>
-            <div
-              v-if="item.path === '/review' && hasEditingNav"
-              class="nav-meteor-divider"
-              role="separator"
-              aria-label="内容维护与审核"
-            />
           </template>
           <el-menu-item-group v-if="opsItems.length" title="运维工具">
             <el-menu-item
@@ -114,10 +106,10 @@ async function switchBack() {
               aria-label="场所与账号管理"
             />
             <div
-              v-if="item.path === '/profiles' && hasReviewNav"
+              v-if="item.path === '/profiles'"
               class="nav-meteor-divider"
               role="separator"
-              aria-label="内容维护与审核"
+              aria-label="公开内容维护"
             />
             <el-menu-item
               :index="item.path"
@@ -126,12 +118,6 @@ async function switchBack() {
               <el-icon><component :is="icons[item.icon as keyof typeof icons]" /></el-icon>
               <span>{{ item.label }}</span>
             </el-menu-item>
-            <div
-              v-if="item.path === '/review' && hasEditingNav"
-              class="nav-meteor-divider"
-              role="separator"
-              aria-label="内容维护与审核"
-            />
           </template>
           <el-menu-item-group v-if="opsItems.length" title="运维工具">
             <el-menu-item

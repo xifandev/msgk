@@ -1,5 +1,5 @@
 export const REVIEW_LABELS: Record<string, string> = {
-  draft: '正在编辑',
+  draft: '正在填报',
   pending_town: '待镇级审核',
   pending_county: '待县级审核',
   approved: '审核通过',

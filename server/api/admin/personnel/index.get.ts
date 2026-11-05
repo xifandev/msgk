@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   const admin = await requirePermission(event, 'personnel:view')
   const { page, pageSize, offset, search } = pageParams(event)
   const state = String(getQuery(event).state ?? '').trim()
-  const scope = venueScope(admin, 'p.venue_id')
+  const scope = venueScope(admin, 'v.id')
   const conditions = [scope.sql]
   const params: unknown[] = [...scope.params]
   if (search) {
@@ -18,24 +18,27 @@ export default defineEventHandler(async (event) => {
     if (!(REVIEW_STATES as readonly string[]).includes(state)) {
       throw createError({ statusCode: 400, message: '审核状态不正确' })
     }
-    conditions.push('p.state = ?')
+    conditions.push(`COALESCE(p.state, 'draft') = ?`)
     params.push(state)
   }
   const where = conditions.join(' AND ')
+  // 从未填报的场所没有 personnel 记录，按 draft（正在填报）纳入列表与统计
   const totalRow = await queryOne<{ total: number | string }>(
-    `SELECT COUNT(*) AS total FROM personnel p JOIN venues v ON v.id = p.venue_id WHERE ${where}`,
+    `SELECT COUNT(*) AS total FROM venues v LEFT JOIN personnel p ON p.venue_id = v.id WHERE ${where}`,
     params
   )
   const list = await query(
-    `SELECT p.id, p.venue_id, v.name AS venue_name, v.township,
-            p.state, p.published, p.submitted_at, p.town_note, p.town_reviewed_at,
+    `SELECT v.id AS venue_id, v.name AS venue_name, v.township,
+            COALESCE(p.state, 'draft') AS state, COALESCE(p.published, 0) AS published,
+            p.submitted_at, p.town_note, p.town_reviewed_at,
             p.county_note, p.county_reviewed_at, p.updated_at,
-            JSON_LENGTH(p.members) AS member_count,
+            COALESCE(JSON_LENGTH(p.members), 0) AS member_count,
             JSON_UNQUOTE(JSON_EXTRACT(p.members, '$[0].name')) AS first_member
-     FROM personnel p
-     JOIN venues v ON v.id = p.venue_id
+     FROM venues v
+     LEFT JOIN personnel p ON p.venue_id = v.id
      WHERE ${where}
-     ORDER BY (p.state IN ('pending_county', 'pending_town')) DESC, p.updated_at DESC, p.id DESC
+     ORDER BY (COALESCE(p.state, 'draft') IN ('pending_county', 'pending_town')) DESC,
+              p.updated_at IS NULL, p.updated_at DESC, v.id DESC
      LIMIT ? OFFSET ?`,
     [...params, pageSize, offset]
   )
@@ -47,8 +50,9 @@ export default defineEventHandler(async (event) => {
     countParams.push(`%${search}%`, `%${search}%`)
   }
   const rows = await query<{ state: string; total: number | string }>(
-    `SELECT p.state, COUNT(*) AS total FROM personnel p JOIN venues v ON v.id = p.venue_id
-     WHERE ${countConditions.join(' AND ')} GROUP BY p.state`,
+    `SELECT COALESCE(p.state, 'draft') AS state, COUNT(*) AS total
+     FROM venues v LEFT JOIN personnel p ON p.venue_id = v.id
+     WHERE ${countConditions.join(' AND ')} GROUP BY COALESCE(p.state, 'draft')`,
     countParams
   )
   const counts: Record<string, number> = { all: 0 }

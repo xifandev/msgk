@@ -2,7 +2,21 @@
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Rank } from '@element-plus/icons-vue'
 import Sortable from 'sortablejs'
-import { reviewActionMessage } from '~~/shared/review'
+import { REVIEW_LABELS, REVIEW_TAG_TYPES, reviewActionMessage } from '~~/shared/review'
+
+interface PersonnelRow {
+  venue_id: number
+  venue_name: string
+  township: string
+  state: string
+  published: number | boolean
+  submitted_at: string | null
+  town_note: string | null
+  county_note: string | null
+  updated_at: string | null
+  member_count: number | null
+  first_member: string | null
+}
 
 interface Member {
   key: number
@@ -14,9 +28,104 @@ interface Member {
   position: string
   phone: string
 }
-const { venues, hasPerm } = useAdmin()
-const venueId = ref<number | null>(null)
+
+interface TabItem { value: string, label: string, count: number }
+
+const route = useRoute()
+const router = useRouter()
+const { admin, hasPerm } = useAdmin()
+
+const list = ref<PersonnelRow[]>([])
+const total = ref(0)
+const counts = ref<Record<string, number>>({ all: 0 })
+const query = reactive({ page: 1, pageSize: 10, search: '' })
 const loading = ref(false)
+const activeTab = ref('')
+let loadSequence = 0
+
+const roleCode = computed(() => admin.value?.roleCode ?? '')
+const isReviewer = computed(() => hasPerm('personnel:review'))
+const canEditPersonnel = computed(() => hasPerm('personnel:edit'))
+const myState = computed(() => {
+  if (roleCode.value === 'town') return 'pending_town'
+  if (['county', 'super'].includes(roleCode.value)) return 'pending_county'
+  return ''
+})
+const showMine = computed(() => isReviewer.value && !!myState.value)
+const tabs = computed<TabItem[]>(() => {
+  const items: TabItem[] = []
+  if (showMine.value) items.push({ value: 'mine', label: '待我审核', count: counts.value[myState.value] ?? 0 })
+  if (!(showMine.value && myState.value === 'pending_town')) {
+    items.push({ value: 'pending_town', label: '待镇级审核', count: counts.value.pending_town ?? 0 })
+  }
+  if (!(showMine.value && myState.value === 'pending_county')) {
+    items.push({ value: 'pending_county', label: '待县级审核', count: counts.value.pending_county ?? 0 })
+  }
+  items.push({ value: 'draft', label: '正在填报', count: counts.value.draft ?? 0 })
+  items.push({ value: 'approved', label: '审核通过', count: counts.value.approved ?? 0 })
+  items.push({ value: 'rejected', label: '审核失败', count: counts.value.rejected ?? 0 })
+  items.push({ value: '', label: '全部', count: counts.value.all ?? 0 })
+  return items
+})
+const stateParam = computed(() => (activeTab.value === 'mine' ? myState.value : activeTab.value) || undefined)
+const needsMyReview = (row: any) => showMine.value && row.state === myState.value
+const noteOf = (row: any) => (row.state === 'rejected' ? row.county_note || row.town_note || '' : '')
+
+function actionLabel(row: any) {
+  if (needsMyReview(row)) return '开始审核'
+  if (canEditPersonnel.value && ['draft', 'rejected'].includes(row.state)) return '填写名册'
+  return '查看名册'
+}
+
+async function load() {
+  const sequence = ++loadSequence
+  loading.value = true
+  try {
+    const response = await $fetch<any>('/api/admin/personnel', {
+      query: {
+        page: query.page,
+        pageSize: query.pageSize,
+        search: query.search || undefined,
+        state: stateParam.value
+      }
+    })
+    if (sequence !== loadSequence) return
+    list.value = response.list
+    total.value = response.total
+    counts.value = response.counts ?? { all: response.total ?? 0 }
+  } catch (error) {
+    if (sequence === loadSequence) ElMessage.error(errorMessage(error))
+  } finally {
+    if (sequence === loadSequence) loading.value = false
+  }
+}
+
+function syncQuery() {
+  void router.replace({
+    query: {
+      ...route.query,
+      state: activeTab.value || undefined
+    }
+  })
+}
+
+function setTab(value: string) {
+  if (activeTab.value === value) return
+  activeTab.value = value
+  query.page = 1
+  syncQuery()
+  void load()
+}
+
+function search() {
+  query.page = 1
+  void load()
+}
+
+// —— 详情（填报 / 审核） ——
+const venueId = ref<number | null>(null)
+const currentRow = ref<PersonnelRow | null>(null)
+const detailLoading = ref(false)
 const saving = ref(false)
 const record = ref<Record<string, any> | null>(null)
 const members = ref<Member[]>([])
@@ -27,7 +136,7 @@ let memberKey = 0
 let memberSortable: Sortable | null = null
 const QUICK_POSITIONS = ['民主管理组织负责人', '民主管理组织成员', '财务管理组织出纳', '财务管理组织会计', '财务管理组织资产管理', '安全生产组织成员']
 const editable = computed(() => !!record.value && ['draft', 'rejected'].includes(record.value.state))
-const canEdit = computed(() => hasPerm('personnel:edit') && editable.value)
+const canEdit = computed(() => canEditPersonnel.value && editable.value)
 
 function markDirty() {
   if (!suppressDirty) dirty.value = true
@@ -49,15 +158,15 @@ function quickPosition(index: number, value: string) {
   markDirty()
 }
 
-async function load() {
+async function loadDetail() {
   if (!venueId.value) return
-  loading.value = true
+  detailLoading.value = true
   try {
     let response: Record<string, any>
     try {
       response = await $fetch<Record<string, any>>(`/api/admin/personnel/${venueId.value}`)
     } catch (error: any) {
-      // 该场所还没有名册：按空白的编辑中名册处理，首次保存时由接口创建
+      // 该场所还没有名册：按空白的填报中名册处理，首次保存时由接口创建
       if (error?.statusCode !== 404) throw error
       response = { venue_id: venueId.value, state: 'draft', published: 0, members: [] }
     }
@@ -77,7 +186,23 @@ async function load() {
   } catch (error) {
     record.value = null
     ElMessage.error(errorMessage(error))
-  } finally { loading.value = false; suppressDirty = false }
+  } finally { detailLoading.value = false; suppressDirty = false }
+}
+
+function open(row: any) {
+  venueId.value = row.venue_id
+  currentRow.value = row
+  void router.replace({ query: { ...route.query, venue: String(row.venue_id) } })
+  void loadDetail()
+}
+
+async function back() {
+  venueId.value = null
+  currentRow.value = null
+  record.value = null
+  members.value = []
+  void router.replace({ query: { ...route.query, venue: undefined } })
+  await load()
 }
 
 function destroyMemberSortable() {
@@ -145,7 +270,7 @@ async function save() {
     }))
     record.value = await $fetch<Record<string, any>>(`/api/admin/personnel/${venueId.value}`, { method: 'PUT', body: { members: payload } })
     ElMessage.success('人员名册已保存')
-    await load()
+    await loadDetail()
   } catch (error) { ElMessage.error(errorMessage(error)) } finally { saving.value = false }
 }
 
@@ -170,88 +295,206 @@ async function publish(value: string | number | boolean) {
   } catch (error) { ElMessage.error(errorMessage(error)) }
 }
 
-watch(venueId, load)
+watch(() => [query.page, query.pageSize], () => { void load() })
 watch([memberListRef, canEdit], initMemberSortable, { flush: 'post' })
-onMounted(() => { if (!venueId.value && venues.value.length) venueId.value = venues.value[0]!.id })
+
+onMounted(async () => {
+  const initialState = String(route.query.state ?? '')
+  const validTabs = ['mine', 'pending_town', 'pending_county', 'draft', 'approved', 'rejected']
+  if (validTabs.includes(initialState)) activeTab.value = initialState === myState.value ? 'mine' : initialState
+  await load()
+  if (!validTabs.includes(initialState) && showMine.value) {
+    if ((counts.value[myState.value] ?? 0) > 0) setTab('mine')
+    else if (myState.value === 'pending_county' && (counts.value.pending_town ?? 0) > 0) setTab('pending_town')
+  }
+  const initialVenue = Number(route.query.venue)
+  if (Number.isSafeInteger(initialVenue) && initialVenue > 0) {
+    venueId.value = initialVenue
+    await loadDetail()
+  }
+})
 onBeforeUnmount(destroyMemberSortable)
 </script>
 
 <template>
   <div class="page">
-    <div class="page-bar">
-      <span class="page-bar-label">当前场所</span>
-      <VenueSelect v-model="venueId" style="width: 320px" />
-    </div>
-    <div v-if="record" v-loading="loading" class="detail-layout">
-      <section class="panel">
+    <template v-if="!venueId">
+      <nav class="state-tabs" role="tablist" aria-label="审核状态筛选">
+        <button
+          v-for="tab in tabs"
+          :key="tab.value || 'all'"
+          type="button"
+          role="tab"
+          class="state-tab"
+          :class="{ active: activeTab === tab.value }"
+          :aria-selected="activeTab === tab.value"
+          @click="setTab(tab.value)"
+        >
+          {{ tab.label }}<em>{{ tab.count }}</em>
+        </button>
+      </nav>
+
+      <section class="panel" aria-label="人员名册列表">
         <div class="toolbar">
-          <span class="toolbar-note">共 {{ members.length }} 人</span>
+          <el-input v-model="query.search" placeholder="搜索场所或乡镇" clearable @keyup.enter="search" @clear="search" />
+          <el-button type="primary" plain @click="search">查询</el-button>
           <div class="toolbar-actions">
-            <el-button v-if="canEdit" :loading="saving" @click="save">{{ dirty ? '保存名册（有未保存修改）' : '保存名册' }}</el-button>
-            <el-button v-if="canEdit" type="primary" :icon="Plus" @click="addMember">添加人员</el-button>
+            <span class="toolbar-note">共 {{ total }} 条</span>
+            <el-button :loading="loading" @click="load">刷新</el-button>
           </div>
         </div>
-        <p v-if="canEdit" class="muted hint-text">拖动成员卡片行首手柄调整顺序，保存名册后生效。</p>
-        <p v-if="!editable" class="muted">当前内容正在审核或已经通过，如需修改请先重新编辑。</p>
-        <el-empty v-if="!members.length" description="尚未添加人员" />
-        <div ref="memberListRef" class="member-list">
-          <article v-for="(member, index) in members" :key="member.key" class="member-card" :class="{ 'is-editing': canEdit }">
-            <template v-if="canEdit">
-              <div class="member-head">
-                <button type="button" class="drag-handle member-handle" :aria-label="`拖动第${index + 1}位成员`" title="拖动排序">
-                  <el-icon><Rank /></el-icon>
-                </button>
-                <span class="member-no" aria-hidden="true">{{ index + 1 }}</span>
-                <strong>第 {{ index + 1 }} 位成员</strong>
-                <span v-if="member.name" class="member-name">{{ member.name }}</span>
-                <div class="member-actions"><el-button size="small" type="danger" plain @click="removeMember(index)">删除</el-button></div>
-              </div>
-              <div class="member-body">
-                <ImageUpload v-model="member.imageUrl" :label="`${member.name || '成员'}照片`" />
-                <el-form label-position="top" class="member-form" @change="markDirty"><div class="member-grid">
-                  <el-form-item label="姓名" required><el-input v-model="member.name" maxlength="50" placeholder="请输入姓名" /></el-form-item>
-                  <el-form-item label="性别"><el-select v-model="member.gender" clearable><el-option label="男" value="男" /><el-option label="女" value="女" /></el-select></el-form-item>
-                  <el-form-item label="教职"><el-input v-model="member.clergy" maxlength="50" placeholder="没有可不填" /></el-form-item>
-                  <el-form-item label="联系电话"><el-input v-model="member.phone" maxlength="30" placeholder="请输入联系电话" /></el-form-item>
-                  <el-form-item label="职务" required class="span-2">
-                    <div class="position-row">
-                      <el-input v-model="member.position" type="textarea" :rows="2" maxlength="100" placeholder="请输入职务" />
-                      <el-select placeholder="快速添加职务" clearable class="position-quick" @change="(value: string) => quickPosition(index, value)">
-                        <el-option v-for="item in QUICK_POSITIONS" :key="item" :value="item" :label="item" />
-                      </el-select>
-                    </div>
-                  </el-form-item>
-                </div></el-form>
-              </div>
-            </template>
-            <template v-else>
-              <div class="member-photo">
-                <el-image v-if="member.imageUrl" :src="member.imageUrl" :preview-src-list="[member.imageUrl]" fit="contain" class="photo-preview" :alt="`${member.name}照片`" />
-                <span v-else class="photo-empty">暂无<br>照片</span>
-              </div>
-              <div class="member-info">
-                <header class="member-head">
-                  <h3>{{ member.name || '未填写姓名' }}</h3>
-                  <span v-if="member.gender" class="member-gender">{{ member.gender }}</span>
-                  <span class="member-index">第 {{ index + 1 }} 位</span>
-                </header>
-                <p class="member-clergy">{{ member.clergy || '教职未填写' }}</p>
-                <dl class="member-fields">
-                  <div><dt>职务</dt><dd class="pre">{{ member.position || '未填写' }}</dd></div>
-                  <div><dt>联系电话</dt><dd>{{ member.phone || '未填写' }}</dd></div>
-                </dl>
-              </div>
-            </template>
-          </article>
+
+        <div class="table-region" tabindex="0" role="region" aria-label="人员名册列表">
+          <el-table v-loading="loading" :data="list">
+            <el-table-column prop="venue_name" label="场所名称" min-width="170" />
+            <el-table-column prop="township" label="乡镇" width="110" />
+            <el-table-column label="人数" width="80" align="right">
+              <template #default="{ row }">{{ row.member_count ?? 0 }}</template>
+            </el-table-column>
+            <el-table-column label="首位成员" width="110">
+              <template #default="{ row }">{{ row.first_member || '—' }}</template>
+            </el-table-column>
+            <el-table-column label="状态" width="100">
+              <template #default="{ row }"><el-tag :type="REVIEW_TAG_TYPES[row.state] ?? 'info'">{{ REVIEW_LABELS[row.state] ?? row.state }}</el-tag></template>
+            </el-table-column>
+            <el-table-column label="公开" width="86">
+              <template #default="{ row }">
+                <el-tag v-if="row.state === 'approved'" :type="row.published ? 'success' : 'info'" effect="plain">{{ row.published ? '已公开' : '未公开' }}</el-tag>
+                <span v-else class="muted" aria-hidden="true">—</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="提交时间" width="165">
+              <template #default="{ row }">{{ row.submitted_at ? formatDateTime(row.submitted_at) : '尚未提交' }}</template>
+            </el-table-column>
+            <el-table-column label="审核意见" min-width="140">
+              <template #default="{ row }"><span :class="{ 'note-danger': noteOf(row) }">{{ noteOf(row) || '—' }}</span></template>
+            </el-table-column>
+            <el-table-column label="操作" width="110" fixed="right" align="right">
+              <template #default="{ row }">
+                <el-button :type="needsMyReview(row) ? 'primary' : 'default'" :plain="!needsMyReview(row)" size="small" :aria-label="`${actionLabel(row)}${row.venue_name}`" @click="open(row)">
+                  {{ actionLabel(row) }}
+                </el-button>
+              </template>
+            </el-table-column>
+            <template #empty>{{ loading ? '加载中' : '该分类下暂无记录' }}</template>
+          </el-table>
+        </div>
+
+        <div v-if="total > query.pageSize" class="pagination">
+          <el-pagination
+            v-model:current-page="query.page"
+            v-model:page-size="query.pageSize"
+            :total="total"
+            :page-sizes="[10, 20, 50]"
+            layout="total, sizes, prev, pager, next"
+          />
         </div>
       </section>
-      <aside class="panel review-side"><ReviewTimeline :record="record" /><div v-if="hasPerm('personnel:publish')" class="publish-box"><span>是否公开</span><el-switch :model-value="!!record.published" :disabled="record.state !== 'approved'" :aria-label="`${venueId}号场所人员名册是否公开`" @change="publish" /></div><ReviewActions :state="record.state" edit-permission="personnel:edit" review-permission="personnel:review" :submit-validator="validateSubmit" @action="review" /></aside>
-    </div>
-    <el-empty v-else-if="!loading" description="请选择要维护的场所" />
+    </template>
+
+    <template v-else>
+      <div class="page-bar">
+        <el-button plain @click="back">← 返回列表</el-button>
+        <strong class="detail-venue">{{ currentRow?.venue_name ?? `${venueId} 号场所` }}</strong>
+        <span v-if="currentRow?.township" class="town-chip">{{ currentRow.township }}</span>
+      </div>
+      <div v-if="record" v-loading="detailLoading" class="detail-layout">
+        <section class="panel">
+          <div class="toolbar">
+            <span class="toolbar-note">共 {{ members.length }} 人</span>
+            <div class="toolbar-actions">
+              <el-button v-if="canEdit" :loading="saving" @click="save">{{ dirty ? '保存名册（有未保存修改）' : '保存名册' }}</el-button>
+              <el-button v-if="canEdit" type="primary" :icon="Plus" @click="addMember">添加人员</el-button>
+            </div>
+          </div>
+          <p v-if="canEdit" class="muted hint-text">拖动成员卡片行首手柄调整顺序，保存名册后生效。</p>
+          <p v-if="canEditPersonnel && !editable" class="muted">当前内容正在审核或已经通过，如需修改请先重新编辑。</p>
+          <el-empty v-if="!members.length" description="尚未添加人员" />
+          <div ref="memberListRef" class="member-list">
+            <article v-for="(member, index) in members" :key="member.key" class="member-card" :class="{ 'is-editing': canEdit }">
+              <template v-if="canEdit">
+                <div class="member-head">
+                  <button type="button" class="drag-handle member-handle" :aria-label="`拖动第${index + 1}位成员`" title="拖动排序">
+                    <el-icon><Rank /></el-icon>
+                  </button>
+                  <span class="member-no" aria-hidden="true">{{ index + 1 }}</span>
+                  <strong>第 {{ index + 1 }} 位成员</strong>
+                  <span v-if="member.name" class="member-name">{{ member.name }}</span>
+                  <div class="member-actions"><el-button size="small" type="danger" plain @click="removeMember(index)">删除</el-button></div>
+                </div>
+                <div class="member-body">
+                  <ImageUpload v-model="member.imageUrl" :label="`${member.name || '成员'}照片`" />
+                  <el-form label-position="top" class="member-form" @change="markDirty"><div class="member-grid">
+                    <el-form-item label="姓名" required><el-input v-model="member.name" maxlength="50" placeholder="请输入姓名" /></el-form-item>
+                    <el-form-item label="性别"><el-select v-model="member.gender" clearable><el-option label="男" value="男" /><el-option label="女" value="女" /></el-select></el-form-item>
+                    <el-form-item label="教职"><el-input v-model="member.clergy" maxlength="50" placeholder="没有可不填" /></el-form-item>
+                    <el-form-item label="联系电话"><el-input v-model="member.phone" maxlength="30" placeholder="请输入联系电话" /></el-form-item>
+                    <el-form-item label="职务" required class="span-2">
+                      <div class="position-row">
+                        <el-input v-model="member.position" type="textarea" :rows="2" maxlength="100" placeholder="请输入职务" />
+                        <el-select placeholder="快速添加职务" clearable class="position-quick" @change="(value: string) => quickPosition(index, value)">
+                          <el-option v-for="item in QUICK_POSITIONS" :key="item" :value="item" :label="item" />
+                        </el-select>
+                      </div>
+                    </el-form-item>
+                  </div></el-form>
+                </div>
+              </template>
+              <template v-else>
+                <div class="member-photo">
+                  <el-image v-if="member.imageUrl" :src="member.imageUrl" :preview-src-list="[member.imageUrl]" fit="contain" class="photo-preview" :alt="`${member.name}照片`" />
+                  <span v-else class="photo-empty">暂无<br>照片</span>
+                </div>
+                <div class="member-info">
+                  <header class="member-head">
+                    <h3>{{ member.name || '未填写姓名' }}</h3>
+                    <span v-if="member.gender" class="member-gender">{{ member.gender }}</span>
+                    <span class="member-index">第 {{ index + 1 }} 位</span>
+                  </header>
+                  <p class="member-clergy">{{ member.clergy || '教职未填写' }}</p>
+                  <dl class="member-fields">
+                    <div><dt>职务</dt><dd class="pre">{{ member.position || '未填写' }}</dd></div>
+                    <div><dt>联系电话</dt><dd>{{ member.phone || '未填写' }}</dd></div>
+                  </dl>
+                </div>
+              </template>
+            </article>
+          </div>
+        </section>
+        <aside class="panel review-side"><ReviewTimeline :record="record" /><div v-if="hasPerm('personnel:publish')" class="publish-box"><span>是否公开</span><el-switch :model-value="!!record.published" :disabled="record.state !== 'approved'" :aria-label="`${currentRow?.venue_name ?? venueId}人员名册是否公开`" @change="publish" /></div><ReviewActions :state="record.state" edit-permission="personnel:edit" review-permission="personnel:review" :submit-validator="validateSubmit" @action="review" /></aside>
+      </div>
+      <el-empty v-else-if="!detailLoading" description="未找到该场所的人员名册" />
+    </template>
   </div>
 </template>
 
 <style scoped>
+.state-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.state-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: #475467;
+  cursor: pointer;
+  font-size: 13px;
+  transition: border-color .15s, background-color .15s, color .15s;
+}
+.state-tab em { min-width: 22px; padding: 0 6px; border-radius: 999px; background: #eef1f5; color: var(--muted); font-style: normal; font-size: 11px; line-height: 20px; text-align: center; font-variant-numeric: tabular-nums; }
+.state-tab:hover { border-color: var(--el-color-primary-light-5); color: var(--brand); }
+.state-tab.active { border-color: var(--brand); background: var(--brand); color: #fff; }
+.state-tab.active em { background: rgb(255 255 255 / 20%); color: #fff; }
+.state-tab:focus-visible { outline: 3px solid #84adff; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .state-tab { transition: none; } }
+
+.toolbar .el-input { max-width: 300px; }
+.note-danger { color: #b42318; }
+.detail-venue { font-size: 16px; }
+.town-chip { padding: 1px 8px; border-radius: 6px; background: #f2f4f7; color: var(--muted); font-size: 12px; }
+
 .detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; align-items: start; }
 .review-side { display: grid; gap: 20px; align-content: start; }
 .publish-box { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; }

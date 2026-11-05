@@ -144,8 +144,8 @@ const infoRows = computed(() => {
   const total = data.value?.venueTotal ?? 0
   const info = data.value?.info
   const rows = [
-    { key: 'profiles', label: '场所介绍', to: '/profiles', ...(info?.profiles ?? { published: 0, pending: 0 }) },
-    { key: 'personnel', label: '人员信息', to: '/personnel', ...(info?.personnel ?? { published: 0, pending: 0 }) },
+    { key: 'profiles', label: '场所公开', to: '/profiles', ...(info?.profiles ?? { published: 0, pending: 0 }) },
+    { key: 'personnel', label: '人员公开', to: '/personnel', ...(info?.personnel ?? { published: 0, pending: 0 }) },
     { key: 'safety', label: '安全公开', to: '/safety', ...(info?.safety ?? { published: 0, pending: 0 }) }
   ]
   return rows.map((row) => ({ ...row, total, ratio: total ? row.published / total : 0 }))

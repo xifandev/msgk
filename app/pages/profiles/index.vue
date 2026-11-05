@@ -1,9 +1,117 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { reviewActionMessage } from '~~/shared/review'
-const { admin, venues, hasPerm } = useAdmin()
-const venueId = ref<number | null>(null)
+import { REVIEW_LABELS, REVIEW_TAG_TYPES, reviewActionMessage } from '~~/shared/review'
+
+interface ProfileRow {
+  venue_id: number
+  venue_name: string
+  township: string
+  category: string | null
+  state: string
+  published: number | boolean
+  submitted_at: string | null
+  town_note: string | null
+  county_note: string | null
+  updated_at: string | null
+}
+
+interface TabItem { value: string, label: string, count: number }
+
+const route = useRoute()
+const router = useRouter()
+const { admin, hasPerm } = useAdmin()
+
+const list = ref<ProfileRow[]>([])
+const total = ref(0)
+const counts = ref<Record<string, number>>({ all: 0 })
+const query = reactive({ page: 1, pageSize: 10, search: '' })
 const loading = ref(false)
+const activeTab = ref('')
+let loadSequence = 0
+
+const roleCode = computed(() => admin.value?.roleCode ?? '')
+const isReviewer = computed(() => hasPerm('venues:review'))
+const canEditVenue = computed(() => hasPerm('venues:edit'))
+const myState = computed(() => {
+  if (roleCode.value === 'town') return 'pending_town'
+  if (['county', 'super'].includes(roleCode.value)) return 'pending_county'
+  return ''
+})
+const showMine = computed(() => isReviewer.value && !!myState.value)
+const tabs = computed<TabItem[]>(() => {
+  const items: TabItem[] = []
+  if (showMine.value) items.push({ value: 'mine', label: '待我审核', count: counts.value[myState.value] ?? 0 })
+  if (!(showMine.value && myState.value === 'pending_town')) {
+    items.push({ value: 'pending_town', label: '待镇级审核', count: counts.value.pending_town ?? 0 })
+  }
+  if (!(showMine.value && myState.value === 'pending_county')) {
+    items.push({ value: 'pending_county', label: '待县级审核', count: counts.value.pending_county ?? 0 })
+  }
+  items.push({ value: 'draft', label: '正在填报', count: counts.value.draft ?? 0 })
+  items.push({ value: 'approved', label: '审核通过', count: counts.value.approved ?? 0 })
+  items.push({ value: 'rejected', label: '审核失败', count: counts.value.rejected ?? 0 })
+  items.push({ value: '', label: '全部', count: counts.value.all ?? 0 })
+  return items
+})
+const stateParam = computed(() => (activeTab.value === 'mine' ? myState.value : activeTab.value) || undefined)
+const needsMyReview = (row: any) => showMine.value && row.state === myState.value
+const noteOf = (row: any) => (row.state === 'rejected' ? row.county_note || row.town_note || '' : '')
+
+function actionLabel(row: any) {
+  if (needsMyReview(row)) return '开始审核'
+  if (canEditVenue.value && ['draft', 'rejected'].includes(row.state)) return '填写介绍'
+  return '查看介绍'
+}
+
+async function load() {
+  const sequence = ++loadSequence
+  loading.value = true
+  try {
+    const response = await $fetch<any>('/api/admin/profiles', {
+      query: {
+        page: query.page,
+        pageSize: query.pageSize,
+        search: query.search || undefined,
+        state: stateParam.value
+      }
+    })
+    if (sequence !== loadSequence) return
+    list.value = response.list
+    total.value = response.total
+    counts.value = response.counts ?? { all: response.total ?? 0 }
+  } catch (error) {
+    if (sequence === loadSequence) ElMessage.error(errorMessage(error))
+  } finally {
+    if (sequence === loadSequence) loading.value = false
+  }
+}
+
+function syncQuery() {
+  void router.replace({
+    query: {
+      ...route.query,
+      state: activeTab.value || undefined
+    }
+  })
+}
+
+function setTab(value: string) {
+  if (activeTab.value === value) return
+  activeTab.value = value
+  query.page = 1
+  syncQuery()
+  void load()
+}
+
+function search() {
+  query.page = 1
+  void load()
+}
+
+// —— 详情（填报 / 审核） ——
+const venueId = ref<number | null>(null)
+const currentRow = ref<ProfileRow | null>(null)
+const detailLoading = ref(false)
 const saving = ref(false)
 const profile = ref<Record<string, any> | null>(null)
 const form = reactive({
@@ -20,7 +128,7 @@ const form = reactive({
 const extraPairs = ref<{ key: string, value: string }[]>([])
 
 const editable = computed(() => !!profile.value && ['draft', 'rejected'].includes(profile.value.state))
-const canEdit = computed(() => hasPerm('venues:edit') && editable.value)
+const canEdit = computed(() => canEditVenue.value && editable.value)
 
 function toDateOnly(value: unknown): string {
   const raw = String(value ?? '').trim()
@@ -48,17 +156,39 @@ function fillForm(row: Record<string, any>) {
   extraPairs.value = Object.entries(row.extra ?? {}).map(([key, value]) => ({ key, value: String(value ?? '') }))
 }
 
-async function load() {
+async function loadDetail() {
   if (!venueId.value) return
-  loading.value = true
+  detailLoading.value = true
   try {
-    const response = await $fetch<Record<string, any>>(`/api/admin/profiles/${venueId.value}`)
+    let response: Record<string, any>
+    try {
+      response = await $fetch<Record<string, any>>(`/api/admin/profiles/${venueId.value}`)
+    } catch (error: any) {
+      // 该场所还没有介绍：按空白的填报中记录处理，首次保存时由接口创建
+      if (error?.statusCode !== 404) throw error
+      response = { venue_id: venueId.value, state: 'draft', published: 0, extra: {} }
+    }
     profile.value = response
     fillForm(response)
   } catch (error) {
     profile.value = null
     ElMessage.error(errorMessage(error))
-  } finally { loading.value = false }
+  } finally { detailLoading.value = false }
+}
+
+function open(row: any) {
+  venueId.value = row.venue_id
+  currentRow.value = row
+  void router.replace({ query: { ...route.query, venue: String(row.venue_id) } })
+  void loadDetail()
+}
+
+async function back() {
+  venueId.value = null
+  currentRow.value = null
+  profile.value = null
+  void router.replace({ query: { ...route.query, venue: undefined } })
+  await load()
 }
 
 function buildExtra() {
@@ -131,71 +261,184 @@ async function publish(value: string | number | boolean) {
   } catch (error) { ElMessage.error(errorMessage(error)) }
 }
 
-watch(venueId, load)
-onMounted(() => {
-  if (!venueId.value && venues.value.length) venueId.value = venues.value[0]!.id
+watch(() => [query.page, query.pageSize], () => { void load() })
+
+onMounted(async () => {
+  const initialState = String(route.query.state ?? '')
+  const validTabs = ['mine', 'pending_town', 'pending_county', 'draft', 'approved', 'rejected']
+  if (validTabs.includes(initialState)) activeTab.value = initialState === myState.value ? 'mine' : initialState
+  await load()
+  if (!validTabs.includes(initialState) && showMine.value) {
+    if ((counts.value[myState.value] ?? 0) > 0) setTab('mine')
+    else if (myState.value === 'pending_county' && (counts.value.pending_town ?? 0) > 0) setTab('pending_town')
+  }
+  const initialVenue = Number(route.query.venue)
+  if (Number.isSafeInteger(initialVenue) && initialVenue > 0) {
+    venueId.value = initialVenue
+    await loadDetail()
+  }
 })
 </script>
 
 <template>
   <div class="page">
-    <div class="page-bar">
-      <span class="page-bar-label">当前场所</span>
-      <VenueSelect v-model="venueId" style="width: 320px" />
-    </div>
-    <div v-if="profile" v-loading="loading" class="detail-layout">
-      <section class="panel">
-        <el-form label-position="top" :disabled="!canEdit" @submit.prevent="save">
-          <div class="form-grid">
-            <el-form-item label="登记时间"><el-date-picker v-model="form.registration_date" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" /></el-form-item>
-            <el-form-item label="教别"><el-input v-model="form.religion" maxlength="50" placeholder="请输入宗教，如：佛教、道教" /></el-form-item>
-            <el-form-item label="场所类别"><el-input v-model="form.category" maxlength="50" placeholder="请输入场所类别" /></el-form-item>
-            <el-form-item label="负责人"><el-input v-model="form.manager" maxlength="50" placeholder="请输入场所负责人" /></el-form-item>
-            <el-form-item label="联系电话"><el-input v-model="form.phone" maxlength="30" placeholder="请输入联系电话" /></el-form-item>
-            <el-form-item label="社会信用代码"><el-input v-model="form.credit_code" maxlength="50" placeholder="请输入社会信用代码" /></el-form-item>
-            <el-form-item label="批准设立机构" class="span-2"><el-input v-model="form.approval_authority" maxlength="150" placeholder="请输入批准设立机构" /></el-form-item>
-            <el-form-item label="场所地址" class="span-2"><el-input v-model="form.address" maxlength="255" placeholder="请输入场所地址" /></el-form-item>
+    <template v-if="!venueId">
+      <nav class="state-tabs" role="tablist" aria-label="审核状态筛选">
+        <button
+          v-for="tab in tabs"
+          :key="tab.value || 'all'"
+          type="button"
+          role="tab"
+          class="state-tab"
+          :class="{ active: activeTab === tab.value }"
+          :aria-selected="activeTab === tab.value"
+          @click="setTab(tab.value)"
+        >
+          {{ tab.label }}<em>{{ tab.count }}</em>
+        </button>
+      </nav>
+
+      <section class="panel" aria-label="场所介绍列表">
+        <div class="toolbar">
+          <el-input v-model="query.search" placeholder="搜索场所或乡镇" clearable @keyup.enter="search" @clear="search" />
+          <el-button type="primary" plain @click="search">查询</el-button>
+          <div class="toolbar-actions">
+            <span class="toolbar-note">共 {{ total }} 条</span>
+            <el-button :loading="loading" @click="load">刷新</el-button>
           </div>
-          <el-form-item label="场所简介">
-            <RichTextEditor v-if="canEdit" v-model="form.summary" />
-            <div v-else class="summary-view" v-html="form.summary || '<p class=muted>暂无简介</p>'" />
-          </el-form-item>
-          <el-form-item label="更多介绍">
-            <div class="extra-list">
-              <div v-for="(pair, index) in extraPairs" :key="index" class="extra-row">
-                <span class="muted extra-index">介绍{{ index + 1 }}</span>
-                <el-input v-model="pair.key" placeholder="名称" maxlength="50" aria-label="介绍名称" />
-                <el-input v-model="pair.value" placeholder="内容" maxlength="500" aria-label="介绍内容" />
-                <el-button v-if="canEdit" size="small" type="danger" plain aria-label="删除该介绍" @click="extraPairs.splice(index, 1)">删除</el-button>
-              </div>
-              <el-button v-if="canEdit" type="success" plain @click="extraPairs.push({ key: '', value: '' })">＋ 添加更多介绍</el-button>
-              <p v-if="!extraPairs.length" class="muted">可添加“建筑面积”“始建年代”等自定义介绍条目。</p>
-            </div>
-          </el-form-item>
-          <template v-if="canEdit">
-            <div class="form-actions">
-              <el-button type="primary" native-type="submit" :loading="saving">保存</el-button>
-              <el-button type="success" :loading="saving" @click="submitReview">提交审核</el-button>
-            </div>
-            <p class="muted action-hint">场所介绍编辑完成后，点击“提交审核”按钮进行审核。</p>
-          </template>
-          <p v-else-if="!editable" class="muted">当前状态为审核流程中，如需修改请先使用右侧“重新编辑”退回。</p>
-        </el-form>
-      </section>
-      <aside class="panel review-side">
-        <ReviewTimeline :record="profile" />
-        <div v-if="hasPerm('venues:publish')" class="publish-box">
-          <span>是否公开</span>
-          <el-switch :model-value="!!profile.published" :disabled="profile.state !== 'approved'" :aria-label="`${profile.venue_id}号场所介绍是否公开`" @change="publish" />
         </div>
-        <ReviewActions :state="profile.state" edit-permission="venues:edit" review-permission="venues:review" hide-submit @action="review" />
-      </aside>
-    </div>
-    <el-empty v-else-if="!loading" description="请选择要维护的场所" />
+
+        <div class="table-region" tabindex="0" role="region" aria-label="场所介绍列表">
+          <el-table v-loading="loading" :data="list">
+            <el-table-column prop="venue_name" label="场所名称" min-width="170" />
+            <el-table-column prop="township" label="乡镇" width="110" />
+            <el-table-column label="场所类别" width="120">
+              <template #default="{ row }">{{ row.category || '—' }}</template>
+            </el-table-column>
+            <el-table-column label="状态" width="100">
+              <template #default="{ row }"><el-tag :type="REVIEW_TAG_TYPES[row.state] ?? 'info'">{{ REVIEW_LABELS[row.state] ?? row.state }}</el-tag></template>
+            </el-table-column>
+            <el-table-column label="公开" width="86">
+              <template #default="{ row }">
+                <el-tag v-if="row.state === 'approved'" :type="row.published ? 'success' : 'info'" effect="plain">{{ row.published ? '已公开' : '未公开' }}</el-tag>
+                <span v-else class="muted" aria-hidden="true">—</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="提交时间" width="165">
+              <template #default="{ row }">{{ row.submitted_at ? formatDateTime(row.submitted_at) : '尚未提交' }}</template>
+            </el-table-column>
+            <el-table-column label="审核意见" min-width="140">
+              <template #default="{ row }"><span :class="{ 'note-danger': noteOf(row) }">{{ noteOf(row) || '—' }}</span></template>
+            </el-table-column>
+            <el-table-column label="操作" width="110" fixed="right" align="right">
+              <template #default="{ row }">
+                <el-button :type="needsMyReview(row) ? 'primary' : 'default'" :plain="!needsMyReview(row)" size="small" :aria-label="`${actionLabel(row)}${row.venue_name}`" @click="open(row)">
+                  {{ actionLabel(row) }}
+                </el-button>
+              </template>
+            </el-table-column>
+            <template #empty>{{ loading ? '加载中' : '该分类下暂无记录' }}</template>
+          </el-table>
+        </div>
+
+        <div v-if="total > query.pageSize" class="pagination">
+          <el-pagination
+            v-model:current-page="query.page"
+            v-model:page-size="query.pageSize"
+            :total="total"
+            :page-sizes="[10, 20, 50]"
+            layout="total, sizes, prev, pager, next"
+          />
+        </div>
+      </section>
+    </template>
+
+    <template v-else>
+      <div class="page-bar">
+        <el-button plain @click="back">← 返回列表</el-button>
+        <strong class="detail-venue">{{ currentRow?.venue_name ?? `${venueId} 号场所` }}</strong>
+        <span v-if="currentRow?.township" class="town-chip">{{ currentRow.township }}</span>
+      </div>
+      <div v-if="profile" v-loading="detailLoading" class="detail-layout">
+        <section class="panel">
+          <el-form label-position="top" :disabled="!canEdit" @submit.prevent="save">
+            <div class="form-grid">
+              <el-form-item label="登记时间"><el-date-picker v-model="form.registration_date" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" /></el-form-item>
+              <el-form-item label="教别"><el-input v-model="form.religion" maxlength="50" placeholder="请输入宗教，如：佛教、道教" /></el-form-item>
+              <el-form-item label="场所类别"><el-input v-model="form.category" maxlength="50" placeholder="请输入场所类别" /></el-form-item>
+              <el-form-item label="负责人"><el-input v-model="form.manager" maxlength="50" placeholder="请输入场所负责人" /></el-form-item>
+              <el-form-item label="联系电话"><el-input v-model="form.phone" maxlength="30" placeholder="请输入联系电话" /></el-form-item>
+              <el-form-item label="社会信用代码"><el-input v-model="form.credit_code" maxlength="50" placeholder="请输入社会信用代码" /></el-form-item>
+              <el-form-item label="批准设立机构" class="span-2"><el-input v-model="form.approval_authority" maxlength="150" placeholder="请输入批准设立机构" /></el-form-item>
+              <el-form-item label="场所地址" class="span-2"><el-input v-model="form.address" maxlength="255" placeholder="请输入场所地址" /></el-form-item>
+            </div>
+            <el-form-item label="场所简介">
+              <RichTextEditor v-if="canEdit" v-model="form.summary" />
+              <div v-else class="summary-view" v-html="form.summary || '<p class=muted>暂无简介</p>'" />
+            </el-form-item>
+            <el-form-item label="更多介绍">
+              <div class="extra-list">
+                <div v-for="(pair, index) in extraPairs" :key="index" class="extra-row">
+                  <span class="muted extra-index">介绍{{ index + 1 }}</span>
+                  <el-input v-model="pair.key" placeholder="名称" maxlength="50" aria-label="介绍名称" />
+                  <el-input v-model="pair.value" placeholder="内容" maxlength="500" aria-label="介绍内容" />
+                  <el-button v-if="canEdit" size="small" type="danger" plain aria-label="删除该介绍" @click="extraPairs.splice(index, 1)">删除</el-button>
+                </div>
+                <el-button v-if="canEdit" type="success" plain @click="extraPairs.push({ key: '', value: '' })">＋ 添加更多介绍</el-button>
+                <p v-if="!extraPairs.length" class="muted">可添加“建筑面积”“始建年代”等自定义介绍条目。</p>
+              </div>
+            </el-form-item>
+            <template v-if="canEdit">
+              <div class="form-actions">
+                <el-button type="primary" native-type="submit" :loading="saving">保存</el-button>
+                <el-button type="success" :loading="saving" @click="submitReview">提交审核</el-button>
+              </div>
+              <p class="muted action-hint">场所介绍编辑完成后，点击“提交审核”按钮进行审核。</p>
+            </template>
+            <p v-else-if="canEditVenue && !editable" class="muted">当前状态为审核流程中，如需修改请先使用右侧“重新编辑”退回。</p>
+          </el-form>
+        </section>
+        <aside class="panel review-side">
+          <ReviewTimeline :record="profile" />
+          <div v-if="hasPerm('venues:publish')" class="publish-box">
+            <span>是否公开</span>
+            <el-switch :model-value="!!profile.published" :disabled="profile.state !== 'approved'" :aria-label="`${currentRow?.venue_name ?? venueId}场所介绍是否公开`" @change="publish" />
+          </div>
+          <ReviewActions :state="profile.state" edit-permission="venues:edit" review-permission="venues:review" hide-submit @action="review" />
+        </aside>
+      </div>
+      <el-empty v-else-if="!detailLoading" description="未找到该场所的介绍" />
+    </template>
   </div>
 </template>
 
 <style scoped>
+.state-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.state-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: #475467;
+  cursor: pointer;
+  font-size: 13px;
+  transition: border-color .15s, background-color .15s, color .15s;
+}
+.state-tab em { min-width: 22px; padding: 0 6px; border-radius: 999px; background: #eef1f5; color: var(--muted); font-style: normal; font-size: 11px; line-height: 20px; text-align: center; font-variant-numeric: tabular-nums; }
+.state-tab:hover { border-color: var(--el-color-primary-light-5); color: var(--brand); }
+.state-tab.active { border-color: var(--brand); background: var(--brand); color: #fff; }
+.state-tab.active em { background: rgb(255 255 255 / 20%); color: #fff; }
+.state-tab:focus-visible { outline: 3px solid #84adff; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .state-tab { transition: none; } }
+
+.toolbar .el-input { max-width: 300px; }
+.note-danger { color: #b42318; }
+.detail-venue { font-size: 16px; }
+.town-chip { padding: 1px 8px; border-radius: 6px; background: #f2f4f7; color: var(--muted); font-size: 12px; }
+
 .detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; align-items: start; }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 18px; }
 .span-2 { grid-column: span 2; }
