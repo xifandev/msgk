@@ -15,6 +15,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ action: [action: 'submit' | 'approve' | 'reject' | 'reopen', reason?: string] }>()
 const { admin, hasPerm } = useAdmin()
+const rejectVisible = ref(false)
 const reason = ref('')
 const canSubmit = computed(() => !props.hideSubmit && hasPerm(props.editPermission) && ['draft', 'rejected'].includes(props.state))
 const canReview = computed(() => {
@@ -47,6 +48,11 @@ async function approve() {
   if (await confirmAction('确定要通过审核吗？')) emit('action', 'approve')
 }
 
+function openReject() {
+  reason.value = ''
+  rejectVisible.value = true
+}
+
 async function reject() {
   if (!reason.value.trim()) {
     ElMessage.warning('请输入未通过原因')
@@ -55,6 +61,7 @@ async function reject() {
   if (await confirmAction('确定审核不通过并退回吗？')) {
     emit('action', 'reject', reason.value.trim())
     reason.value = ''
+    rejectVisible.value = false
   }
 }
 
@@ -66,22 +73,29 @@ async function reopen() {
 <template>
   <div class="review-actions">
     <template v-if="canReview">
-      <div class="review-field">
-        <label class="review-field-label" for="review-reason">未通过原因</label>
-        <el-input
-          id="review-reason"
-          v-model="reason"
-          type="textarea"
-          :rows="2"
-          maxlength="500"
-          resize="none"
-          placeholder="仅审核不通过时填写，将随审核记录展示"
-        />
-      </div>
       <div class="review-buttons">
         <el-button type="primary" :icon="Check" @click="approve">通过审核</el-button>
-        <el-button type="danger" plain :icon="Close" @click="reject">未通过审核</el-button>
+        <el-button type="danger" plain :icon="Close" @click="openReject">未通过审核</el-button>
       </div>
+      <el-dialog v-model="rejectVisible" title="审核不通过" width="min(460px, 92vw)" append-to-body>
+        <el-form label-position="top" @submit.prevent="reject">
+          <el-form-item label="未通过原因" required>
+            <el-input
+              v-model="reason"
+              type="textarea"
+              :rows="4"
+              maxlength="500"
+              show-word-limit
+              resize="none"
+              placeholder="请填写未通过原因，将随审核记录展示给填报人"
+            />
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="rejectVisible = false">取消</el-button>
+          <el-button type="danger" @click="reject">确认不通过</el-button>
+        </template>
+      </el-dialog>
     </template>
     <div v-if="canSubmit || canReopen" class="review-secondary">
       <el-button v-if="canSubmit" type="primary" @click="submit">提交审核</el-button>
@@ -92,8 +106,6 @@ async function reopen() {
 
 <style scoped>
 .review-actions { display: grid; gap: 14px; }
-.review-field { display: grid; gap: 6px; }
-.review-field-label { font-size: 12px; color: var(--muted); }
 /* 主操作两枚按钮等分一行，任何侧栏宽度下都整齐 */
 .review-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .review-buttons .el-button { margin: 0; width: 100%; }
