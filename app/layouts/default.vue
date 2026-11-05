@@ -5,6 +5,7 @@ import {
   Message, OfficeBuilding, Reading, Setting, Switch, User, UserFilled, Wallet
 } from '@element-plus/icons-vue'
 import { NAVIGATION, navigationFor } from '~~/shared/navigation'
+import type { NavBadgeCounts } from '~/composables/useNavBadges'
 
 const { admin, venues, hasPerm, logout, impersonator, stopImpersonate } = useAdmin()
 const route = useRoute()
@@ -60,6 +61,25 @@ const pageTitle = computed(() => currentPage.value?.label ?? '后台管理')
 const pageDescription = computed(() => currentPage.value?.description ?? '')
 useHead({ title: computed(() => `${pageTitle.value} · 沂水宗教码上公开`) })
 
+/** 导航「待我审核」提示点：只挂在有审核待办的栏目上 */
+const BADGE_KEYS: Record<string, keyof NavBadgeCounts> = {
+  '/finance': 'finance',
+  '/profiles': 'profiles',
+  '/personnel': 'personnel'
+}
+const { counts: badgeCounts, refresh: refreshBadges, start: startBadgePoll, stop: stopBadgePoll } = useNavBadges()
+function badgeOf(path: string) {
+  const key = BADGE_KEYS[path]
+  return key ? badgeCounts.value[key] ?? 0 : 0
+}
+onMounted(() => {
+  void refreshBadges()
+  startBadgePoll()
+})
+onBeforeUnmount(stopBadgePoll)
+watch(() => route.path, () => { void refreshBadges() })
+
+
 async function switchBack() {
   try {
     await stopImpersonate()
@@ -93,6 +113,8 @@ async function switchBack() {
             >
               <el-icon><component :is="icons[item.icon as keyof typeof icons]" /></el-icon>
               <span>{{ item.label }}</span>
+              <span v-if="badgeOf(item.path)" class="nav-dot" aria-hidden="true" />
+              <span v-if="badgeOf(item.path)" class="sr-only">{{ badgeOf(item.path) }} 项待你审核</span>
             </el-menu-item>
           </template>
           <el-menu-item-group v-if="opsItems.length" title="运维工具">
@@ -126,6 +148,8 @@ async function switchBack() {
             >
               <el-icon><component :is="icons[item.icon as keyof typeof icons]" /></el-icon>
               <span>{{ item.label }}</span>
+              <span v-if="badgeOf(item.path)" class="nav-dot" aria-hidden="true" />
+              <span v-if="badgeOf(item.path)" class="sr-only">{{ badgeOf(item.path) }} 项待你审核</span>
             </el-menu-item>
           </template>
           <el-menu-item-group v-if="opsItems.length" title="运维工具">
@@ -325,6 +349,34 @@ async function switchBack() {
 .nav-drawer .el-menu-item:hover { background: rgb(255 255 255 / 8%); color: #fff; }
 .sidebar .el-menu-item:hover .el-icon,
 .nav-drawer .el-menu-item:hover .el-icon { color: #fff; }
+
+/* 待我审核提示点：栏目名靠右的小圆点，像未读消息，但只做轻提示、不显示数字 */
+.sidebar .el-menu-item,
+.nav-drawer .el-menu-item { display: flex; align-items: center; }
+.sidebar .el-menu-item .nav-dot,
+.nav-drawer .el-menu-item .nav-dot {
+  flex: none;
+  margin-inline-start: auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ff8168;
+  box-shadow: 0 0 0 3px rgb(255 129 104 / 16%), 0 0 8px 1px rgb(255 129 104 / 45%);
+  animation: nav-dot-breathe 2.8s ease-in-out infinite;
+}
+.sidebar .el-menu-item.is-active .nav-dot,
+.nav-drawer .el-menu-item.is-active .nav-dot {
+  background: #ffe4db;
+  box-shadow: 0 0 0 3px rgb(255 255 255 / 24%), 0 0 8px 1px rgb(255 255 255 / 55%);
+}
+@keyframes nav-dot-breathe {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .6; transform: scale(.85); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar .el-menu-item .nav-dot,
+  .nav-drawer .el-menu-item .nav-dot { animation: none; }
+}
 
 /* 选中态：蓝色底 + 左侧标识条 + 白色文字，保持常驻高亮 */
 .sidebar .el-menu-item.is-active,

@@ -28,3 +28,13 @@ export function reviewActionMessage(action: string) {
 export function reviewLabel(state: string) {
   return REVIEW_LABELS[state] ?? state
 }
+
+/**
+ * 当前角色“待我审核”对应的状态：
+ * 镇级审 pending_town，县级与系统管理员审 pending_county，其余角色（场所、自定义）返回空。
+ */
+export function myReviewState(roleCode: string) {
+  if (roleCode === 'town') return 'pending_town'
+  if (roleCode === 'county' || roleCode === 'super') return 'pending_county'
+  return ''
+}
