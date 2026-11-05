@@ -140,7 +140,19 @@
 </ms-cell-group>
 
 <view class="foot-title">
-  <view class="foot-support" hover-class="foot-support--hover" bind:tap="openCompany">技术支持：山东盖特网络有限公司</view>
+  <view
+    class="foot-support"
+    hover-class="foot-support--hover"
+    hover-stay-time="80"
+    bind:tap="openCompany"
+    aria-role="button"
+    aria-label="查看技术支持联系方式"
+  >
+    <text class="foot-support__text">技术支持：山东盖特网络有限公司</text>
+    <view class="foot-support__arrow">
+      <ms-icon name="arrow" size="20rpx" color="#969799" />
+    </view>
+  </view>
 </view>
 
 <!-- 场所选择（全屏） -->

@@ -377,16 +377,33 @@
 }
 
 .foot-support {
-  display: inline-block;
-  padding: 12rpx 48rpx;
+  display: inline-flex;
+  align-items: center;
+  padding: 10rpx 12rpx 10rpx 28rpx;
   border-radius: 999rpx;
-  font-size: 30rpx;
-  letter-spacing: 2rpx;
-  color: #7d7e80;
+  transition: background-color 0.2s ease;
+}
+
+.foot-support__text {
+  font-size: 26rpx;
+  letter-spacing: 1rpx;
+  color: #8a8b8e;
+}
+
+.foot-support__arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34rpx;
+  height: 34rpx;
+  margin-left: 10rpx;
+  border-radius: 50%;
+  background: #f2f3f5;
 }
 
 .foot-support--hover {
-  opacity: 0.6;
+  background: #f5f6f7;
 }
 
 /* ---------- 场所选择（全屏） ---------- */
