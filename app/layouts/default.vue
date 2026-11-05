@@ -113,7 +113,7 @@ async function switchBack() {
             >
               <el-icon><component :is="icons[item.icon as keyof typeof icons]" /></el-icon>
               <span>{{ item.label }}</span>
-              <span v-if="badgeOf(item.path)" class="nav-dot" aria-hidden="true" />
+              <span v-if="badgeOf(item.path)" class="nav-badge" aria-hidden="true">{{ badgeOf(item.path) > 99 ? '99+' : badgeOf(item.path) }}</span>
               <span v-if="badgeOf(item.path)" class="sr-only">{{ badgeOf(item.path) }} 项待你审核</span>
             </el-menu-item>
           </template>
@@ -148,7 +148,7 @@ async function switchBack() {
             >
               <el-icon><component :is="icons[item.icon as keyof typeof icons]" /></el-icon>
               <span>{{ item.label }}</span>
-              <span v-if="badgeOf(item.path)" class="nav-dot" aria-hidden="true" />
+              <span v-if="badgeOf(item.path)" class="nav-badge" aria-hidden="true">{{ badgeOf(item.path) > 99 ? '99+' : badgeOf(item.path) }}</span>
               <span v-if="badgeOf(item.path)" class="sr-only">{{ badgeOf(item.path) }} 项待你审核</span>
             </el-menu-item>
           </template>
@@ -350,32 +350,32 @@ async function switchBack() {
 .sidebar .el-menu-item:hover .el-icon,
 .nav-drawer .el-menu-item:hover .el-icon { color: #fff; }
 
-/* 待我审核提示点：栏目名靠右的小圆点，像未读消息，但只做轻提示、不显示数字 */
+/* 待我审核角标：栏目名靠右的红色数字徽标，像聊天软件的未读消息数 */
 .sidebar .el-menu-item,
 .nav-drawer .el-menu-item { display: flex; align-items: center; }
-.sidebar .el-menu-item .nav-dot,
-.nav-drawer .el-menu-item .nav-dot {
+.sidebar .el-menu-item .nav-badge,
+.nav-drawer .el-menu-item .nav-badge {
   flex: none;
   margin-inline-start: auto;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #ff8168;
-  box-shadow: 0 0 0 3px rgb(255 129 104 / 16%), 0 0 8px 1px rgb(255 129 104 / 45%);
-  animation: nav-dot-breathe 2.8s ease-in-out infinite;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: #ff5240;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 0 2px rgb(255 82 64 / 18%), 0 2px 6px rgb(0 0 0 / 25%);
 }
-.sidebar .el-menu-item.is-active .nav-dot,
-.nav-drawer .el-menu-item.is-active .nav-dot {
-  background: #ffe4db;
-  box-shadow: 0 0 0 3px rgb(255 255 255 / 24%), 0 0 8px 1px rgb(255 255 255 / 55%);
-}
-@keyframes nav-dot-breathe {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: .6; transform: scale(.85); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .sidebar .el-menu-item .nav-dot,
-  .nav-drawer .el-menu-item .nav-dot { animation: none; }
+.sidebar .el-menu-item.is-active .nav-badge,
+.nav-drawer .el-menu-item.is-active .nav-badge {
+  background: #fff;
+  color: #e23d2b;
+  box-shadow: 0 0 0 2px rgb(255 255 255 / 22%);
 }
 
 /* 选中态：蓝色底 + 左侧标识条 + 白色文字，保持常驻高亮 */
