@@ -132,7 +132,7 @@ onMounted(load)
       <el-form label-position="top" @submit.prevent="saveArticle">
         <el-form-item label="标题" required><el-input v-model="form.title" maxlength="200" show-word-limit /></el-form-item>
         <el-form-item label="正文内容" required><RichTextEditor v-model="form.content" /></el-form-item>
-        <p class="muted">保存后自动发布到全部场所，无需选择关联场所。</p>
+        <p class="muted">保存后自动发布到全部场所。</p>
       </el-form>
       <template #footer>
         <div class="dialog-actions">
