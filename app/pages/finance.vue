@@ -195,7 +195,7 @@ onMounted(() => {
     <StateTabs v-if="mounted && canReview" :tabs="stateTabs" :model-value="activeTab" aria-label="审核状态快速筛选" @update:model-value="setStateTab" />
     <section class="panel">
       <div class="toolbar">
-        <VenueSelect v-model="filters.venueId" clearable style="width: 260px" @change="queryByToolbar" />
+        <VenueSelect v-model="filters.venueId" clearable placeholder="搜索场所" style="width: 260px" @change="queryByToolbar" />
         <el-date-picker v-model="filters.month" type="month" value-format="YYYY-MM" placeholder="公开月份" @change="queryByToolbar" />
         <el-button plain @click="queryByToolbar">查询</el-button>
       </div>
