@@ -147,7 +147,7 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
         <div class="contact-note__body">
           <p class="contact-note__title">温馨提示</p>
           <p class="contact-note__text">
-            如果人员管理员信息已调整，请联系微信重新录入
+            如需更改管理员信息，请联系技术人员，重新录入。
           </p>
           <p class="contact-note__wechat">微信号：<strong>15224499331</strong></p>
         </div>
