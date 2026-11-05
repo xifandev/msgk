@@ -4,6 +4,21 @@
   max-height: 80vh;
 }
 
+.ms-action-sheet--plain {
+  position: relative;
+}
+
+.ms-action-sheet__plain-close {
+  position: absolute;
+  right: 16rpx;
+  top: 12rpx;
+  z-index: 2;
+  padding: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .ms-action-sheet__header {
   position: relative;
   display: flex;

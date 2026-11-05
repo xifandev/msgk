@@ -226,21 +226,16 @@
 </ms-popup>
 
 <!-- 技术支持 -->
-<ms-action-sheet show="{{ companyShow }}" title="软件技术支持" bind:close="closeCompany">
+<ms-action-sheet show="{{ companyShow }}" show-header="{{ false }}" title="软件技术支持" bind:close="closeCompany">
   <view class="support">
-    <view class="support__head">
-      <view class="support__badge">
-        <ms-icon name="contact" size="56rpx" color="#d31027" />
-      </view>
-      <view class="support__intro">使用过程中遇到技术问题，可添加技术人员微信协助处理。</view>
-    </view>
+    <view class="support__intro">使用过程中遇到技术问题，可添加技术人员微信协助处理。</view>
 
     <view class="support__card" hover-class="support__card--hover" bind:tap="copyCompany">
       <view class="support__card-icon">
         <ms-icon name="phone" size="40rpx" color="#ffffff" />
       </view>
       <view class="support__card-main">
-        <text class="support__card-label">技术支持微信（同手机号）</text>
+        <text class="support__card-label">技术支持微信</text>
         <text class="support__card-phone">152 2449 9331</text>
       </view>
       <view class="support__card-action">
