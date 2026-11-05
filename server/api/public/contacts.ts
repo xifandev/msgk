@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
   return {
     list: rows.map((row) => ({
       name: `${row.name.slice(0, 1)}${'*'.repeat(Math.max(1, [...row.name].length - 1))}`,
-      phone: row.phone.replace(/^(\d{3})\d{4}(\d{4})$/, '$1****$2'),
+      phone: `****${row.phone.slice(-4)}`,
       roleName: row.role_name
     }))
   }
