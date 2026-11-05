@@ -227,8 +227,8 @@ onMounted(() => {
               <span v-else class="muted" aria-hidden="true">—</span>
             </template>
           </el-table-column>
-          <el-table-column label="公开月份" width="110" fixed="right">
-            <template #default="{ row }"><el-tag effect="plain">{{ row.bill_month }}</el-tag></template>
+          <el-table-column label="公开月份" width="118" fixed="right" class-name="finance-month-cell" label-class-name="finance-month-head">
+            <template #default="{ row }"><el-tag effect="plain" class="finance-month-tag">{{ row.bill_month }}</el-tag></template>
           </el-table-column>
           <el-table-column v-if="showActionColumn" label="操作" width="160" fixed="right" align="right">
             <template #default="{ row }">
@@ -345,6 +345,9 @@ onMounted(() => {
 .table-region :deep(.el-table td.el-table__cell) { padding-block: 11px; }
 /* 行悬停高亮更明显（悬停期间持续高亮由 el-table 自带 hover-row 保证） */
 .table-region :deep(.el-table) { --el-table-row-hover-bg-color: #eaf2fc; }
+/* 公开月份列：表头与月份标签略放大，便于辨认 */
+.table-region :deep(.finance-month-head .cell) { font-size: 15px; font-weight: 600; }
+.table-region :deep(.finance-month-tag) { height: 26px; padding-inline: 10px; font-size: 14px; line-height: 24px; font-variant-numeric: tabular-nums; }
 .muted { color: var(--muted); font-size: 13px; }
 .table-actions.compact :deep(.el-button) { height: 26px; padding-inline: 10px; font-size: 13px; }
 :global(.finance-drawer .el-drawer__body) { container-type: inline-size; }
