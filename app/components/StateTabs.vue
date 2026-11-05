@@ -1,7 +1,7 @@
 <script setup lang="ts">
 export interface StateTabItem { value: string, label: string, count: number }
 
-withDefaults(defineProps<{ tabs: StateTabItem[], modelValue: string, ariaLabel?: string }>(), {
+withDefaults(defineProps<{ tabs: StateTabItem[], modelValue: string | null, ariaLabel?: string }>(), {
   ariaLabel: '审核状态筛选'
 })
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()

@@ -10,7 +10,8 @@ const VALID_TABS = ['', 'mine', 'pending_town', 'pending_county', 'draft', 'appr
 export function useReviewStateTab(myState: Readonly<Ref<string>>, isReviewer: Readonly<Ref<boolean>>) {
   const route = useRoute()
   const router = useRouter()
-  const activeTab = ref('')
+  // null 表示全部不选中（工具栏查询生效时胶囊不保持任何选中态）
+  const activeTab = ref<string | null>('')
 
   function initTab() {
     const fromQuery = String(route.query.state ?? '')
@@ -26,5 +27,11 @@ export function useReviewStateTab(myState: Readonly<Ref<string>>, isReviewer: Re
     void router.replace({ query: { ...route.query, state: state || undefined } })
   }
 
-  return { activeTab, initTab, syncQuery }
+  // 工具栏查询生效时调用：胶囊全部不选中，并清掉地址栏里的 state 参数
+  function clearTab() {
+    activeTab.value = null
+    void router.replace({ query: { ...route.query, state: undefined } })
+  }
+
+  return { activeTab, initTab, syncQuery, clearTab }
 }

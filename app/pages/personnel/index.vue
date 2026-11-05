@@ -47,7 +47,7 @@ const isReviewer = computed(() => hasPerm('personnel:review'))
 const canEditPersonnel = computed(() => hasPerm('personnel:edit'))
 const myState = computed(() => myReviewState(roleCode.value))
 const showMine = computed(() => isReviewer.value && !!myState.value)
-const { activeTab, initTab, syncQuery: syncTabQuery } = useReviewStateTab(myState, isReviewer)
+const { activeTab, initTab, syncQuery: syncTabQuery, clearTab } = useReviewStateTab(myState, isReviewer)
 const mounted = ref(false)
 const tabs = computed<TabItem[]>(() => {
   const items: TabItem[] = []
@@ -97,19 +97,21 @@ async function load() {
   }
 }
 
-// 胶囊是一套独立查询：只按状态取数，不读工具栏的关键词，也不改工具栏的输入
+// 胶囊是一套独立查询：只按状态取数；点胶囊时彻底清空工具栏的关键词输入
 function setTab(value: string) {
   activeTab.value = value
   requestState.value = value === 'mine' ? myState.value : value
+  query.search = ''
   query.page = 1
   queryMode.value = 'tab'
   syncTabQuery(value)
   void load()
 }
 
-// 工具栏是另一套独立查询：只按关键词取数，不读状态，也不改胶囊选中项
+// 工具栏是另一套独立查询：只按关键词取数；查询时胶囊全部不选中
 function search() {
   queryMode.value = 'toolbar'
+  clearTab()
   query.page = 1
   void load()
 }
@@ -293,7 +295,7 @@ watch([memberListRef, canEdit], initMemberSortable, { flush: 'post' })
 onMounted(async () => {
   mounted.value = true
   initTab()
-  requestState.value = activeTab.value === 'mine' ? myState.value : activeTab.value
+  requestState.value = (activeTab.value === 'mine' ? myState.value : activeTab.value) ?? ''
   await load()
   const initialVenue = Number(route.query.venue)
   if (Number.isSafeInteger(initialVenue) && initialVenue > 0) {

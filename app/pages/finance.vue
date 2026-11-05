@@ -36,21 +36,24 @@ const stateTabs = computed<StateTab[]>(() => {
   items.push({ value: '', label: '全部', count: counts.value.all ?? 0 })
   return items
 })
-// 胶囊是一套独立查询：只按状态取数，不读工具栏的场所/月份，也不改工具栏的选择
+// 胶囊是一套独立查询：只按状态取数；点胶囊时彻底清空工具栏的场所/月份
 const activeTab = stateTab.activeTab
 function setStateTab(value: string) {
   const state = value === 'mine' ? myState.value : value
   activeTab.value = value
   filters.state = state
+  filters.venueId = null
+  filters.month = ''
   filters.page = 1
   queryMode.value = 'tab'
   stateTab.syncQuery(value)
 }
-// 工具栏是另一套独立查询：只按场所/月份取数，不读状态，也不改胶囊选中项
+// 工具栏是另一套独立查询：只按场所/月份取数；查询时胶囊全部不选中
 function queryByToolbar() {
   const wasToolbar = queryMode.value === 'toolbar'
   const wasFirstPage = filters.page === 1
   queryMode.value = 'toolbar'
+  stateTab.clearTab()
   filters.page = 1
   // 条件确实没变化时，手动刷新一次，保证“查询”有反馈
   if (wasToolbar && wasFirstPage) void load()
@@ -173,13 +176,16 @@ onMounted(() => {
   mounted.value = true
   stateTab.initTab()
   const tab = stateTab.activeTab.value
-  filters.state = tab === 'mine' ? myState.value : tab
+  filters.state = (tab === 'mine' ? myState.value : tab) ?? ''
   const venueId = Number(route.query.venueId)
   if (Number.isSafeInteger(venueId) && venueId > 0) filters.venueId = venueId
   const month = String(route.query.month ?? '')
   if (/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) filters.month = month
-  // 带场所/月份参数进来的（如工作台跳转），视作工具栏查询
-  if (filters.venueId || filters.month) queryMode.value = 'toolbar'
+  // 带场所/月份参数进来的（如工作台跳转），视作工具栏查询，胶囊不保持选中
+  if (filters.venueId || filters.month) {
+    queryMode.value = 'toolbar'
+    stateTab.clearTab()
+  }
   void load()
 })
 </script>
