@@ -2,8 +2,6 @@ interface BillRow {
   id: number
   venue_id: number
   bill_month: string
-  income: number
-  expense: number
 }
 
 interface BillItemRow {
@@ -38,7 +36,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const bill = await queryOne<BillRow>(
-    `SELECT id, venue_id, bill_month, income, expense
+    `SELECT id, venue_id, bill_month
      FROM bills WHERE venue_id = ? AND bill_month = ? AND state = 'approved' AND published = 1`,
     [venueId, month]
   )
@@ -51,14 +49,15 @@ export default defineEventHandler(async (event) => {
     ),
     getBillBalance(bill.venue_id, bill.bill_month)
   ])
+  const totals = totalsFromItems(items)
   return {
     month,
     bill: {
       id: bill.id,
       venueId: bill.venue_id,
       month: bill.bill_month,
-      income: Number(bill.income),
-      expense: Number(bill.expense),
+      income: totals.income,
+      expense: totals.expense,
       currentBalance: balance
     },
     items: items.map(item => ({

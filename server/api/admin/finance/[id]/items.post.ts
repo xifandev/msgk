@@ -20,7 +20,6 @@ export default defineEventHandler(async (event) => {
       'INSERT INTO bill_items (bill_id, venue_id, occurred_on, kind, summary, amount, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [billId, bill.venue_id, occurredOn, kind, summary, amount, admin.id]
     )
-    await recalculateBill(conn, billId)
   })
   await logAction(admin, '财务公开', String(billId), '新增收支明细', event)
   return { ok: true }

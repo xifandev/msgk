@@ -5,8 +5,10 @@ export default defineEventHandler(async (event) => {
   if (!bill) throw createError({ statusCode: 404, message: '账单不存在' })
   requireVenueScope(admin, bill.venue_id)
   const [items, balance] = await Promise.all([
-    query('SELECT * FROM bill_items WHERE bill_id = ? ORDER BY occurred_on DESC, id DESC', [id]),
+    query<{ kind: string, amount: number | string }>('SELECT * FROM bill_items WHERE bill_id = ? ORDER BY occurred_on DESC, id DESC', [id]),
     getBillBalance(bill.venue_id, bill.bill_month)
   ])
-  return { bill: { ...bill, balance }, items }
+  // 收入/支出与月结余一样由明细实时得出，不读取 bills 里的落库快照
+  const totals = totalsFromItems(items)
+  return { bill: { ...bill, income: totals.income, expense: totals.expense, balance }, items }
 })

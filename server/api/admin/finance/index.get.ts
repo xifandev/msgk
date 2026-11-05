@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
   }
   const condition = where.join(' AND ')
   const total = await queryOne<{ count: number }>(`SELECT COUNT(*) AS count FROM bills b JOIN venues v ON v.id = b.venue_id WHERE ${condition}`, params)
-  const list = await query(
+  const list = await query<{ id: number, income: number, expense: number, [key: string]: unknown }>(
     `SELECT b.*, v.name AS venue_name, v.township,
        (SELECT COALESCE(SUM(CASE WHEN i.kind = 'income' THEN i.amount ELSE -i.amount END), 0)
         FROM bill_items i
@@ -42,6 +42,13 @@ export default defineEventHandler(async (event) => {
      WHERE ${condition} ORDER BY b.bill_month DESC, b.id DESC LIMIT ${pageSize} OFFSET ${offset}`,
     params
   )
+  // 收入/支出按明细现算，不依赖 bills 表里的汇总列
+  const totals = await getBillTotals(list.map(row => Number(row.id)))
+  for (const row of list) {
+    const item = totals.get(Number(row.id))
+    row.income = item?.income ?? 0
+    row.expense = item?.expense ?? 0
+  }
   const rows = await query<{ state: string, total: number | string }>(
     `SELECT b.state, COUNT(*) AS total FROM bills b JOIN venues v ON v.id = b.venue_id
      WHERE ${baseCondition} GROUP BY b.state`,

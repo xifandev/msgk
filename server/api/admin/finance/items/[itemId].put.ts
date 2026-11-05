@@ -21,7 +21,6 @@ export default defineEventHandler(async (event) => {
     if (!['draft', 'rejected'].includes(item.state)) throw createError({ statusCode: 409, message: '当前状态不能编辑明细' })
     if (occurredOn.slice(0, 7) !== item.bill_month) throw createError({ statusCode: 400, message: '明细日期必须属于账单月份' })
     await conn.query('UPDATE bill_items SET occurred_on = ?, kind = ?, summary = ?, amount = ? WHERE id = ?', [occurredOn, kind, summary, amount, itemId])
-    await recalculateBill(conn, item.bill_id)
   })
   await logAction(admin, '财务公开', String(itemId), '编辑收支明细', event)
   return { ok: true }
