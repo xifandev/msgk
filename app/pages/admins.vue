@@ -91,11 +91,13 @@ onMounted(load)
           <el-table-column prop="phone" label="登录手机号" width="130" />
           <el-table-column prop="role_name" label="担任角色" width="100" />
           <el-table-column prop="organization" label="所属单位" min-width="90" />
-          <el-table-column label="管辖场所" min-width="140">
+          <el-table-column label="管辖场所" min-width="190">
             <template #default="{ row }">
               <span v-if="row.all_venues">全部场所</span>
-              <el-tag v-else v-for="name in venueNames(row.venue_ids).slice(0, 5)" :key="name" class="venue-tag">{{ name }}</el-tag>
-              <span v-if="!row.all_venues && venueNames(row.venue_ids).length > 5" class="muted">…</span>
+              <div v-else class="venue-list">
+                <el-tag v-for="name in venueNames(row.venue_ids).slice(0, 5)" :key="name" class="venue-tag">{{ name }}</el-tag>
+                <span v-if="venueNames(row.venue_ids).length > 5" class="venue-more">另有 {{ venueNames(row.venue_ids).length - 5 }} 处</span>
+              </div>
             </template>
           </el-table-column>
           <el-table-column prop="note" label="备注" min-width="80" show-overflow-tooltip><template #default="{ row }">{{ row.note || '—' }}</template></el-table-column>
@@ -170,7 +172,9 @@ onMounted(load)
 .tab.active em { background: rgb(255 255 255 / 20%); color: #fff; }
 .tab:focus-visible { outline: 3px solid #84adff; outline-offset: 2px; }
 
-.venue-tag { margin: 3px; }
+.venue-list { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding-block: 4px; }
+.venue-tag { max-width: 100%; height: auto; margin: 0; padding-block: 1px; line-height: 1.5; white-space: normal; }
+.venue-more { color: var(--muted); font-size: 12px; }
 .muted { color: var(--muted); font-size: 13px; }
 .el-select { width: 100%; }
 </style>
