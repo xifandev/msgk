@@ -375,7 +375,8 @@ onMounted(() => { void load() })
   background: linear-gradient(90deg, rgb(199 87 63 / 0%) 30%, rgb(199 87 63 / 30%) 55%, rgb(188 69 52 / 18%) 100%);
   pointer-events: none;
 }
-.banner-copy { position: relative; z-index: 1; min-width: 0; text-align: center; }
+/* 文字整体略偏左，抵消右侧长城图的视觉重量，画面更平衡 */
+.banner-copy { position: relative; z-index: 1; min-width: 0; margin-inline-end: 12%; text-align: center; }
 .banner-title {
   margin: 0;
   color: #fff;
@@ -415,7 +416,7 @@ onMounted(() => { void load() })
 /* ---------- 通用卡片 ---------- */
 .split { display: grid; gap: 18px; align-items: start; }
 .split-wide { grid-template-columns: minmax(0, 1.72fr) minmax(320px, 0.9fr); }
-.split-even { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.split-even { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
 .split-even.is-single { grid-template-columns: minmax(0, 1fr); }
 .split-wide.is-single { grid-template-columns: minmax(0, 1fr); }
 
@@ -537,8 +538,9 @@ onMounted(() => { void load() })
 .trend-month { color: #98a2b3; font-size: 11px; font-variant-numeric: tabular-nums; }
 
 /* ---------- 基础信息公开 ---------- */
-.info-list { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
-.info-list a { display: grid; grid-template-columns: 76px minmax(0, 1fr) 52px 58px; align-items: center; gap: 12px; min-height: 46px; padding: 4px 8px; border-radius: 10px; transition: background-color .16s; }
+/* 与左侧走势卡等高：行拉伸填满卡片内容区 */
+.info-list { display: grid; grid-template-rows: repeat(3, minmax(46px, 1fr)); gap: 2px; height: 100%; margin: 0; padding: 0; list-style: none; }
+.info-list a { display: grid; grid-template-columns: 76px minmax(0, 1fr) 52px 58px; align-items: center; gap: 12px; height: 100%; min-height: 46px; padding: 4px 8px; border-radius: 10px; transition: background-color .16s; }
 .info-list a:hover { background: #f6f9fd; }
 .info-list a:focus-visible { outline: 2px solid #84adff; outline-offset: -2px; }
 .info-name { color: #344054; font-size: 13px; font-weight: 500; }
@@ -585,6 +587,7 @@ onMounted(() => { void load() })
   .dash { --card-pad: 18px; gap: 12px; }
   .banner { min-height: 0; padding: 26px 20px; }
   .banner::before { width: 60%; }
+  .banner-copy { margin-inline-end: 6%; }
   .banner-title { font-size: 28px; letter-spacing: 6px; text-indent: 6px; }
   .banner-ornament { margin-block: 10px 8px; }
   .banner-sub-title { font-size: 12.5px; letter-spacing: 4px; text-indent: 4px; }
