@@ -8,7 +8,7 @@ const year = new Date().getFullYear()
       <span class="auth-logo-bar" aria-hidden="true" />
       <span class="auth-logo-text">
         <strong>沂水宗教码上公开管理系统</strong>
-        <small>YISHUI RELIGIOUS AFFAIRS OPEN PLATFORM</small>
+        <small>YISHUI ZONGJIAO MASHANG GONGKAI GUANLI XITONG</small>
       </span>
     </header>
     <slot />
