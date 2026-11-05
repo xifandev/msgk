@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
-import { townshipRank } from '~~/shared/townships'
 
 type PeriodState = 'published' | 'approved' | 'pending' | 'rejected' | 'draft' | 'missing'
 
@@ -68,13 +67,8 @@ const month = ref('')
 const data = ref<Payload | null>(null)
 const tableFilter = ref<'all' | PeriodState>('all')
 
-const EMPTY: Bucket = {
-  month: '', total: 0, published: 0, approved: 0, pending: 0, rejected: 0, draft: 0, missing: 0, coverage: 0
-}
-
 const roleCode = computed(() => data.value?.roleCode ?? admin.value?.roleCode ?? '')
 const venueMode = computed(() => roleCode.value === 'venue')
-const period = computed(() => data.value?.period ?? EMPTY)
 const monthly = computed(() => data.value?.monthly ?? [])
 const months = computed(() => data.value?.months ?? [])
 const rows = computed(() => data.value?.rows ?? [])
@@ -129,16 +123,6 @@ function isMiss(point: { total: number, submitted: number }) {
   return point.submitted < point.total
 }
 
-/** 每行右侧一句话结论：缺几个月 / 已全部报齐 */
-function rowSummary(history: MatrixCell[]) {
-  const missMonths = history.filter(isMiss).length
-  return { missMonths, text: missMonths ? `缺 ${missMonths} 月` : '齐全' }
-}
-
-const totalSummary = computed(() => rowSummary(
-  monthly.value.map((point) => ({ ...point, submitted: submittedOf(point) }) as MatrixCell)
-))
-
 function cellTip(label: string, point: MatrixCell) {
   const parts = [`应报 ${point.total}`, `已报 ${point.submitted}`]
   if (point.missing) parts.push(`未报 ${point.missing}`)
@@ -149,28 +133,6 @@ function cellTip(label: string, point: MatrixCell) {
   if (point.published) parts.push(`已公开 ${point.published}`)
   return `${label} ${monthLabelOf(point.month)}：${parts.join('，')}`
 }
-
-const backlog = computed(() => {
-  const rank: Record<PeriodState, number> = { missing: 0, rejected: 1, pending: 2, draft: 3, approved: 4, published: 5 }
-  return rows.value
-    .filter((row) => row.state !== 'published')
-    .sort((a, b) => rank[a.state] - rank[b.state] || townshipRank(a.township) - townshipRank(b.township) || a.name.localeCompare(b.name, 'zh-Hans-CN'))
-})
-
-/** 待办每组最多展示 8 条，剩余引导到明细表，避免单一分组把其它分组挤出可视区 */
-const GROUP_LIMIT = 8
-
-const todoGroups = computed(() => {
-  const groups: { key: string, label: string, filter: 'all' | PeriodState, items: VenueRow[] }[] = [
-    { key: 'missing', label: '未上报', filter: 'missing', items: backlog.value.filter((row) => row.state === 'missing') },
-    { key: 'pending', label: '审核中', filter: 'pending', items: backlog.value.filter((row) => row.state === 'pending') },
-    { key: 'rejected', label: '审核未通过', filter: 'rejected', items: backlog.value.filter((row) => row.state === 'rejected') },
-    { key: 'active', label: '填报中 / 待公开', filter: 'all', items: backlog.value.filter((row) => row.state === 'draft' || row.state === 'approved') }
-  ]
-  return groups
-    .filter((group) => group.items.length)
-    .map((group) => ({ ...group, shown: group.items.slice(0, GROUP_LIMIT), rest: Math.max(group.items.length - GROUP_LIMIT, 0) }))
-})
 
 /** 近 12 个月上报率走势与均值 */
 const trend = computed(() => {
@@ -208,11 +170,6 @@ const tableFilters = computed(() => {
 const tableRows = computed(() => tableFilter.value === 'all'
   ? rows.value
   : rows.value.filter((row) => row.state === tableFilter.value))
-
-function focusTable(state: 'all' | PeriodState) {
-  tableFilter.value = state
-  void nextTick(() => document.getElementById('venue-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
-}
 
 async function load(silent = false) {
   if (!silent) loading.value = true
@@ -269,7 +226,7 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
       </div>
     </section>
 
-    <div class="split split-wide" :class="{ 'is-single': venueMode }">
+    <div class="split split-wide is-single">
       <section class="card heat-card" aria-labelledby="heat-title">
         <header class="card-head">
           <h2 id="heat-title">
@@ -311,7 +268,6 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
                 >
                   {{ Number(point.slice(5)) }}月
                 </div>
-                <div class="heat-sum is-head">缺报</div>
               </div>
 
               <div v-for="row in matrix.rows" :key="row.key" class="heat-row">
@@ -328,62 +284,9 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
                   :aria-label="`${row.label} ${monthLabelOf(point.month)}：${isMiss(point) ? '有场所未上报' : '已全部上报'}，应报 ${point.total} 个，已报 ${point.submitted} 个`"
                   @click="changeMonth(point.month)"
                 >{{ isMiss(point) ? '✕' : '✓' }}</button>
-                <div class="heat-sum" :class="{ bad: rowSummary(row.history).missMonths }">
-                  {{ rowSummary(row.history).text }}
-                </div>
-              </div>
-
-              <div class="heat-row is-total">
-                <div class="heat-name is-total">全辖区<small>当月未报</small></div>
-                <button
-                  v-for="point in monthly"
-                  :key="`total-${point.month}`"
-                  type="button"
-                  class="heat-cell is-total"
-                  :class="cellClass({ total: point.total, submitted: submittedOf(point), published: point.published })"
-                  :title="`全辖区 ${monthLabelOf(point.month)}：应报 ${point.total}，已报 ${submittedOf(point)}，未报 ${point.missing}`"
-                  @click="changeMonth(point.month)"
-                >
-                  <template v-if="point.missing">{{ point.missing }}</template>
-                  <template v-else>—</template>
-                </button>
-                <div class="heat-sum is-total" :class="{ bad: totalSummary.missMonths }">
-                  {{ totalSummary.text }}
-                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      <section v-if="!venueMode" class="card todo-card" aria-labelledby="todo-title">
-        <header class="card-head">
-          <h2 id="todo-title">本期待办</h2>
-          <span class="count-pill">{{ backlog.length }}</span>
-        </header>
-
-        <div v-if="backlog.length" class="todo-scroll">
-          <section v-for="group in todoGroups" :key="group.key" class="todo-group">
-            <h3 class="todo-group-title">{{ group.label }}<em>{{ group.items.length }}</em></h3>
-            <ul class="todo-list">
-              <li v-for="row in group.shown" :key="row.id">
-                <NuxtLink class="todo-item" :to="`/finance?venueId=${row.id}&month=${month}`">
-                  <span class="todo-main">
-                    <strong>{{ row.name }}</strong>
-                    <small>{{ row.township }}<template v-if="row.submittedAt"> · {{ formatTime(row.submittedAt) }} 提交</template></small>
-                  </span>
-                  <span class="chip" :class="row.state">{{ stateText(row) }}</span>
-                </NuxtLink>
-              </li>
-            </ul>
-            <button v-if="group.rest" type="button" class="todo-more" @click="focusTable(group.filter)">
-              查看其余 {{ group.rest }} 个场所 →
-            </button>
-          </section>
-        </div>
-        <div v-else class="todo-done">
-          <strong>本期全部完成</strong>
-          <p>{{ monthLabel }} 的 {{ period.total }} 个场所均已公开财务数据。</p>
         </div>
       </section>
     </div>
@@ -551,7 +454,6 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
 .card-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-block-end: 18px; flex-wrap: wrap; }
 .card-head h2 { margin: 0; color: #101828; font-size: 16.5px; font-weight: 700; letter-spacing: .4px; }
 .card-head h2 small { margin-inline-start: 8px; color: #98a2b3; font-size: 12.5px; font-weight: 500; }
-.count-pill { flex: none; min-width: 32px; padding: 3px 10px; border-radius: 999px; background: #fef1f0; color: #d92d20; font-size: 13px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
 
 .legend { display: flex; align-items: center; gap: 12px; flex: none; margin: 0; padding: 0; list-style: none; color: #667085; font-size: 12px; }
 .legend li { display: flex; align-items: center; gap: 5px; }
@@ -565,11 +467,11 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
   display: grid;
   row-gap: 3px;
   width: 100%;
-  min-width: calc(var(--label, 104px) + var(--cols, 12) * 34px + (var(--cols, 12) - 1) * 7px + 66px);
+  min-width: calc(var(--label, 104px) + var(--cols, 12) * 34px + (var(--cols, 12) - 1) * 7px);
 }
 .heat-row {
   display: grid;
-  grid-template-columns: var(--label, 104px) repeat(var(--cols, 12), minmax(34px, 1fr)) 60px;
+  grid-template-columns: var(--label, 104px) repeat(var(--cols, 12), minmax(34px, 1fr));
   align-items: center;
   column-gap: 7px;
   padding-block: 2px;
@@ -577,7 +479,6 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
   transition: background-color .15s;
 }
 .heat-row.is-head { padding-block-end: 6px; }
-.heat-row.is-total { margin-block-start: 4px; padding-block-start: 6px; border-block-start: 1px solid #f0f2f6; border-radius: 0; }
 .heat-row:not(.is-head):hover { background: #f7f9fc; }
 .heat-row:not(.is-head):hover .heat-name { background: #f7f9fc; }
 
@@ -600,8 +501,6 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
 .heat-name.is-head { color: #98a2b3; font-size: 11.5px; letter-spacing: .3px; }
 .heat-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .heat-name em { flex: none; padding-inline: 5px; border-radius: 5px; background: #f2f4f7; color: #98a2b3; font-size: 10.5px; font-style: normal; font-variant-numeric: tabular-nums; }
-.heat-name.is-total { color: #101828; font-weight: 700; }
-.heat-name.is-total small { margin-inline-start: 4px; color: #b6c0cd; font-size: 10.5px; font-weight: 500; }
 
 .heat-month { color: #98a2b3; font-size: 12px; text-align: center; font-variant-numeric: tabular-nums; }
 .heat-month.running { color: #b6c0cd; }
@@ -619,25 +518,11 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
 }
 .heat-cell:hover { filter: brightness(.965); }
 .heat-cell:focus-visible { outline: 2px solid #17549c; outline-offset: 1px; }
-.heat-cell.is-total { font-size: 12px; font-variant-numeric: tabular-nums; }
 
 /* 已报齐：绿色 ✓；未报齐：弱化成浅灰 ✕，不再用红色块 */
 .cell-done { background: #e6f3ec; color: #12805c; }
 .cell-wait { background: #f0f7f3; color: #8bbfa3; }
 .cell-miss { background: #f2f4f7; color: #c4cad3; }
-/* 全辖区行保留“当月未报数”，用浅红文字提示数量，不占大面积色块 */
-.heat-row.is-total .cell-miss { background: #fdf4f2; color: #c0564f; font-weight: 600; }
-
-.heat-sum {
-  padding-inline-end: 2px;
-  color: #98a2b3;
-  font-size: 11.5px;
-  text-align: end;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-.heat-sum.is-head { font-size: 11px; letter-spacing: .3px; }
-.heat-sum.bad { color: #b42318; font-weight: 600; }
 
 /* ---------- 场所角色时间线 ---------- */
 .timeline { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
@@ -650,46 +535,6 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
 .timeline-item.rejected .timeline-state,
 .timeline-item.missing .timeline-state { color: #b42318; }
 .timeline-item.missing { background: #fdf7f6; }
-
-/* ---------- 本期待办 ---------- */
-.todo-card { position: relative; }
-.todo-card::after {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  inset-block-end: 0;
-  height: 56px;
-  border-end-start-radius: 18px;
-  border-end-end-radius: 18px;
-  background: linear-gradient(180deg, rgb(255 255 255 / 0%) 0%, #fff 78%);
-  pointer-events: none;
-}
-.todo-scroll { max-height: 604px; overflow-y: auto; margin-inline-end: -8px; padding-block-end: 36px; padding-inline-end: 8px; }
-.todo-group + .todo-group { margin-block-start: 14px; }
-.todo-group-title { display: flex; align-items: center; gap: 6px; margin: 0 0 6px; color: #667085; font-size: 12px; font-weight: 600; letter-spacing: .4px; }
-.todo-group-title em { padding: 0 5px; border-radius: 4px; background: #f2f4f7; color: #667085; font-style: normal; font-variant-numeric: tabular-nums; }
-.todo-list { margin: 0; padding: 0; list-style: none; }
-.todo-more { margin-block-start: 2px; padding: 4px 8px; border: 0; background: none; color: #17549c; font-size: 12px; cursor: pointer; }
-.todo-more:hover { text-decoration: underline; }
-.todo-more:focus-visible { outline: 2px solid #84adff; outline-offset: 1px; }
-.todo-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  min-height: 48px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  transition: background-color .16s;
-}
-.todo-item:hover { background: #f6f9fd; }
-.todo-item:focus-visible { outline: 2px solid #84adff; outline-offset: -2px; }
-.todo-main { min-width: 0; }
-.todo-main strong { display: block; color: #1f2937; font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.todo-main small { display: block; color: #98a2b3; font-size: 11.5px; }
-.todo-done { padding: 40px 12px; text-align: center; }
-.todo-done strong { color: #067647; font-size: 14px; }
-.todo-done p { margin: 6px 0 0; color: #98a2b3; font-size: 12.5px; }
 
 .chip {
   display: inline-flex;
@@ -764,7 +609,6 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
 /* ---------- 响应式 ---------- */
 @media (max-width: 1280px) {
   .split-wide { grid-template-columns: minmax(0, 1fr); }
-  .todo-scroll { max-height: 420px; }
 }
 @media (max-width: 900px) {
   .split-even { grid-template-columns: minmax(0, 1fr); }
