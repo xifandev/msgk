@@ -143,15 +143,6 @@
   line-height: 1.5;
 }
 
-.venue-head__tag--ok {
-  background: #eafaf2;
-  color: #2c7d5c;
-}
-
-.venue-head__tag--ok text {
-  margin-left: 6rpx;
-}
-
 /* ---------- 内容卡片 ---------- */
 .content-card {
   margin: 0 0 24rpx;

@@ -49,10 +49,6 @@
             <view class="venue-top__tag" wx:if="{{ venue.profile.category }}">{{ venue.profile.category }}</view>
             <view class="venue-top__tag" wx:if="{{ venue.profile.religion }}">{{ venue.profile.religion }}</view>
             <view class="venue-top__tag" wx:if="{{ venue.profile.registrationDate }}">{{ venue.profile.registrationDate }}</view>
-            <view class="venue-top__tag venue-top__tag--ok">
-              <ms-icon name="passed" size="22rpx" color="#31b380" />
-              <text>已审核公开</text>
-            </view>
           </view>
         </view>
         <view

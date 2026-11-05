@@ -160,15 +160,6 @@
   line-height: 1.5;
 }
 
-.venue-top__tag--ok {
-  background: #eafaf2;
-  color: #2c7d5c;
-}
-
-.venue-top__tag--ok text {
-  margin-left: 6rpx;
-}
-
 .venue-top__call {
   flex-shrink: 0;
   display: flex;
