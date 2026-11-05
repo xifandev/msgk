@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, QuestionFilled, Rank, View, Clock } from '@element-plus/icons-vue'
+import { Plus, QuestionFilled, Rank, Clock } from '@element-plus/icons-vue'
 import Sortable from 'sortablejs'
 const { admin, hasPerm } = useAdmin()
 const loading = ref(false)
@@ -11,11 +11,15 @@ const filters = reactive({ page: 1, pageSize: 10, search: '', categoryId: null a
 const editorVisible = ref(false)
 const saving = ref(false)
 const form = reactive({ id: 0, categoryId: null as number | null, title: '', summary: '', coverUrl: '', authorName: '', content: '' })
+const { snapshot: snapshotForm, confirmClose: confirmCloseEditor } = useDirtyClose(form)
 const previewDate = ref('')
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const current = ref<Record<string, any>>({})
-const isCounty = computed(() => admin.value?.roleCode === 'county')
+// 政策法规：仅县级可编辑/删除/发布；镇级与场所管理员只有查看学习权限
+const canEdit = computed(() => hasPerm('news:edit'))
+const canPublish = computed(() => hasPerm('news:publish'))
+const canDelete = computed(() => hasPerm('news:delete'))
 const categoryVisible = ref(false)
 const categoryForm = reactive({ id: 0, name: '' })
 const categorySaving = ref(false)
@@ -69,6 +73,7 @@ async function editArticle(row?: any) {
     Object.assign(form, { id: 0, categoryId: null, title: '', summary: '', coverUrl: '', authorName: admin.value?.name ?? '', content: '' })
     previewDate.value = formatDate(new Date())
     editorVisible.value = true
+    snapshotForm()
     return
   }
   try {
@@ -79,6 +84,7 @@ async function editArticle(row?: any) {
     })
     previewDate.value = String(detail.createdAt ?? '').slice(0, 10) || formatDate(new Date())
     editorVisible.value = true
+    snapshotForm()
   } catch (error) { ElMessage.error(errorMessage(error)) }
 }
 async function saveArticle() {
@@ -185,36 +191,37 @@ onBeforeUnmount(() => { destroyCategorySortable() })
   <div class="page">
     <section class="panel">
       <div class="toolbar">
-        <el-input v-model="filters.search" placeholder="搜索文章标题" clearable aria-label="搜索文章标题" @keyup.enter="search" @clear="search" />
+        <el-input v-model="filters.search" placeholder="请输入政策标题" clearable aria-label="搜索政策标题" @keyup.enter="search" @clear="search" />
         <el-select v-model="filters.categoryId" clearable placeholder="文章分类" aria-label="按分类筛选">
           <el-option v-for="category in categories" :key="category.id" :value="category.id" :label="category.name" />
         </el-select>
-        <el-select v-model="filters.published" clearable placeholder="发布状态" aria-label="按发布状态筛选">
+        <el-select v-if="canPublish" v-model="filters.published" clearable placeholder="发布状态" aria-label="按发布状态筛选">
           <el-option label="已发布" value="1" />
           <el-option label="未发布" value="0" />
         </el-select>
         <el-button plain @click="search">查询</el-button>
         <div class="toolbar-actions">
-          <el-button v-if="hasPerm('news:edit')" @click="categoryVisible = true">管理分类</el-button>
-          <el-button v-if="hasPerm('news:edit')" type="primary" :icon="Plus" @click="editArticle()">新建文章</el-button>
+          <el-button v-if="canEdit" @click="categoryVisible = true">管理分类</el-button>
+          <el-button v-if="canEdit" type="primary" :icon="Plus" @click="editArticle()">新建文章</el-button>
         </div>
       </div>
       <div class="table-region" tabindex="0" role="region" aria-label="政策文章列表">
         <el-table v-loading="loading" :data="list">
           <el-table-column type="index" label="序号" width="64" :index="rowIndex" />
-          <el-table-column prop="categoryName" label="分类" width="160" />
-          <el-table-column prop="title" label="标题" min-width="200" show-overflow-tooltip />
+          <el-table-column v-if="canEdit" prop="categoryName" label="分类" width="140" />
+          <el-table-column prop="title" label="政策标题" min-width="200" show-overflow-tooltip />
           <el-table-column prop="authorName" label="发布人" width="110"><template #default="{ row }">{{ row.authorName || '—' }}</template></el-table-column>
-          <el-table-column prop="createdAt" label="发布时间" width="170" />
-          <el-table-column v-if="hasPerm('news:publish')" label="状态" width="100">
+          <el-table-column prop="publishUnit" label="发布单位" min-width="150" show-overflow-tooltip><template #default="{ row }">{{ row.publishUnit || '—' }}</template></el-table-column>
+          <el-table-column prop="createdAt" label="发布时间" width="190"><template #default="{ row }"><span class="time-cell">{{ row.createdAt || '—' }}</span></template></el-table-column>
+          <el-table-column v-if="canPublish" label="状态" width="100">
             <template #default="{ row }"><el-switch v-model="row.published" :active-value="1" :inactive-value="0" inline-prompt active-text="发布" inactive-text="隐藏" :aria-label="`《${row.title}》发布状态`" @change="publish(row)" /></template>
           </el-table-column>
-          <el-table-column label="操作" :width="hasPerm('news:edit') || hasPerm('news:delete') ? 200 : 120" fixed="right" align="right">
+          <el-table-column label="操作" :width="canEdit ? 240 : 120" fixed="right" align="right">
             <template #default="{ row }">
               <TableActions>
-                <el-button v-if="!isCounty" size="small" type="primary" plain :icon="View" :aria-label="`查看阅读《${row.title}》`" @click="openDetail(row)">查看阅读</el-button>
-                <el-button v-if="hasPerm('news:edit')" size="small" type="primary" :aria-label="`编辑《${row.title}》`" @click="editArticle(row)">编辑</el-button>
-                <el-button v-if="hasPerm('news:delete')" size="small" type="danger" plain :aria-label="`删除《${row.title}》`" @click="removeArticle(row)">删除</el-button>
+                <el-button size="small" type="primary" :aria-label="`阅读查看《${row.title}》`" @click="openDetail(row)">阅读查看</el-button>
+                <el-button v-if="canEdit" size="small" type="primary" plain :aria-label="`编辑《${row.title}》`" @click="editArticle(row)">编辑</el-button>
+                <el-button v-if="canDelete" size="small" type="danger" plain :aria-label="`删除《${row.title}》`" @click="removeArticle(row)">删除</el-button>
               </TableActions>
             </template>
           </el-table-column>
@@ -223,7 +230,7 @@ onBeforeUnmount(() => { destroyCategorySortable() })
       <div class="pagination"><el-pagination v-model:current-page="filters.page" v-model:page-size="filters.pageSize" :total="total" :page-sizes="[5, 10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" /></div>
     </section>
 
-    <el-dialog v-model="editorVisible" :title="form.id ? '编辑文章' : '新建文章'" width="min(1080px, 96vw)" destroy-on-close>
+    <el-dialog v-model="editorVisible" :title="form.id ? '编辑文章' : '新建文章'" width="min(1080px, 96vw)" destroy-on-close :before-close="confirmCloseEditor">
       <el-form label-position="top" @submit.prevent="saveArticle">
         <div class="editor-grid">
           <section class="editor-card editor-card-compact" aria-label="编写文章">
@@ -239,7 +246,7 @@ onBeforeUnmount(() => { destroyCategorySortable() })
                 <el-option v-for="category in categories" :key="category.id" :value="category.id" :label="category.name" />
               </el-select>
             </el-form-item>
-            <el-form-item label="标题" required><el-input v-model="form.title" maxlength="200" show-word-limit placeholder="请输入文章标题" /></el-form-item>
+            <el-form-item label="文章标题" required><el-input v-model="form.title" maxlength="200" show-word-limit placeholder="请输入文章标题" /></el-form-item>
             <el-form-item required>
               <template #label>
                 封面摘要
@@ -277,14 +284,13 @@ onBeforeUnmount(() => { destroyCategorySortable() })
                 </div>
               </div>
             </div>
-            <p class="preview-hint">封面由系统自动绘制，无需上传图片，将同步展示在小程序与公众号文章列表。</p>
           </section>
         </div>
         <el-form-item label="正文内容" required><RichTextEditor v-model="form.content" /></el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-actions">
-          <el-button @click="editorVisible = false">取消</el-button>
+          <el-button @click="confirmCloseEditor(() => editorVisible = false)">取消</el-button>
           <el-button type="primary" :loading="saving" @click="saveArticle">保存文章</el-button>
         </div>
       </template>
@@ -332,8 +338,12 @@ onBeforeUnmount(() => { destroyCategorySortable() })
               <span class="tag-category">{{ current.categoryName }}</span>
               <h1 class="reader-title">{{ current.title }}</h1>
               <div class="reader-meta">
-                <el-icon class="meta-icon"><Clock /></el-icon>
-                <span>{{ current.createdAt || '—' }}</span>
+                <span>发布人：{{ current.authorName || '—' }}</span>
+                <span>发布单位：{{ current.publishUnit || '—' }}</span>
+                <span class="reader-meta-time">
+                  <el-icon class="meta-icon"><Clock /></el-icon>
+                  <span>{{ current.createdAt || '—' }}</span>
+                </span>
               </div>
             </header>
 
@@ -347,9 +357,10 @@ onBeforeUnmount(() => { destroyCategorySortable() })
 
 <style scoped>
 .label-icon { margin-inline-start: 4px; color: var(--muted); vertical-align: -2px; }
+.time-cell { white-space: nowrap; }
 .toolbar .el-input { max-width: 260px; }
 .toolbar .el-select { min-width: 160px; }
-.editor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; margin-block-end: 4px; }
+.editor-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr); gap: 18px; margin-block-end: 4px; align-items: start; }
 .editor-card { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px 2px; background: var(--surface); }
 .editor-card-title { margin: 0 0 10px; font-size: 15px; font-weight: 600; color: var(--text-primary, #1f2937); }
 .editor-card .el-select { width: 100%; }
@@ -357,8 +368,8 @@ onBeforeUnmount(() => { destroyCategorySortable() })
 /* 编写文章卡片：标签与输入框同行，压缩纵向空间，给正文留空间 */
 .editor-card-compact .el-form-item { display: flex; align-items: center; margin-block-end: 10px; }
 .editor-card-compact :deep(.el-form-item__label) {
-  width: 76px; flex-shrink: 0; justify-content: flex-start;
-  padding: 0 8px 0 0; margin: 0; height: auto; line-height: 1.4;
+  width: 80px; flex-shrink: 0; white-space: nowrap; justify-content: flex-start;
+  padding: 0 10px 0 0; margin: 0; height: auto; line-height: 1.4;
 }
 .editor-card-compact :deep(.el-form-item__content) { flex: 1; min-width: 0; margin-inline-start: 0 !important; }
 
@@ -403,7 +414,9 @@ onBeforeUnmount(() => { destroyCategorySortable() })
 }
 .news-title-placeholder { color: var(--muted); }
 .news_time { color: #b9b9b9; font-size: 14px; }
-.preview-hint { margin: 16px 0 0; padding-block-start: 12px; border-block-start: 1px dashed var(--line); font-size: 12px; color: var(--muted); line-height: 1.6; }
+@media (max-width: 900px) {
+  .editor-grid { grid-template-columns: 1fr; }
+}
 @media (max-width: 640px) {
   .editor-card { padding: 14px 14px 0; }
 }
@@ -431,9 +444,10 @@ onBeforeUnmount(() => { destroyCategorySortable() })
   color: var(--text-primary, #1f2937); letter-spacing: -0.3px;
 }
 .reader-meta {
-  display: inline-flex; align-items: center; gap: 6px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px;
   font-size: 13px; color: var(--muted);
 }
+.reader-meta-time { display: inline-flex; align-items: center; gap: 6px; }
 .meta-icon { font-size: 13px; }
 .reader-content { font-size: 16px; line-height: 1.85; color: var(--text-primary, #1f2937); }
 .reader-content :deep(p) { margin: 0 0 14px; }

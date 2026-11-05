@@ -141,6 +141,7 @@ CREATE TABLE IF NOT EXISTS news_articles (
   cover_url VARCHAR(500) NULL,
   content MEDIUMTEXT NOT NULL,
   author_name VARCHAR(50) NULL,
+  publish_unit VARCHAR(100) NULL,
   published TINYINT(1) NOT NULL DEFAULT 0,
   created_by BIGINT UNSIGNED NULL,
   updated_by BIGINT UNSIGNED NULL,
