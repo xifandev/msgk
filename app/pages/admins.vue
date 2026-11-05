@@ -6,6 +6,13 @@ const list = ref<any[]>([])
 const roles = ref<any[]>([])
 const venues = ref<any[]>([])
 const search = ref('')
+const activeRole = ref(0)
+const filteredList = computed(() => (activeRole.value ? list.value.filter((row) => row.role_id === activeRole.value) : list.value))
+const roleCounts = computed(() => {
+  const map: Record<number, number> = {}
+  list.value.forEach((row) => { map[row.role_id] = (map[row.role_id] ?? 0) + 1 })
+  return map
+})
 const visible = ref(false)
 const saving = ref(false)
 const form = reactive({ id: 0, phone: '', name: '', roleId: null as number | null, organization: '', note: '', status: 1, allVenues: 0, venueIds: [] as number[] })
@@ -48,6 +55,27 @@ onMounted(load)
 
 <template>
   <div class="page">
+    <nav class="tabs" role="tablist" aria-label="按角色筛选管理员">
+      <button
+        type="button"
+        role="tab"
+        class="tab"
+        :class="{ active: activeRole === 0 }"
+        :aria-selected="activeRole === 0"
+        @click="activeRole = 0"
+      >全部<em>{{ list.length }}</em></button>
+      <button
+        v-for="role in roles"
+        :key="role.id"
+        type="button"
+        role="tab"
+        class="tab"
+        :class="{ active: activeRole === role.id }"
+        :aria-selected="activeRole === role.id"
+        @click="activeRole = role.id"
+      >{{ role.name }}<em>{{ roleCounts[role.id] ?? 0 }}</em></button>
+    </nav>
+
     <section class="panel">
       <div class="toolbar">
         <el-input v-model="search" placeholder="输入姓名或手机号查询" clearable aria-label="搜索管理员" @keyup.enter="load" @clear="load" />
@@ -57,7 +85,7 @@ onMounted(load)
         </div>
       </div>
       <div class="table-region" tabindex="0" role="region" aria-label="管理员列表">
-        <el-table :data="list">
+        <el-table :data="filteredList">
           <el-table-column type="index" label="序号" width="64" />
           <el-table-column prop="name" label="姓名" width="80" />
           <el-table-column prop="phone" label="登录手机号" width="130" />
@@ -122,6 +150,26 @@ onMounted(load)
 </template>
 
 <style scoped>
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; padding-block: 2px; }
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: #475467;
+  cursor: pointer;
+  font-size: 13px;
+  transition: border-color .15s, background-color .15s, color .15s;
+}
+.tab em { min-width: 22px; padding: 0 6px; border-radius: 999px; background: #eef1f5; color: var(--muted); font-style: normal; font-size: 11px; line-height: 20px; text-align: center; font-variant-numeric: tabular-nums; }
+.tab:hover { border-color: var(--el-color-primary-light-5); color: var(--brand); }
+.tab.active { border-color: var(--brand); background: var(--brand); color: #fff; }
+.tab.active em { background: rgb(255 255 255 / 20%); color: #fff; }
+.tab:focus-visible { outline: 3px solid #84adff; outline-offset: 2px; }
+
 .venue-tag { margin: 3px; }
 .muted { color: var(--muted); font-size: 13px; }
 .el-select { width: 100%; }
