@@ -277,7 +277,7 @@ onMounted(() => { void load() })
         </div>
       </section>
 
-      <section class="card" aria-labelledby="info-title">
+      <section class="card info-card" aria-labelledby="info-title">
         <header class="card-head">
           <h2 id="info-title">基础信息公开</h2>
         </header>
@@ -538,8 +538,9 @@ onMounted(() => { void load() })
 .trend-month { color: #98a2b3; font-size: 11px; font-variant-numeric: tabular-nums; }
 
 /* ---------- 基础信息公开 ---------- */
-/* 与左侧走势卡等高：行拉伸填满卡片内容区 */
-.info-list { display: grid; grid-template-rows: repeat(3, minmax(46px, 1fr)); gap: 2px; height: 100%; margin: 0; padding: 0; list-style: none; }
+/* 与左侧走势卡等高：卡片纵向 flex，列表 flex:1 只占标题以外的剩余空间，三行 1fr 自由拉伸填满 */
+.info-card { display: flex; flex-direction: column; }
+.info-list { display: grid; grid-template-rows: repeat(3, minmax(46px, 1fr)); gap: 2px; flex: 1; min-height: 0; margin: 0; padding: 0; list-style: none; }
 .info-list a { display: grid; grid-template-columns: 76px minmax(0, 1fr) 52px 58px; align-items: center; gap: 12px; height: 100%; min-height: 46px; padding: 4px 8px; border-radius: 10px; transition: background-color .16s; }
 .info-list a:hover { background: #f6f9fd; }
 .info-list a:focus-visible { outline: 2px solid #84adff; outline-offset: -2px; }
