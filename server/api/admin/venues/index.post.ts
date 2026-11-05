@@ -1,7 +1,7 @@
 import type { ResultSetHeader } from 'mysql2/promise'
 import { requirePermission } from '../../../utils/auth'
 import { queryOne, withTransaction } from '../../../utils/db'
-import { text } from '../../../utils/http'
+import { money, text } from '../../../utils/http'
 import { logAction } from '../../../utils/log'
 import { intOrDefault, optionalUrl } from './-helpers'
 
@@ -21,11 +21,12 @@ export default defineEventHandler(async (event) => {
   }
   const imageUrl = optionalUrl(body?.image_url, '场所图片')
   const safetyNote = text(body?.safety_note, '安全提示', 2000, false) || null
+  const openingBalance = money(body?.opening_balance ?? '0')
 
   const venueId = await withTransaction(async (conn) => {
     const [result] = await conn.execute<ResultSetHeader>(
-      'INSERT INTO venues (name, township, sort_order, image_url, safety_note) VALUES (?, ?, ?, ?, ?)',
-      [name, township, sortOrder, imageUrl, safetyNote]
+      'INSERT INTO venues (name, township, sort_order, opening_balance, image_url, safety_note) VALUES (?, ?, ?, ?, ?, ?)',
+      [name, township, sortOrder, openingBalance, imageUrl, safetyNote]
     )
     const id = result.insertId
     await conn.execute(

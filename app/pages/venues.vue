@@ -14,6 +14,7 @@ const editForm = reactive({
   name: '',
   township: '',
   sort_order: 0,
+  opening_balance: '0',
   image_url: null as string | null,
   safety_note: ''
 })
@@ -47,10 +48,11 @@ function editVenue(row?: any) {
         name: row.name,
         township: row.township,
         sort_order: row.sort_order,
+        opening_balance: row.opening_balance ?? '0',
         image_url: row.image_url,
         safety_note: row.safety_note ?? ''
       }
-    : { id: 0, name: '', township: '', sort_order: 0, image_url: null, safety_note: '' })
+    : { id: 0, name: '', township: '', sort_order: 0, opening_balance: '0', image_url: null, safety_note: '' })
   editVisible.value = true
 }
 async function saveVenue() {
@@ -69,6 +71,7 @@ async function saveVenue() {
       township: editForm.township,
       // 排序值不在表单中展示：编辑时保留原值，新增时传 null 由服务端排到乡镇末尾
       sort_order: editForm.id ? editForm.sort_order : null,
+      opening_balance: editForm.opening_balance,
       image_url: editForm.image_url,
       safety_note: editForm.safety_note
     }
@@ -338,6 +341,11 @@ onMounted(load)
           <el-select v-model="editForm.township" filterable allow-create default-first-option placeholder="选择所在乡镇">
             <el-option v-for="township in TOWNSHIPS" :key="township" :value="township" :label="township" />
           </el-select>
+        </el-form-item>
+        <el-form-item label="期初结余">
+          <el-input v-model="editForm.opening_balance" inputmode="decimal" placeholder="未启用系统前的账面结余，默认为 0">
+            <template #prepend>¥</template>
+          </el-input>
         </el-form-item>
       </el-form>
       <template #footer>

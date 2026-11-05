@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
     params
   )
   const list = await query(
-    `SELECT v.id, v.name, v.township, v.sort_order, v.image_url, v.safety_note,
+    `SELECT v.id, v.name, v.township, v.sort_order, v.opening_balance, v.image_url, v.safety_note,
             v.created_at, v.updated_at,
             p.state AS profile_state, p.published AS profile_published, p.submitted_at AS profile_submitted_at,
             m.state AS personnel_state, m.published AS personnel_published

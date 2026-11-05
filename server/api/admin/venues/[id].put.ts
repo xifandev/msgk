@@ -1,6 +1,6 @@
 import { requirePermission } from '../../../utils/auth'
 import { execute, queryOne } from '../../../utils/db'
-import { positiveId, text } from '../../../utils/http'
+import { money, positiveId, text } from '../../../utils/http'
 import { logAction } from '../../../utils/log'
 import { intOrDefault, optionalUrl, requireScopedVenue } from './-helpers'
 
@@ -14,10 +14,11 @@ export default defineEventHandler(async (event) => {
   const sortOrder = intOrDefault(body?.sort_order, '排序值')
   const imageUrl = optionalUrl(body?.image_url, '场所图片')
   const safetyNote = text(body?.safety_note, '安全提示', 2000, false) || null
+  const openingBalance = money(body?.opening_balance ?? '0')
 
   await execute(
-    'UPDATE venues SET name = ?, township = ?, sort_order = ?, image_url = ?, safety_note = ? WHERE id = ?',
-    [name, township, sortOrder, imageUrl, safetyNote, id]
+    'UPDATE venues SET name = ?, township = ?, sort_order = ?, opening_balance = ?, image_url = ?, safety_note = ? WHERE id = ?',
+    [name, township, sortOrder, openingBalance, imageUrl, safetyNote, id]
   )
   await logAction(admin, 'venues', `场所#${id}`, `更新场所「${name}」`, event)
   return await queryOne('SELECT * FROM venues WHERE id = ?', [id])

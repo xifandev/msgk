@@ -49,15 +49,7 @@ const items = ref<any[]>([])
 const itemVisible = ref(false)
 const itemSaving = ref(false)
 const itemForm = reactive({ id: 0, kind: 'income', occurredOn: '', summary: '', amount: '' })
-const prevDirty = ref(false)
 const billEditable = computed(() => ['draft', 'rejected'].includes(current.value.state))
-const previewBalance = computed(() => {
-  const previous = Number(current.value.previous_balance)
-  const income = Number(current.value.income)
-  const expense = Number(current.value.expense)
-  if (![previous, income, expense].every(Number.isFinite)) return null
-  return previous + income - expense
-})
 // 录入态按录入顺序倒序（id 倒序，最新录入的排第一，便于确认刚录入内容）；审核态按日期正序（从小到大）
 const sortedItems = computed(() => {
   const arr = [...items.value]
@@ -99,32 +91,8 @@ async function openBill(row: any) {
     const response = await $fetch<{ bill: any, items: any[] }>(`/api/admin/finance/${row.id}`)
     current.value = response.bill
     items.value = response.items
-    prevDirty.value = false
     detailVisible.value = true
   } catch (error) { ElMessage.error(errorMessage(error)) }
-}
-async function saveBill() {
-  const value = Number(current.value.previous_balance)
-  if (!Number.isFinite(value)) { ElMessage.warning('请输入正确的上月结余'); return }
-  try {
-    await $fetch(`/api/admin/finance/${current.value.id}`, { method: 'PUT', body: { previousBalance: value.toFixed(2) } })
-    prevDirty.value = false
-    ElMessage.success('保存成功')
-    await Promise.all([load(), openBill(current.value)])
-  } catch (error) { ElMessage.error(errorMessage(error)) }
-}
-async function confirmClose(done: () => void) {
-  if (!prevDirty.value) { done(); return }
-  try {
-    await ElMessageBox.confirm('上月结余尚未保存，是否保存后关闭？', '提示', { type: 'warning', confirmButtonText: '保存并关闭', cancelButtonText: '不保存', distinguishCancelAndClose: true })
-    await saveBill()
-    done()
-  } catch (action) {
-    if (action === 'cancel') {
-      prevDirty.value = false
-      done()
-    }
-  }
 }
 function editItem(item?: any) {
   Object.assign(itemForm, item ? { id: item.id, kind: item.kind, occurredOn: item.occurred_on, summary: item.summary, amount: item.amount } : { id: 0, kind: 'income', occurredOn: `${current.value.bill_month}-01`, summary: '', amount: '' })
@@ -158,9 +126,7 @@ async function deleteItem(item: any) {
   } catch (error) { ElMessage.error(errorMessage(error)) }
 }
 function validateSubmit() {
-  if (prevDirty.value) return '上月结余尚未保存，请先点击“保存上月结余”'
   if (!items.value.length) return '请先录入至少一条收支明细，再提交审核'
-  if (current.value.previous_balance === null || current.value.previous_balance === undefined || current.value.previous_balance === '') return '请填写上月结余，再提交审核'
   return null
 }
 async function review(action: string, reason?: string) {
@@ -218,8 +184,7 @@ onMounted(() => {
           <el-table-column prop="venue_name" label="场所名称" min-width="150" />
           <el-table-column label="收入" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.income) }}</template></el-table-column>
           <el-table-column label="支出" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.expense) }}</template></el-table-column>
-          <el-table-column label="上月结余" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.previous_balance) }}</template></el-table-column>
-          <el-table-column label="本月结余" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.current_balance) }}</template></el-table-column>
+          <el-table-column label="月结余" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.balance) }}</template></el-table-column>
           <el-table-column label="状态" width="110"><template #default="{ row }"><el-tag :type="REVIEW_TAG_TYPES[row.state]">{{ REVIEW_LABELS[row.state] }}</el-tag></template></el-table-column>
           <el-table-column v-if="showPublishColumn" label="公开" width="80">
             <template #default="{ row }">
@@ -245,7 +210,7 @@ onMounted(() => {
       <div class="pagination"><el-pagination v-model:current-page="filters.page" v-model:page-size="filters.pageSize" :total="total" :page-sizes="[5, 10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" /></div>
     </section>
 
-    <el-drawer v-model="detailVisible" class="finance-drawer" size="min(1000px, 96vw)" :before-close="confirmClose">
+    <el-drawer v-model="detailVisible" class="finance-drawer" size="min(1000px, 96vw)">
       <template #header>
         <span class="finance-drawer-title">
           <span class="finance-drawer-venue">{{ current.venue_name ?? '' }}</span>
@@ -255,16 +220,10 @@ onMounted(() => {
       <div class="detail-layout">
         <section class="detail-main">
           <div class="summary-grid">
-            <section class="previous-balance-card" aria-label="上月结余填写与保存">
-              <el-input v-model="current.previous_balance" aria-label="上月结余" :disabled="!billEditable" @input="prevDirty = true">
-                <template #prepend>¥ 上月结余</template>
-              </el-input>
-              <el-button v-if="hasPerm('finance:edit') && billEditable" type="primary" plain aria-label="保存上月结余" @click="saveBill">保存</el-button>
-            </section>
             <el-descriptions :column="2" border>
               <el-descriptions-item label="本月收入">{{ formatMoney(current.income) }}</el-descriptions-item>
               <el-descriptions-item label="本月支出">{{ formatMoney(current.expense) }}</el-descriptions-item>
-              <el-descriptions-item label="本月结余">{{ formatMoney(previewBalance ?? current.current_balance) }}</el-descriptions-item>
+              <el-descriptions-item label="月结余">{{ formatMoney(current.balance) }}</el-descriptions-item>
               <el-descriptions-item label="明细数">{{ items.length }}</el-descriptions-item>
             </el-descriptions>
           </div>
@@ -373,9 +332,6 @@ onMounted(() => {
 .review-card :deep(.review-actions .el-button) { margin: 0; height: 28px; padding-inline: 12px; font-size: 13px; }
 .review-card :deep(.review-actions .el-input) { flex: none; width: 100%; }
 .summary-grid { display: grid; gap: 16px; margin-block-end: 18px; }
-.previous-balance-card { display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: #f8fafc; }
-.previous-balance-card .el-input { flex: 0 1 240px; width: 240px; min-width: 0; }
-.previous-balance-card .el-button { flex: none; margin: 0; }
 .finance-items-table :deep(.finance-nowrap-cell .cell) { white-space: nowrap; }
 .finance-item-cards { display: none; }
 .finance-item-cards ol { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
