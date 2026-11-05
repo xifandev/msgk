@@ -15,18 +15,18 @@
         </view>
 
         <block wx:if="{{ monthLoaded && bill }}">
-          <!-- 结余主卡：当月结余 + 当月收入/支出 -->
+          <!-- 结余主卡：本月结余 + 本月收入/支出 -->
           <view class="balance">
-            <view class="balance__label">当月结余（元）</view>
+            <view class="balance__label">本月结余（元）</view>
             <view class="balance__value {{ bill.currentNegative ? 'is-negative' : '' }}">{{ bill.currentText }}</view>
 
             <view class="balance__flow">
               <view class="flow">
-                <text class="flow__label">当月收入</text>
+                <text class="flow__label">本月收入</text>
                 <text class="flow__value is-income">{{ bill.incomeText }}</text>
               </view>
               <view class="flow">
-                <text class="flow__label">当月支出</text>
+                <text class="flow__label">本月支出</text>
                 <text class="flow__value is-expense">{{ bill.expenseText }}</text>
               </view>
             </view>
@@ -124,7 +124,7 @@
             </block>
           </view>
 
-          <!-- 月度明细：当月收入 / 当月支出 / 月结余 -->
+          <!-- 月度明细：本月收入 / 本月支出 / 本月结余 -->
           <view class="section">
             <view class="section__head">
               <view class="section__bar"></view>
@@ -138,15 +138,15 @@
 
               <view class="month__row">
                 <view class="mstat">
-                  <text class="mstat__label">当月收入</text>
+                  <text class="mstat__label">本月收入</text>
                   <text class="mstat__value is-income">{{ item.incomeText }}</text>
                 </view>
                 <view class="mstat">
-                  <text class="mstat__label">当月支出</text>
+                  <text class="mstat__label">本月支出</text>
                   <text class="mstat__value is-expense">{{ item.expenseText }}</text>
                 </view>
                 <view class="mstat">
-                  <text class="mstat__label">月结余</text>
+                  <text class="mstat__label">本月结余</text>
                   <text class="mstat__value {{ item.currentNegative ? 'is-negative' : '' }}">{{ item.currentText }}</text>
                 </view>
               </view>
