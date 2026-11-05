@@ -33,12 +33,11 @@ export default defineEventHandler(async (event) => {
   const total = await queryOne<{ count: number }>(`SELECT COUNT(*) AS count FROM bills b JOIN venues v ON v.id = b.venue_id WHERE ${condition}`, params)
   const list = await query(
     `SELECT b.*, v.name AS venue_name, v.township,
-       (v.opening_balance + COALESCE((
-         SELECT SUM(CASE WHEN i.kind = 'income' THEN i.amount ELSE -i.amount END)
-         FROM bill_items i
-         WHERE i.venue_id = b.venue_id
-           AND i.occurred_on < DATE_ADD(STR_TO_DATE(CONCAT(b.bill_month, '-01'), '%Y-%m-%d'), INTERVAL 1 MONTH)
-       ), 0)) AS balance
+       (SELECT COALESCE(SUM(CASE WHEN i.kind = 'income' THEN i.amount ELSE -i.amount END), 0)
+        FROM bill_items i
+        WHERE i.venue_id = b.venue_id
+          AND i.occurred_on < DATE_ADD(STR_TO_DATE(CONCAT(b.bill_month, '-01'), '%Y-%m-%d'), INTERVAL 1 MONTH)
+       ) AS balance
      FROM bills b JOIN venues v ON v.id = b.venue_id
      WHERE ${condition} ORDER BY b.bill_month DESC, b.id DESC LIMIT ${pageSize} OFFSET ${offset}`,
     params

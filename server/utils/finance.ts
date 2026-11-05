@@ -17,17 +17,14 @@ export async function recalculateBill(conn: PoolConnection, billId: number) {
   )
 }
 
-// 月结余 = 场所期初结余 + 截至该月末的全部明细净额（实时计算，不落库）
+// 月结余 = 截至该月末的全部明细净额（实时计算，不落库）
 export async function getBillBalance(venueId: number, month: string) {
   const [year, mon] = month.split('-').map(Number)
   const nextMonthStart = new Date(Date.UTC(year ?? 0, mon ?? 1, 1)).toISOString().slice(0, 10)
   const row = await queryOne<{ balance: number | string }>(
-    `SELECT v.opening_balance + COALESCE((
-       SELECT SUM(CASE WHEN i.kind = 'income' THEN i.amount ELSE -i.amount END)
-       FROM bill_items i WHERE i.venue_id = v.id AND i.occurred_on < ?
-     ), 0) AS balance
-     FROM venues v WHERE v.id = ?`,
-    [nextMonthStart, venueId]
+    `SELECT COALESCE(SUM(CASE WHEN kind = 'income' THEN amount ELSE -amount END), 0) AS balance
+     FROM bill_items WHERE venue_id = ? AND occurred_on < ?`,
+    [venueId, nextMonthStart]
   )
   return Math.round(Number(row?.balance ?? 0) * 100) / 100
 }

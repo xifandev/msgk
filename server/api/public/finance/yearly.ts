@@ -20,26 +20,18 @@ export default defineEventHandler(async (event) => {
      ORDER BY bill_month ASC`,
     [venueId, `${year}-01`, `${year}-12`]
   )
-  // 月结余实时计算：期初结余 + 截至当月末的明细净额，逐月滚动（含未公开月份的净额，保证链条连续）
-  const [venue, nets] = await Promise.all([
-    queryOne<{ opening_balance: number | string }>('SELECT opening_balance FROM venues WHERE id = ?', [venueId]),
-    query<{ ym: string, net: number | string }>(
-      `SELECT DATE_FORMAT(occurred_on, '%Y-%m') AS ym,
-              SUM(CASE WHEN kind = 'income' THEN amount ELSE -amount END) AS net
-       FROM bill_items WHERE venue_id = ? AND occurred_on < ? GROUP BY ym`,
-      [venueId, `${Number(year) + 1}-01-01`]
-    )
-  ])
-  const netByMonth = new Map(nets.map(row => [row.ym, Number(row.net)]))
-  let running = Math.round(Number(venue?.opening_balance ?? 0) * 100) / 100
-  for (const [ym, net] of netByMonth) {
-    if (ym < `${year}-01`) running = Math.round((running + net) * 100) / 100
-  }
+  // 月结余实时计算：截至当月末的明细净额逐月滚动（含未公开月份的净额，保证链条连续）
+  const nets = await query<{ ym: string, net: number | string }>(
+    `SELECT DATE_FORMAT(occurred_on, '%Y-%m') AS ym,
+            SUM(CASE WHEN kind = 'income' THEN amount ELSE -amount END) AS net
+     FROM bill_items WHERE venue_id = ? AND occurred_on < ? GROUP BY ym ORDER BY ym`,
+    [venueId, `${Number(year) + 1}-01-01`]
+  )
   const rowByMonth = new Map(rows.map(row => [row.bill_month, row]))
   const months: { month: string, income: number, expense: number, currentBalance: number }[] = []
-  for (let m = 1; m <= 12; m++) {
-    const ym = `${year}-${String(m).padStart(2, '0')}`
-    running = Math.round((running + (netByMonth.get(ym) ?? 0)) * 100) / 100
+  let running = 0
+  for (const { ym, net } of nets) {
+    running = Math.round((running + Number(net)) * 100) / 100
     const row = rowByMonth.get(ym)
     if (row) {
       months.push({ month: ym, income: Number(row.income), expense: Number(row.expense), currentBalance: running })
