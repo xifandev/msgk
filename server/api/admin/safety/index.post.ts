@@ -8,7 +8,6 @@ export default defineEventHandler(async (event) => {
   }
   const body = await readBody(event)
   const title = text(body?.title, '标题')
-  const authorName = text(body?.authorName, '发布人', 50, false)
   const content = cleanRichText(body?.content)
   if (!content.trim()) throw createError({ statusCode: 400, message: '请填写正文内容' })
   const publishUnit = (admin.organization ?? '').trim() || null
@@ -16,7 +15,7 @@ export default defineEventHandler(async (event) => {
     const [result] = await conn.execute<ResultSetHeader>(
       `INSERT INTO safety_articles (title, content, author_name, author_role, publish_unit, state, published, created_by, updated_by)
        VALUES (?, ?, ?, ?, ?, 'approved', 1, ?, ?)`,
-      [title, content, authorName || admin.name, admin.roleCode, publishUnit, admin.id, admin.id]
+      [title, content, admin.name, admin.roleCode, publishUnit, admin.id, admin.id]
     )
     const articleId = result.insertId
     await conn.execute('INSERT INTO safety_article_venues (article_id, venue_id) SELECT ?, id FROM venues', [articleId])

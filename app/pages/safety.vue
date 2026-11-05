@@ -11,7 +11,7 @@ const total = ref(0)
 const filters = reactive({ page: 1, pageSize: 10, search: '', published: '', venueId: null as number | null })
 const editorVisible = ref(false)
 const saving = ref(false)
-const form = reactive({ id: 0, title: '', authorName: '', content: '' })
+const form = reactive({ id: 0, title: '', content: '' })
 const { snapshot: snapshotForm, confirmClose: confirmCloseEditor } = useDirtyClose(form)
 const detailVisible = ref(false)
 const current = ref<Record<string, any>>({})
@@ -38,14 +38,14 @@ async function openDetail(row: any) {
 }
 async function editArticle(row?: any) {
   if (!row) {
-    Object.assign(form, { id: 0, title: '', authorName: '', content: '' })
+    Object.assign(form, { id: 0, title: '', content: '' })
     editorVisible.value = true
     snapshotForm()
     return
   }
   try {
     const detail = await $fetch<any>(`/api/admin/safety/${row.id}`)
-    Object.assign(form, { id: detail.id, title: detail.title, authorName: detail.authorName ?? '', content: detail.content ?? '' })
+    Object.assign(form, { id: detail.id, title: detail.title, content: detail.content ?? '' })
     editorVisible.value = true
     snapshotForm()
   } catch (error) { ElMessage.error(errorMessage(error)) }
@@ -131,7 +131,6 @@ onMounted(load)
     <el-dialog v-model="editorVisible" :title="form.id ? '编辑安全文章' : '新建安全文章'" width="min(960px, 94vw)" destroy-on-close :before-close="confirmCloseEditor">
       <el-form label-position="top" @submit.prevent="saveArticle">
         <el-form-item label="标题" required><el-input v-model="form.title" maxlength="200" show-word-limit /></el-form-item>
-        <el-form-item label="发布人"><el-input v-model="form.authorName" maxlength="50" placeholder="默认为当前管理员姓名" /></el-form-item>
         <el-form-item label="正文内容" required><RichTextEditor v-model="form.content" /></el-form-item>
         <p class="muted">保存后自动发布到全部场所，无需选择关联场所。</p>
       </el-form>

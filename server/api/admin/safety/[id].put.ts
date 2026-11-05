@@ -9,13 +9,12 @@ export default defineEventHandler(async (event) => {
   if (!existing) throw createError({ statusCode: 404, message: '文章不存在' })
   const body = await readBody(event)
   const title = text(body?.title, '标题')
-  const authorName = text(body?.authorName, '发布人', 50, false)
   const content = cleanRichText(body?.content)
   if (!content.trim()) throw createError({ statusCode: 400, message: '请填写正文内容' })
   await withTransaction(async (conn) => {
     await conn.execute(
       `UPDATE safety_articles SET title = ?, content = ?, author_name = ?, state = 'approved', updated_by = ? WHERE id = ?`,
-      [title, content, authorName || null, admin.id, id]
+      [title, content, admin.name, admin.id, id]
     )
     await conn.execute('DELETE FROM safety_article_venues WHERE article_id = ?', [id])
     await conn.execute('INSERT INTO safety_article_venues (article_id, venue_id) SELECT ?, id FROM venues', [id])
