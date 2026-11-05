@@ -51,7 +51,9 @@ const tabs = computed<TabItem[]>(() => {
   items.push({ value: '', label: '全部', count: counts.value.all ?? 0 })
   return items
 })
-const stateParam = computed(() => (isReviewer.value ? (activeTab.value === 'mine' ? myState.value : activeTab.value) : '') || undefined)
+// 实际请求用的状态：由点击胶囊写入；工具栏查询会把它清空，但不改胶囊选中项
+const requestState = ref('')
+const stateParam = computed(() => (isReviewer.value ? requestState.value : '') || undefined)
 const needsMyReview = (row: any) => showMine.value && row.state === myState.value
 const noteOf = (row: any) => (row.state === 'rejected' ? row.county_note || row.town_note || '' : '')
 
@@ -84,15 +86,18 @@ async function load() {
   }
 }
 
+// 胶囊选中项只服务于它自己的状态过滤，工具栏查询不读也不改它
 function setTab(value: string) {
-  if (activeTab.value === value) return
   activeTab.value = value
+  requestState.value = value === 'mine' ? myState.value : value
   query.page = 1
   syncTabQuery(value)
   void load()
 }
 
+// 工具栏查询（场所/乡镇关键词）不参与状态筛选：请求不带 state，胶囊外观保持不动
 function search() {
+  requestState.value = ''
   query.page = 1
   void load()
 }
@@ -255,6 +260,7 @@ watch(() => [query.page, query.pageSize], () => { void load() })
 onMounted(async () => {
   mounted.value = true
   initTab()
+  requestState.value = activeTab.value === 'mine' ? myState.value : activeTab.value
   await load()
   const initialVenue = Number(route.query.venue)
   if (Number.isSafeInteger(initialVenue) && initialVenue > 0) {

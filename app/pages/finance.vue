@@ -29,42 +29,26 @@ const stateTabs = computed<StateTab[]>(() => {
   items.push({ value: 'draft', label: '正在填报', count: counts.value.draft ?? 0 })
   items.push({ value: 'approved', label: '审核通过', count: counts.value.approved ?? 0 })
   items.push({ value: 'rejected', label: '审核失败', count: counts.value.rejected ?? 0 })
+  items.push({ value: '', label: '全部', count: counts.value.all ?? 0 })
   return items
 })
-// 胶囊只负责状态过滤：未选中任意胶囊即“全部状态”
-const activeTab = computed(() => {
-  if (filters.state && filters.state === myState.value && canReview.value) return 'mine'
-  return filters.state
-})
+// 胶囊选中项只服务于它自己的状态过滤：工具栏查询不会读它，也不会改它
+const activeTab = stateTab.activeTab
 function setStateTab(value: string) {
-  // 再次点击已选胶囊 = 取消状态筛选，回到全部状态
-  if (activeTab.value === value) { clearState(); return }
   const state = value === 'mine' ? myState.value : value
-  if (filters.state === state) return
+  activeTab.value = value
   filters.state = state
   filters.page = 1
   stateTab.syncQuery(value)
 }
-// 取消状态筛选：胶囊全部变为未选中
-function clearState() {
-  if (!filters.state) return false
+// 工具栏查询（场所/月份）不参与状态筛选：请求不带 state，胶囊外观保持不动
+function queryByToolbar() {
+  const ignoredState = Boolean(filters.state)
+  const wasFirstPage = filters.page === 1
   filters.state = ''
   filters.page = 1
-  stateTab.syncQuery('')
-  return true
-}
-// 工具栏检索（场所/月份）与状态胶囊互不联动：检索时清空状态筛选，直接看该场所全部记录
-function onVenueChange() {
-  clearState()
-  filters.page = 1
-}
-function runSearch() {
-  const hadState = Boolean(filters.state)
-  const wasFirstPage = filters.page === 1
-  clearState()
-  filters.page = 1
-  // 条件无变化时也给出一次刷新反馈
-  if (!hadState && wasFirstPage) void load()
+  // 条件确实没变化时，手动刷新一次，保证“查询”有反馈
+  if (!ignoredState && wasFirstPage) void load()
 }
 const detailVisible = ref(false)
 const current = ref<Record<string, any>>({})
@@ -194,9 +178,9 @@ onMounted(() => {
     <StateTabs v-if="mounted && canReview" :tabs="stateTabs" :model-value="activeTab" aria-label="审核状态快速筛选" @update:model-value="setStateTab" />
     <section class="panel">
       <div class="toolbar">
-        <VenueSelect v-model="filters.venueId" clearable style="width: 260px" @change="onVenueChange" />
+        <VenueSelect v-model="filters.venueId" clearable style="width: 260px" @change="queryByToolbar" />
         <el-date-picker v-model="filters.month" type="month" value-format="YYYY-MM" placeholder="公开月份" />
-        <el-button plain @click="runSearch">查询</el-button>
+        <el-button plain @click="queryByToolbar">查询</el-button>
       </div>
       <div class="table-region" tabindex="0" role="region" aria-label="月度账单列表">
         <el-table v-loading="loading" :data="list">
