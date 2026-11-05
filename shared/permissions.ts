@@ -15,10 +15,10 @@ export const PERMISSIONS: PermissionDefinition[] = [
   { code: 'personnel:edit', name: '编辑人员', group: '人员公开' },
   { code: 'personnel:review', name: '审核人员', group: '人员公开' },
   { code: 'personnel:publish', name: '设置人员公开状态', group: '人员公开' },
+  // 场所安全：仅县级可发布/编辑/删除/设置公开，镇级与场所仅查看；不设审核
   { code: 'safety:view', name: '查看安全文章', group: '场所安全' },
   { code: 'safety:edit', name: '编辑安全文章', group: '场所安全' },
   { code: 'safety:delete', name: '删除安全文章', group: '场所安全' },
-  { code: 'safety:review', name: '审核安全文章', group: '场所安全' },
   { code: 'safety:publish', name: '设置安全公开状态', group: '场所安全' },
   { code: 'news:view', name: '查看政策法规', group: '政策法规' },
   { code: 'news:edit', name: '编辑政策文章与分类', group: '政策法规' },
@@ -56,8 +56,8 @@ export const VENUE_PERMISSIONS = [
   'dashboard:view',
   'venues:view', 'venues:edit',
   'personnel:view', 'personnel:edit',
-  // 场所安全：场所可发布（编辑 + 公开），审核仍由县级负责
-  'safety:view', 'safety:edit', 'safety:publish',
+  // 场所安全：场所仅查看/阅读
+  'safety:view',
   'news:view', 'notices:view',
   'finance:view', 'finance:edit'
 ]
