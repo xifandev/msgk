@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { REVIEW_ACTION_MESSAGES, REVIEW_LABELS, REVIEW_TAG_TYPES } from '~~/shared/review'
+import { REVIEW_ACTION_MESSAGES, REVIEW_LABELS, REVIEW_TAG_TYPES, myReviewState } from '~~/shared/review'
 const FINANCE_ACTION_MESSAGES: Record<string, string> = { ...REVIEW_ACTION_MESSAGES, reopen: '已退回为填报中，修改后需重新提交审核' }
 const financeActionMessage = (action: string) => FINANCE_ACTION_MESSAGES[action] ?? '审核状态已更新'
 const route = useRoute()
-const router = useRouter()
 const { admin, hasPerm } = useAdmin()
 const loading = ref(false)
 const list = ref<any[]>([])
@@ -19,12 +18,9 @@ const isTown = computed(() => admin.value?.roleCode === 'town')
 const showPublishColumn = computed(() => hasPerm('finance:publish') && (!filters.state || filters.state === 'approved'))
 // 镇级管理员无填报权限，查看“正在填报”列表时隐藏整列操作
 const showActionColumn = computed(() => !(isTown.value && filters.state === 'draft'))
-const myState = computed(() => {
-  const code = admin.value?.roleCode ?? ''
-  if (code === 'town') return 'pending_town'
-  if (['county', 'super'].includes(code)) return 'pending_county'
-  return ''
-})
+const myState = computed(() => myReviewState(admin.value?.roleCode ?? ''))
+const stateTab = useReviewStateTab(myState, canReview)
+const mounted = ref(false)
 const stateTabs = computed<StateTab[]>(() => {
   const items: StateTab[] = []
   if (canReview.value && myState.value) items.push({ value: 'mine', label: '待我审核', count: counts.value[myState.value] ?? 0 })
@@ -45,7 +41,7 @@ function setStateTab(value: string) {
   if (filters.state === state) return
   filters.state = state
   filters.page = 1
-  void router.replace({ query: { ...route.query, state: state || undefined } })
+  stateTab.syncQuery(value)
 }
 const detailVisible = ref(false)
 const current = ref<Record<string, any>>({})
@@ -192,34 +188,21 @@ async function remove(row: any) {
 }
 watch(() => [filters.page, filters.pageSize, filters.venueId, filters.month, filters.state], load)
 onMounted(() => {
-  const state = String(route.query.state ?? '')
-  if (state && state in REVIEW_LABELS) filters.state = state
+  mounted.value = true
+  stateTab.initTab()
+  const tab = stateTab.activeTab.value
+  filters.state = tab === 'mine' ? myState.value : tab
   const venueId = Number(route.query.venueId)
   if (Number.isSafeInteger(venueId) && venueId > 0) filters.venueId = venueId
   const month = String(route.query.month ?? '')
   if (/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) filters.month = month
-  load().then(() => {
-    if (!state && canReview.value && myState.value && (counts.value[myState.value] ?? 0) > 0) setStateTab('mine')
-  })
+  void load()
 })
 </script>
 
 <template>
   <div class="page">
-    <nav v-if="stateTabs.length" class="state-tabs" role="tablist" aria-label="审核状态快速筛选">
-      <button
-        v-for="tab in stateTabs"
-        :key="tab.value || 'all'"
-        type="button"
-        role="tab"
-        class="state-tab"
-        :class="{ active: activeTab === tab.value }"
-        :aria-selected="activeTab === tab.value"
-        @click="setStateTab(tab.value)"
-      >
-        {{ tab.label }}<em>{{ tab.count }}</em>
-      </button>
-    </nav>
+    <StateTabs v-if="mounted && canReview" :tabs="stateTabs" :model-value="activeTab" aria-label="审核状态快速筛选" @update:model-value="setStateTab" />
     <section class="panel">
       <div class="toolbar">
         <VenueSelect v-model="filters.venueId" clearable style="width: 260px" />
@@ -356,26 +339,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.state-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
-.state-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 15px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--surface);
-  color: #475467;
-  cursor: pointer;
-  font-size: 13px;
-  transition: border-color .15s, background-color .15s, color .15s;
-}
-.state-tab em { min-width: 22px; padding: 0 6px; border-radius: 999px; background: #eef1f5; color: var(--muted); font-style: normal; font-size: 11px; line-height: 20px; text-align: center; font-variant-numeric: tabular-nums; }
-.state-tab:hover { border-color: var(--el-color-primary-light-5); color: var(--brand); }
-.state-tab.active { border-color: var(--brand); background: var(--brand); color: #fff; }
-.state-tab.active em { background: rgb(255 255 255 / 20%); color: #fff; }
-.state-tab:focus-visible { outline: 3px solid #84adff; outline-offset: 2px; }
-@media (prefers-reduced-motion: reduce) { .state-tab { transition: none; } }
 .el-select, .el-date-picker { min-width: 180px; }
 /* 列表行高略放大，减少拥挤感 */
 .table-region :deep(.el-table th.el-table__cell) { padding-block: 10px; }

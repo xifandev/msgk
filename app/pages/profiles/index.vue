@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { REVIEW_LABELS, REVIEW_TAG_TYPES, reviewActionMessage } from '~~/shared/review'
+import { REVIEW_LABELS, REVIEW_TAG_TYPES, myReviewState, reviewActionMessage } from '~~/shared/review'
 
 interface ProfileRow {
   venue_id: number
@@ -26,18 +26,16 @@ const total = ref(0)
 const counts = ref<Record<string, number>>({ all: 0 })
 const query = reactive({ page: 1, pageSize: 10, search: '' })
 const loading = ref(false)
-const activeTab = ref('')
 let loadSequence = 0
 
 const roleCode = computed(() => admin.value?.roleCode ?? '')
 const isReviewer = computed(() => hasPerm('venues:review'))
 const canEditVenue = computed(() => hasPerm('venues:edit'))
-const myState = computed(() => {
-  if (roleCode.value === 'town') return 'pending_town'
-  if (['county', 'super'].includes(roleCode.value)) return 'pending_county'
-  return ''
-})
+const myState = computed(() => myReviewState(roleCode.value))
 const showMine = computed(() => isReviewer.value && !!myState.value)
+// 状态筛选栏仅镇级、县级审核员可见，场所管理员直接看完整列表
+const { activeTab, initTab, syncQuery: syncTabQuery } = useReviewStateTab(myState, isReviewer)
+const mounted = ref(false)
 const tabs = computed<TabItem[]>(() => {
   const items: TabItem[] = []
   if (showMine.value) items.push({ value: 'mine', label: '待我审核', count: counts.value[myState.value] ?? 0 })
@@ -53,7 +51,7 @@ const tabs = computed<TabItem[]>(() => {
   items.push({ value: '', label: '全部', count: counts.value.all ?? 0 })
   return items
 })
-const stateParam = computed(() => (activeTab.value === 'mine' ? myState.value : activeTab.value) || undefined)
+const stateParam = computed(() => (isReviewer.value ? (activeTab.value === 'mine' ? myState.value : activeTab.value) : '') || undefined)
 const needsMyReview = (row: any) => showMine.value && row.state === myState.value
 const noteOf = (row: any) => (row.state === 'rejected' ? row.county_note || row.town_note || '' : '')
 
@@ -86,20 +84,11 @@ async function load() {
   }
 }
 
-function syncQuery() {
-  void router.replace({
-    query: {
-      ...route.query,
-      state: activeTab.value || undefined
-    }
-  })
-}
-
 function setTab(value: string) {
   if (activeTab.value === value) return
   activeTab.value = value
   query.page = 1
-  syncQuery()
+  syncTabQuery(value)
   void load()
 }
 
@@ -264,14 +253,9 @@ async function publish(value: string | number | boolean) {
 watch(() => [query.page, query.pageSize], () => { void load() })
 
 onMounted(async () => {
-  const initialState = String(route.query.state ?? '')
-  const validTabs = ['mine', 'pending_town', 'pending_county', 'draft', 'approved', 'rejected']
-  if (validTabs.includes(initialState)) activeTab.value = initialState === myState.value ? 'mine' : initialState
+  mounted.value = true
+  initTab()
   await load()
-  if (!validTabs.includes(initialState) && showMine.value) {
-    if ((counts.value[myState.value] ?? 0) > 0) setTab('mine')
-    else if (myState.value === 'pending_county' && (counts.value.pending_town ?? 0) > 0) setTab('pending_town')
-  }
   const initialVenue = Number(route.query.venue)
   if (Number.isSafeInteger(initialVenue) && initialVenue > 0) {
     venueId.value = initialVenue
@@ -283,20 +267,7 @@ onMounted(async () => {
 <template>
   <div class="page">
     <template v-if="!venueId">
-      <nav class="state-tabs" role="tablist" aria-label="审核状态筛选">
-        <button
-          v-for="tab in tabs"
-          :key="tab.value || 'all'"
-          type="button"
-          role="tab"
-          class="state-tab"
-          :class="{ active: activeTab === tab.value }"
-          :aria-selected="activeTab === tab.value"
-          @click="setTab(tab.value)"
-        >
-          {{ tab.label }}<em>{{ tab.count }}</em>
-        </button>
-      </nav>
+      <StateTabs v-if="mounted && isReviewer" :tabs="tabs" :model-value="activeTab" @update:model-value="setTab" />
 
       <section class="panel" aria-label="场所介绍列表">
         <div class="toolbar">
@@ -332,7 +303,7 @@ onMounted(async () => {
             </el-table-column>
             <el-table-column label="操作" width="110" fixed="right" align="right">
               <template #default="{ row }">
-                <el-button :type="needsMyReview(row) ? 'primary' : 'default'" :plain="!needsMyReview(row)" size="small" :aria-label="`${actionLabel(row)}${row.venue_name}`" @click="open(row)">
+                <el-button type="primary" :plain="!needsMyReview(row)" size="small" :aria-label="`${actionLabel(row)}${row.venue_name}`" @click="open(row)">
                   {{ actionLabel(row) }}
                 </el-button>
               </template>
@@ -413,27 +384,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.state-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
-.state-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 15px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--surface);
-  color: #475467;
-  cursor: pointer;
-  font-size: 13px;
-  transition: border-color .15s, background-color .15s, color .15s;
-}
-.state-tab em { min-width: 22px; padding: 0 6px; border-radius: 999px; background: #eef1f5; color: var(--muted); font-style: normal; font-size: 11px; line-height: 20px; text-align: center; font-variant-numeric: tabular-nums; }
-.state-tab:hover { border-color: var(--el-color-primary-light-5); color: var(--brand); }
-.state-tab.active { border-color: var(--brand); background: var(--brand); color: #fff; }
-.state-tab.active em { background: rgb(255 255 255 / 20%); color: #fff; }
-.state-tab:focus-visible { outline: 3px solid #84adff; outline-offset: 2px; }
-@media (prefers-reduced-motion: reduce) { .state-tab { transition: none; } }
-
 .toolbar .el-input { max-width: 300px; }
 .note-danger { color: #b42318; }
 .detail-venue { font-size: 16px; }
