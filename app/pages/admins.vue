@@ -17,10 +17,12 @@ const visible = ref(false)
 const saving = ref(false)
 const form = reactive({ id: 0, phone: '', name: '', roleId: null as number | null, organization: '', note: '', status: 1, allVenues: 0, venueIds: [] as number[] })
 async function load() { try { const response = await $fetch<any>('/api/admin/admins', { query: { search: search.value } }); list.value = response.list; roles.value = response.roles; venues.value = response.venues } catch (error) { ElMessage.error(errorMessage(error)) } }
-function edit(row?: any) { Object.assign(form, row ? { id: row.id, phone: row.phone, name: row.name, roleId: row.role_id, organization: row.organization ?? '', note: row.note ?? '', status: row.status, allVenues: row.all_venues, venueIds: [...row.venue_ids] } : { id: 0, phone: '', name: '', roleId: null, organization: '', note: '', status: 1, allVenues: 0, venueIds: [] }); visible.value = true }
+const originalPhone = ref('')
+function edit(row?: any) { Object.assign(form, row ? { id: row.id, phone: row.phone, name: row.name, roleId: row.role_id, organization: row.organization ?? '', note: row.note ?? '', status: row.status, allVenues: row.all_venues, venueIds: [...row.venue_ids] } : { id: 0, phone: '', name: '', roleId: null, organization: '', note: '', status: 1, allVenues: 0, venueIds: [] }); originalPhone.value = row ? row.phone : ''; visible.value = true }
 async function save() {
   if (!form.name.trim()) { ElMessage.warning('真实姓名不允许为空！'); return }
-  if (!/^1[3-9]\d{9}$/.test(form.phone.trim())) { ElMessage.warning('手机号格式不正确！'); return }
+  // 手机号仅在新增或改动时校验格式，便于维护测试账号等非标准号码
+  if (form.phone.trim() !== originalPhone.value && !/^1[3-9]\d{9}$/.test(form.phone.trim())) { ElMessage.warning('手机号格式不正确！'); return }
   if (!form.roleId) { ElMessage.warning('请选择要担任的角色！'); return }
   if (!form.allVenues && !form.venueIds.length) { ElMessage.warning('请选择管辖场所！'); return }
   saving.value = true

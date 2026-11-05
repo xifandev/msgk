@@ -6,7 +6,8 @@ export default defineEventHandler(async (event) => {
   if (!target) throw createError({ statusCode: 404, message: '管理员不存在' })
   const protectedSuper = target.role_id === 999
   const phone = protectedSuper ? target.phone : text(body.phone, '手机号', 20)
-  if (!/^1[3-9]\d{9}$/.test(phone)) throw createError({ statusCode: 400, message: '手机号格式不正确' })
+  // 手机号仅在改动时校验格式，保留存量测试账号等非标准号码的可维护性
+  if (phone !== target.phone && !/^1[3-9]\d{9}$/.test(phone)) throw createError({ statusCode: 400, message: '手机号格式不正确' })
   const duplicate = await queryOne('SELECT id FROM admins WHERE phone = ? AND id <> ?', [phone, id])
   if (duplicate) throw createError({ statusCode: 409, message: '手机号已被使用' })
   const roleId = protectedSuper ? target.role_id : positiveId(body.roleId, '角色ID')
