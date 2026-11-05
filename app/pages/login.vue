@@ -75,7 +75,7 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
 
 <template>
   <div class="login-stage">
-    <img class="login-illustration" src="/images/login-illustration.png" alt="" aria-hidden="true">
+    <img class="login-illustration" src="/images/login-illustration.png" alt="" aria-hidden="true" width="400" height="400">
 
     <section class="login-card" :class="{ shake: loginFailed }" aria-labelledby="login-title">
       <transition name="success-fade">
@@ -161,30 +161,41 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(40px, 6vw, 100px);
+  gap: clamp(48px, 7vw, 128px);
+  width: 100%;
+  max-width: 1120px;
+  margin-inline: auto;
 }
 
 /* 左侧插画（与老系统一致，窄屏隐藏） */
 .login-illustration {
-  height: 350px;
-  animation: fadeIn 1s ease-out forwards;
+  flex: none;
+  width: auto;
+  height: clamp(240px, 40vh, 360px);
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
 }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@media (max-width: 1244px) {
+@media (max-width: 980px) {
   .login-illustration { display: none; }
 }
 
 /* 白色登录卡片 */
 .login-card {
   position: relative;
+  flex: 0 0 auto;
   width: min(28rem, 100%);
   overflow: hidden;
   border-radius: 22px;
   background: #fff;
   box-shadow: 0 18px 48px -12px rgb(0 0 0 / 28%);
+  animation: card-in .42s cubic-bezier(.22, .61, .36, 1);
+}
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .login-card { animation: none; }
 }
 
 .login-form {
@@ -195,7 +206,7 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
 .login-form h1 {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 14px;
   margin: 0 0 26px;
   font-size: 30px;
   font-weight: 600;
@@ -237,7 +248,9 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   font-weight: 600;
   letter-spacing: 2px;
 }
-.contacts-btn { margin-block-start: 16px; letter-spacing: 0; font-size: 17px; }
+.contacts-btn { margin-block-start: 16px; margin-inline-start: 0; letter-spacing: 0; font-size: 17px; }
+/* Element Plus 给相邻按钮加了左外边距，会导致 100% 宽度按钮挤出卡片 */
+.login-form :deep(.el-button + .el-button) { margin-inline-start: 0; }
 
 .sr-only {
   position: absolute;
@@ -312,9 +325,16 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
 .success-fade-enter-from { opacity: 0; }
 
 @media (max-width: 760px) {
+  .login-stage { gap: 0; }
   .login-card { border-radius: 18px; }
   .login-form { padding: 26px 22px 32px; }
   .login-form h1 { font-size: 24px; margin-block-end: 20px; }
+  .submit,
+  .contacts-btn { height: 52px; font-size: 17px; }
+  .contacts-btn { font-size: 16px; }
+}
+@media (max-height: 720px) and (min-width: 981px) {
+  .login-illustration { height: clamp(180px, 30vh, 260px); }
 }
 
 /* 抽屉内的联系提示（drawer 传送到 body，需全局选择器） */

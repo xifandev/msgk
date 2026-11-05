@@ -28,8 +28,9 @@ const year = new Date().getFullYear()
   min-height: 100dvh;
   display: grid;
   place-items: center;
-  padding: 90px 24px 110px;
-  overflow: hidden;
+  padding: clamp(80px, 12vh, 96px) 24px clamp(96px, 14vh, 116px);
+  overflow-x: hidden;
+  overflow-y: auto;
   background-color: #1278e4;
 }
 
