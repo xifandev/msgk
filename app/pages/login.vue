@@ -139,8 +139,7 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
       </div>
       <h1 id="maintenance-title">系统优化升级中</h1>
       <p class="maintenance-description">
-        预计 <strong>11月9日之前</strong> 完成<br>
-        请稍后登录，感谢支持
+        预计 <strong>11月9日前</strong>完成，请稍后登录，感谢支持
       </p>
       <div class="maintenance-contact-card">
         <div class="maintenance-contact-icon" aria-hidden="true">
