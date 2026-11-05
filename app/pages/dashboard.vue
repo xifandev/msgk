@@ -345,9 +345,9 @@ onMounted(() => { void load() })
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   min-height: 208px;
-  padding: 34px 38px;
+  padding: 34px 38px 34px clamp(32px, 6%, 96px);
   border-radius: 18px;
   overflow: hidden;
   background: linear-gradient(115deg, #d0715f 0%, #c7573f 46%, #bc4534 100%);
@@ -375,8 +375,8 @@ onMounted(() => { void load() })
   background: linear-gradient(90deg, rgb(199 87 63 / 0%) 30%, rgb(199 87 63 / 30%) 55%, rgb(188 69 52 / 18%) 100%);
   pointer-events: none;
 }
-/* 文字水平居中于横幅（letter-spacing 的尾距由 text-indent 抵消，保持视觉居中） */
-.banner-copy { position: relative; z-index: 1; min-width: 0; text-align: center; }
+/* 桌面端文字靠左排版，右侧留给长城图；移动端媒体查询里恢复居中 */
+.banner-copy { position: relative; z-index: 1; min-width: 0; text-align: left; }
 .banner-title {
   margin: 0;
   color: #fff;
@@ -384,11 +384,11 @@ onMounted(() => { void load() })
   font-size: 46px;
   line-height: 1.2;
   letter-spacing: 10px;
-  text-indent: 10px;
+  text-indent: 0;
   text-shadow: 0 2px 20px rgb(0 0 0 / 38%);
 }
 /* 标题与副标之间的装饰分割线：淡金菱形 + 两侧渐隐细线 */
-.banner-ornament { display: flex; align-items: center; justify-content: center; width: min(400px, 78%); margin: 14px auto 12px; }
+.banner-ornament { display: flex; align-items: center; justify-content: center; width: min(400px, 100%); margin: 14px 0 12px; }
 .banner-ornament i { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgb(255 255 255 / 55%)); }
 .banner-ornament i:last-child { transform: scaleX(-1); }
 .banner-ornament span { width: 7px; height: 7px; margin-inline: 10px; background: #ffe2ae; transform: rotate(45deg); box-shadow: 0 0 6px rgb(255 226 174 / 55%); }
@@ -397,7 +397,7 @@ onMounted(() => { void load() })
   color: rgb(255 255 255 / 84%);
   font-size: 15px;
   letter-spacing: 7px;
-  text-indent: 7px;
+  text-indent: 0;
 }
 .notice-link {
   position: absolute;
@@ -586,10 +586,11 @@ onMounted(() => { void load() })
 }
 @media (max-width: 720px) {
   .dash { --card-pad: 18px; gap: 12px; }
-  .banner { min-height: 0; padding: 26px 20px; }
+  .banner { justify-content: center; min-height: 0; padding: 26px 20px; }
   .banner::before { width: 60%; }
+  .banner-copy { text-align: center; }
   .banner-title { font-size: 28px; letter-spacing: 6px; text-indent: 6px; }
-  .banner-ornament { margin-block: 10px 8px; }
+  .banner-ornament { width: min(400px, 78%); margin: 10px auto 8px; }
   .banner-sub-title { font-size: 12.5px; letter-spacing: 4px; text-indent: 4px; }
   .notice-link { top: 12px; right: 12px; font-size: 11px; }
   .info-list a { grid-template-columns: 64px minmax(0, 1fr) 46px; }
