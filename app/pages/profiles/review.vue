@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const route = useRoute()
-await navigateTo({ path: '/review', query: { ...route.query, type: 'profiles' } }, { replace: true })
+await navigateTo({ path: '/review', query: { ...route.query, type: undefined } }, { replace: true })
 </script>
 
 <template>

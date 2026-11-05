@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
-import { DocumentChecked, UserFilled } from '@element-plus/icons-vue'
 import { REVIEW_LABELS, REVIEW_TAG_TYPES, reviewActionMessage } from '~~/shared/review'
 
 type ReviewType = 'profiles' | 'personnel'
 
 interface ReviewRow {
+  type: ReviewType
   venue_id: number
   venue_name: string
   township: string
@@ -18,40 +18,19 @@ interface ReviewRow {
   county_reviewed_at: string | null
   updated_at: string | null
   category?: string | null
-  member_count?: number
+  member_count?: number | null
   first_member?: string | null
 }
 
 interface TabItem { value: string, label: string, count: number }
-interface TypeOption {
-  value: ReviewType
-  label: string
-  permission: string
-  icon: typeof DocumentChecked
-}
-
-const TYPE_OPTIONS: TypeOption[] = [
-  { value: 'profiles', label: '场所介绍', permission: 'venues:review', icon: DocumentChecked },
-  { value: 'personnel', label: '场所人员', permission: 'personnel:review', icon: UserFilled }
-]
 
 const route = useRoute()
 const router = useRouter()
 const { admin, hasPerm } = useAdmin()
-const availableTypes = computed(() => TYPE_OPTIONS.filter((item) => hasPerm(item.permission)))
-const activeType = ref<ReviewType>('profiles')
 const activeTab = ref('all')
 const list = ref<ReviewRow[]>([])
 const total = ref(0)
-const countsByType = reactive<Record<ReviewType, Record<string, number>>>({
-  profiles: { all: 0 },
-  personnel: { all: 0 }
-})
-const summaries = reactive<Record<ReviewType, { all: number, mine: number }>>({
-  profiles: { all: 0, mine: 0 },
-  personnel: { all: 0, mine: 0 }
-})
-const summaryLoaded = reactive<Record<ReviewType, boolean>>({ profiles: false, personnel: false })
+const counts = ref<Record<string, number>>({ all: 0 })
 const query = reactive({ page: 1, pageSize: 10, search: '' })
 const loading = ref(false)
 let loadSequence = 0
@@ -62,9 +41,7 @@ const detailType = ref<ReviewType>('profiles')
 const visible = ref(false)
 
 const roleCode = computed(() => admin.value?.roleCode ?? '')
-const currentType = computed(() => TYPE_OPTIONS.find((item) => item.value === activeType.value) ?? TYPE_OPTIONS[0]!)
-const isReviewer = computed(() => hasPerm(currentType.value.permission))
-const counts = computed(() => countsByType[activeType.value])
+const isReviewer = computed(() => hasPerm('venues:review') || hasPerm('personnel:review'))
 const myState = computed(() => {
   if (roleCode.value === 'town') return 'pending_town'
   if (['county', 'super'].includes(roleCode.value)) return 'pending_county'
@@ -94,6 +71,7 @@ const tabs = computed<TabItem[]>(() => {
 
 const noteOf = (row: ReviewRow) => (row.state === 'rejected' ? row.county_note || row.town_note || '' : '')
 const needsMyReview = (row: ReviewRow) => isReviewer.value && !!myState.value && row.state === myState.value
+const typeLabel = (type: ReviewType) => (type === 'personnel' ? '人员名册' : '场所介绍')
 
 function stateMark(state: string) {
   if (state === 'approved') return '✓'
@@ -107,11 +85,10 @@ function apiPath(type: ReviewType) {
 }
 
 async function load() {
-  const requestType = activeType.value
   const sequence = ++loadSequence
   loading.value = true
   try {
-    const response = await $fetch<any>(apiPath(requestType), {
+    const response = await $fetch<any>('/api/admin/review', {
       query: {
         page: query.page,
         pageSize: query.pageSize,
@@ -119,54 +96,25 @@ async function load() {
         state: stateParam.value
       }
     })
-    if (requestType !== activeType.value || sequence !== loadSequence) return
+    if (sequence !== loadSequence) return
     list.value = response.list
     total.value = response.total
-    countsByType[requestType] = response.counts ?? { all: response.total ?? 0 }
+    counts.value = response.counts ?? { all: response.total ?? 0 }
   } catch (error) {
-    if (requestType === activeType.value && sequence === loadSequence) ElMessage.error(errorMessage(error))
+    if (sequence === loadSequence) ElMessage.error(errorMessage(error))
   } finally {
     if (sequence === loadSequence) loading.value = false
   }
-}
-
-async function loadSummary(type: ReviewType) {
-  const option = TYPE_OPTIONS.find((item) => item.value === type)
-  if (!option || !hasPerm(option.permission)) return
-  try {
-    const response = await $fetch<any>(apiPath(type), { query: { page: 1, pageSize: 1 } })
-    summaries[type] = {
-      all: response.counts?.all ?? response.total ?? 0,
-      mine: myState.value ? response.counts?.[myState.value] ?? 0 : 0
-    }
-    summaryLoaded[type] = true
-  } catch (error) {
-    ElMessage.error(errorMessage(error))
-  }
-}
-
-function loadSummaries() {
-  return Promise.all(availableTypes.value.map((item) => loadSummary(item.value)))
 }
 
 function syncQuery() {
   void router.replace({
     query: {
       ...route.query,
-      type: activeType.value,
+      type: undefined,
       state: activeTab.value === 'all' ? undefined : activeTab.value
     }
   })
-}
-
-function setType(value: ReviewType) {
-  if (activeType.value === value) return
-  activeType.value = value
-  list.value = []
-  total.value = 0
-  query.page = 1
-  syncQuery()
-  void load()
 }
 
 function setTab(value: string) {
@@ -183,12 +131,12 @@ function search() {
 }
 
 async function refresh() {
-  await Promise.all([load(), loadSummaries()])
+  await load()
 }
 
 async function open(row: ReviewRow) {
   try {
-    detailType.value = activeType.value
+    detailType.value = row.type
     currentRow.value = row
     current.value = await $fetch<Record<string, any>>(`${apiPath(detailType.value)}/${row.venue_id}`)
     visible.value = true
@@ -206,7 +154,7 @@ async function review(action: string, reason?: string) {
     })
     ElMessage.success(reviewActionMessage(action))
     visible.value = false
-    await Promise.all([load(), loadSummary(detailType.value)])
+    await load()
   } catch (error) {
     ElMessage.error(errorMessage(error))
   }
@@ -230,17 +178,13 @@ async function publish(value: string | number | boolean) {
 watch(() => [query.page, query.pageSize], () => { void load() })
 
 onMounted(async () => {
-  const requestedType = String(route.query.type ?? '')
-  const initialType = availableTypes.value.find((item) => item.value === requestedType)
-  if (initialType) activeType.value = initialType.value
-  else if (!availableTypes.value.some((item) => item.value === activeType.value)) {
-    activeType.value = availableTypes.value[0]?.value ?? 'profiles'
-  }
+  // 列表已合并为统一队列，清理旧链接携带的类型参数
+  if (route.query.type) void router.replace({ query: { ...route.query, type: undefined } })
   const initialState = String(route.query.state ?? '')
   const hasInitialState = ['mine', 'approved', 'rejected', 'pending_town', 'pending_county'].includes(initialState)
   if (hasInitialState) activeTab.value = initialState === myState.value ? 'mine' : initialState
   else activeTab.value = isReviewer.value && myState.value ? 'mine' : 'all'
-  await Promise.all([load(), loadSummaries()])
+  await load()
   if (!hasInitialState && myState.value === 'pending_county' && mineCount.value === 0 && townPending.value > 0) {
     setTab('pending_town')
   }
@@ -249,25 +193,7 @@ onMounted(async () => {
 
 <template>
   <div class="page review-center">
-    <div class="type-switch" role="tablist" aria-label="审核内容类型">
-      <button
-        v-for="item in availableTypes"
-        :key="item.value"
-        type="button"
-        role="tab"
-        class="type-card"
-        :class="{ active: activeType === item.value }"
-        :aria-selected="activeType === item.value"
-        :aria-label="`${item.label}审核，共 ${summaryLoaded[item.value] ? summaries[item.value].all : '—'} 条记录`"
-        @click="setType(item.value)"
-      >
-        <span class="type-icon" aria-hidden="true"><el-icon><component :is="item.icon" /></el-icon></span>
-        <strong class="type-label">{{ item.label }}审核</strong>
-        <span class="type-total" aria-hidden="true">{{ summaryLoaded[item.value] ? summaries[item.value].all : '—' }}</span>
-      </button>
-    </div>
-
-    <nav class="tabs" role="tablist" :aria-label="`${currentType.label}分类`">
+    <nav class="tabs" role="tablist" aria-label="审核分类">
       <button
         v-for="tab in tabs"
         :key="tab.value"
@@ -282,7 +208,7 @@ onMounted(async () => {
       </button>
     </nav>
 
-    <section class="panel review-panel" :aria-label="`${currentType.label}审核列表`">
+    <section class="panel review-panel" aria-label="审核队列">
       <div class="toolbar">
         <el-input v-model="query.search" placeholder="搜索场所或乡镇" clearable @keyup.enter="search" @clear="search" />
         <el-button type="primary" plain @click="search">查询</el-button>
@@ -294,11 +220,14 @@ onMounted(async () => {
 
       <div v-loading="loading" class="review-list">
         <ul v-if="list.length">
-          <li v-for="row in list" :key="row.venue_id" class="review-row" :class="`state-${row.state}`">
+          <li v-for="row in list" :key="`${row.type}-${row.venue_id}`" class="review-row" :class="`state-${row.state}`">
             <span class="row-mark" aria-hidden="true">{{ stateMark(row.state) }}</span>
             <div class="row-main">
               <div class="row-title">
                 <h3>{{ row.venue_name }}</h3>
+                <el-tag class="row-type" :type="row.type === 'personnel' ? 'warning' : 'info'" effect="plain" size="small">
+                  {{ typeLabel(row.type) }}
+                </el-tag>
                 <span class="town-chip">{{ row.township }}</span>
                 <el-tag :type="REVIEW_TAG_TYPES[row.state] ?? 'info'" size="small">{{ REVIEW_LABELS[row.state] ?? row.state }}</el-tag>
                 <el-tag v-if="row.state === 'approved'" :type="row.published ? 'success' : 'info'" effect="plain" size="small">
@@ -306,7 +235,7 @@ onMounted(async () => {
                 </el-tag>
               </div>
               <p class="row-meta">
-                <template v-if="activeType === 'personnel'">
+                <template v-if="row.type === 'personnel'">
                   <span>共 {{ row.member_count ?? 0 }} 人</span>
                   <span>负责人 {{ row.first_member || '—' }}</span>
                 </template>
@@ -319,14 +248,14 @@ onMounted(async () => {
             </div>
             <div class="row-action">
               <el-button :type="needsMyReview(row) ? 'primary' : 'default'" @click="open(row)">
-                {{ needsMyReview(row) ? '开始审核' : activeType === 'profiles' ? '查看介绍' : '查看名册' }}
+                {{ needsMyReview(row) ? '开始审核' : row.type === 'personnel' ? '查看名册' : '查看介绍' }}
               </el-button>
             </div>
           </li>
         </ul>
         <div v-else-if="!loading" class="empty">
           <span class="empty-mark" aria-hidden="true">✓</span>
-          <p>{{ activeTab === 'mine' ? `没有待你审核的${currentType.label}` : '该分类下暂无记录' }}</p>
+          <p>{{ activeTab === 'mine' ? '没有待你审核的记录' : '该分类下暂无记录' }}</p>
           <el-button v-if="activeTab === 'mine'" plain @click="setTab('all')">查看全部审核记录</el-button>
         </div>
       </div>
@@ -346,8 +275,8 @@ onMounted(async () => {
       <template v-if="current">
         <header class="drawer-head">
           <div>
-            <span class="drawer-type">{{ detailType === 'profiles' ? '场所介绍' : '人员名册' }}</span>
-            <h2>{{ currentRow?.venue_name ?? currentType.label }}</h2>
+            <span class="drawer-type">{{ typeLabel(detailType) }}</span>
+            <h2>{{ currentRow?.venue_name ?? typeLabel(detailType) }}</h2>
             <p class="muted">
               {{ currentRow?.township ?? '' }}
               <template v-if="detailType === 'personnel'"> · 共 {{ members.length }} 人</template>
@@ -451,51 +380,6 @@ onMounted(async () => {
 
 <style scoped>
 .review-center { container-type: inline-size; gap: 16px; }
-.type-switch {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-  padding: 6px;
-  border: 1px solid #dde4ec;
-  border-radius: 14px;
-  background: #edf1f5;
-}
-.type-card {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 12px;
-  min-height: 64px;
-  padding: 12px 18px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  background: transparent;
-  color: #475467;
-  text-align: start;
-  cursor: pointer;
-  transition: background-color .18s, color .18s, box-shadow .18s;
-}
-.type-card:hover { background: #f8fafc; color: #182230; }
-.type-card.active { background: #17549c; color: #fff; box-shadow: 0 3px 10px rgb(23 84 156 / 22%); }
-.type-card:focus-visible { outline: 3px solid #84adff; outline-offset: 2px; }
-.type-icon { display: grid; place-items: center; width: 36px; height: 36px; color: #667085; font-size: 21px; }
-.type-card:hover .type-icon { color: #17549c; }
-.active .type-icon,
-.type-card.active:hover .type-icon { color: #fff; }
-.type-label { min-width: 0; font-size: 17px; line-height: 1.4; }
-.type-total {
-  min-width: 34px;
-  padding: 4px 9px;
-  border-radius: 8px;
-  background: rgb(16 24 40 / 6%);
-  color: #475467;
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 20px;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-.active .type-total { background: rgb(255 255 255 / 16%); color: #fff; }
 
 .tabs { display: flex; flex-wrap: wrap; flex-wrap: balance; gap: 8px; padding-block: 2px; }
 .tab {
@@ -544,6 +428,7 @@ onMounted(async () => {
 .row-main { min-width: 0; }
 .row-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .row-title h3 { margin: 0; color: #182230; font-size: 16px; line-height: 1.4; }
+.row-type { flex: none; }
 .town-chip { padding: 1px 8px; border-radius: 6px; background: #f2f4f7; color: var(--muted); font-size: 12px; }
 .row-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 6px 0 0; color: var(--muted); font-size: 13px; }
 .row-meta span + span::before { content: '·'; margin-inline-end: 10px; color: #c3c8d2; }
@@ -585,8 +470,6 @@ onMounted(async () => {
 .drawer-foot { flex: none; margin-block-start: 14px; padding-block-start: 14px; border-block-start: 1px solid var(--line); background: var(--surface); }
 
 @container (max-width: 720px) {
-  .type-switch { grid-template-columns: minmax(0, 1fr); }
-  .type-card { min-height: 60px; padding: 12px 14px; }
   .review-row { grid-template-columns: 28px minmax(0, 1fr); }
   .row-action { grid-column: 1 / -1; }
   .row-action .el-button { width: 100%; }
@@ -605,6 +488,6 @@ onMounted(async () => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .type-card, .tab, .review-row { transition: none; }
+  .tab, .review-row { transition: none; }
 }
 </style>
