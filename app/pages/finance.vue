@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
 import { REVIEW_ACTION_MESSAGES, REVIEW_LABELS, REVIEW_TAG_TYPES } from '~~/shared/review'
 const FINANCE_LABELS: Record<string, string> = { ...REVIEW_LABELS, draft: '正在填报' }
 const FINANCE_ACTION_MESSAGES: Record<string, string> = { ...REVIEW_ACTION_MESSAGES, reopen: '已退回为填报中，修改后需重新提交审核' }
@@ -16,6 +15,11 @@ const filters = reactive({ page: 1, pageSize: 10, venueId: null as number | null
 
 interface StateTab { value: string, label: string, count: number }
 const canReview = computed(() => hasPerm('finance:review'))
+const isTown = computed(() => admin.value?.roleCode === 'town')
+// 公开列仅在“全部 / 审核通过”视图下展示，其余状态整列隐藏
+const showPublishColumn = computed(() => hasPerm('finance:publish') && (!filters.state || filters.state === 'approved'))
+// 镇级管理员无填报权限，查看“正在填报”列表时隐藏整列操作
+const showActionColumn = computed(() => !(isTown.value && filters.state === 'draft'))
 const myState = computed(() => {
   const code = admin.value?.roleCode ?? ''
   if (code === 'town') return 'pending_town'
@@ -46,9 +50,6 @@ function setStateTab(value: string) {
   filters.page = 1
   void router.replace({ query: { ...route.query, state: state || undefined } })
 }
-const addVisible = ref(false)
-const adding = ref(false)
-const addForm = reactive({ venueId: null as number | null, month: '' })
 const detailVisible = ref(false)
 const current = ref<Record<string, any>>({})
 const items = ref<any[]>([])
@@ -89,19 +90,6 @@ async function load() {
     total.value = response.total
     counts.value = response.counts ?? {}
   } catch (error) { ElMessage.error(errorMessage(error)) } finally { loading.value = false }
-}
-async function addBill() {
-  if (!addForm.venueId) { ElMessage.warning('请选择场所'); return }
-  if (!addForm.month) { ElMessage.warning('请选择要添加的月份'); return }
-  adding.value = true
-  try {
-    await $fetch('/api/admin/finance', { method: 'POST', body: addForm })
-    ElMessage.success('月度公开已添加')
-    addVisible.value = false
-    addForm.venueId = null
-    addForm.month = ''
-    await load()
-  } catch (error) { ElMessage.error(errorMessage(error)) } finally { adding.value = false }
 }
 async function openBill(row: any) {
   try {
@@ -233,9 +221,6 @@ onMounted(() => {
           <el-option v-for="(label, value) in FINANCE_LABELS" :key="value" :label="label" :value="value" />
         </el-select>
         <el-button plain @click="load">查询</el-button>
-        <div class="toolbar-actions">
-          <el-button v-if="hasPerm('finance:edit')" type="primary" :icon="Plus" @click="addVisible = true">添加月度公开</el-button>
-        </div>
       </div>
       <div class="table-region" tabindex="0" role="region" aria-label="月度账单列表">
         <el-table v-loading="loading" :data="list">
@@ -249,18 +234,19 @@ onMounted(() => {
           <el-table-column label="上月结余" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.previous_balance) }}</template></el-table-column>
           <el-table-column label="本月结余" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.current_balance) }}</template></el-table-column>
           <el-table-column label="状态" width="110"><template #default="{ row }"><el-tag :type="REVIEW_TAG_TYPES[row.state]">{{ FINANCE_LABELS[row.state] }}</el-tag></template></el-table-column>
-          <el-table-column v-if="hasPerm('finance:publish')" label="公开" width="80">
+          <el-table-column v-if="showPublishColumn" label="公开" width="80">
             <template #default="{ row }">
               <el-switch v-if="row.state === 'approved'" v-model="row.published" :active-value="1" :inactive-value="0" :aria-label="`${row.venue_name}${row.bill_month}公开状态`" @change="publish(row)" />
               <span v-else class="muted" aria-hidden="true">—</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="168" fixed="right" align="right">
+          <el-table-column v-if="showActionColumn" label="操作" width="160" fixed="right" align="right">
             <template #default="{ row }">
-              <TableActions>
-                <el-button v-if="['draft', 'rejected'].includes(row.state)" size="small" type="primary" :aria-label="`录入${row.venue_name}${row.bill_month}的收支明细`" @click="openBill(row)">录入明细</el-button>
-                <el-button v-else size="small" type="primary" plain :aria-label="`查看${row.venue_name}${row.bill_month}的审核`" @click="openBill(row)">查看审核</el-button>
-                <el-button v-if="hasPerm('finance:delete') && row.state === 'draft'" size="small" type="danger" plain :aria-label="`删除${row.venue_name}${row.bill_month}账单`" @click="remove(row)">删除</el-button>
+              <span v-if="isTown && row.state === 'draft'" class="muted" aria-hidden="true">—</span>
+              <TableActions v-else>
+                <el-button v-if="hasPerm('finance:edit') && ['draft', 'rejected'].includes(row.state)" size="large" type="primary" :aria-label="`录入${row.venue_name}${row.bill_month}的收支明细`" @click="openBill(row)">录入明细</el-button>
+                <el-button v-else size="large" type="primary" plain :aria-label="`查看${row.venue_name}${row.bill_month}的审核`" @click="openBill(row)">查看审核</el-button>
+                <el-button v-if="hasPerm('finance:delete') && row.state === 'draft'" size="large" type="danger" plain :aria-label="`删除${row.venue_name}${row.bill_month}账单`" @click="remove(row)">删除</el-button>
               </TableActions>
             </template>
           </el-table-column>
@@ -268,19 +254,6 @@ onMounted(() => {
       </div>
       <div class="pagination"><el-pagination v-model:current-page="filters.page" v-model:page-size="filters.pageSize" :total="total" :page-sizes="[5, 10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" /></div>
     </section>
-
-    <el-dialog v-model="addVisible" title="添加月度公开" width="min(480px, 94vw)">
-      <el-form label-position="top" @submit.prevent="addBill">
-        <el-form-item label="当前场所" required><VenueSelect v-model="addForm.venueId" /></el-form-item>
-        <el-form-item label="公开月份" required><el-date-picker v-model="addForm.month" type="month" value-format="YYYY-MM" placeholder="选择月份" /></el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="dialog-actions">
-          <el-button @click="addVisible = false">取消</el-button>
-          <el-button type="primary" :loading="adding" @click="addBill">确定添加</el-button>
-        </div>
-      </template>
-    </el-dialog>
 
     <el-drawer v-model="detailVisible" class="finance-drawer" size="min(1000px, 96vw)" :title="`${current.venue_name ?? ''} ${current.bill_month ?? ''}`" :before-close="confirmClose">
       <div class="detail-layout">
@@ -341,8 +314,11 @@ onMounted(() => {
           </div>
         </section>
         <aside class="review-side">
-          <ReviewTimeline :record="current" :labels="FINANCE_LABELS" />
-          <ReviewActions :state="current.state" edit-permission="finance:edit" review-permission="finance:review" :submit-validator="validateSubmit" reopen-label="重新填报" @action="review" />
+          <el-card class="review-card" shadow="never">
+            <template #header><span class="review-card-title">审核进度</span></template>
+            <ReviewTimeline :record="current" :labels="FINANCE_LABELS" />
+            <ReviewActions :state="current.state" edit-permission="finance:edit" review-permission="finance:review" :submit-validator="validateSubmit" reopen-label="重新填报" @action="review" />
+          </el-card>
         </aside>
       </div>
     </el-drawer>
@@ -403,7 +379,13 @@ onMounted(() => {
 }
 .detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 24px; align-items: start; }
 .detail-main, .review-side { min-width: 0; }
-.review-side { display: grid; align-content: start; gap: 20px; }
+.review-card { border-radius: 12px; background: linear-gradient(180deg, #fbfcfe 0%, var(--surface) 100%); }
+.review-card :deep(.el-card__header) { padding: 12px 16px; border-block-end-color: var(--line); }
+.review-card-title { font-size: 14px; font-weight: 600; color: #344054; }
+.review-card :deep(.el-card__body) { display: grid; gap: 20px; padding: 16px; }
+.review-card :deep(.review-actions) { flex-direction: column; align-items: stretch; }
+.review-card :deep(.review-actions .el-button) { margin: 0; width: 100%; }
+.review-card :deep(.review-actions .el-input) { flex: none; }
 .summary-grid { display: grid; gap: 16px; margin-block-end: 18px; }
 .previous-balance-card { display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: #f8fafc; }
 .previous-balance-card .el-input { flex: 0 1 240px; width: 240px; min-width: 0; }
