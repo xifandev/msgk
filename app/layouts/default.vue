@@ -15,8 +15,10 @@ const items = computed(() => NAVIGATION.filter((item) => {
   if (item.excludeRoleCodes?.includes(admin.value?.roleCode ?? '')) return false
   return Array.isArray(item.permission) ? item.permission.some((code) => hasPerm(code)) : hasPerm(item.permission)
 }))
-const mainItems = computed(() => items.value.filter((item) => !item.superOnly))
-const opsItems = computed(() => items.value.filter((item) => item.superOnly && admin.value?.roleCode === 'super'))
+const isSuper = computed(() => admin.value?.roleCode === 'super')
+const allowedBySuper = (item: { superOnly?: boolean }) => !item.superOnly || isSuper.value
+const mainItems = computed(() => items.value.filter((item) => !item.group && allowedBySuper(item)))
+const opsItems = computed(() => items.value.filter((item) => item.group === '运维工具' && allowedBySuper(item)))
 /** 导航分组分隔线：三个「公开」栏目共用一组光柱（上下各一根，锚定在可见栏目的边界上） */
 const PUBLIC_PATHS = ['/finance', '/profiles', '/personnel']
 const NAV_GROUPS: { anchor: string[], label: string }[] = [
