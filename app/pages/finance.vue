@@ -251,9 +251,8 @@ onMounted(() => {
           <el-table-column label="状态" width="110"><template #default="{ row }"><el-tag :type="REVIEW_TAG_TYPES[row.state]">{{ FINANCE_LABELS[row.state] }}</el-tag></template></el-table-column>
           <el-table-column v-if="hasPerm('finance:publish')" label="公开" width="80">
             <template #default="{ row }">
-              <el-tooltip content="审核通过后才能公开" :disabled="row.state === 'approved'" placement="top">
-                <el-switch v-model="row.published" :active-value="1" :inactive-value="0" :disabled="row.state !== 'approved'" :aria-label="`${row.venue_name}${row.bill_month}公开状态`" @change="publish(row)" />
-              </el-tooltip>
+              <el-switch v-if="row.state === 'approved'" v-model="row.published" :active-value="1" :inactive-value="0" :aria-label="`${row.venue_name}${row.bill_month}公开状态`" @change="publish(row)" />
+              <span v-else class="muted" aria-hidden="true">—</span>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="168" fixed="right" align="right">
