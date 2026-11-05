@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   if (!bill) throw createError({ statusCode: 404, message: '账单不存在' })
   requireVenueScope(admin, bill.venue_id)
   if (bill.state !== 'draft') {
-    throw createError({ statusCode: 409, message: '只有正在编辑的账单可以删除，请先“重新编辑”退回后再删除' })
+    throw createError({ statusCode: 409, message: '只有正在填报的账单可以删除，请先“重新编辑”退回后再删除' })
   }
   await execute('DELETE FROM bills WHERE id = ?', [id])
   await logAction(admin, '财务公开', `${bill.venue_id}/${bill.bill_month}`, '删除账单及明细', event)

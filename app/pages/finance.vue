@@ -2,6 +2,7 @@
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { REVIEW_LABELS, REVIEW_TAG_TYPES, reviewActionMessage } from '~~/shared/review'
+const FINANCE_LABELS: Record<string, string> = { ...REVIEW_LABELS, draft: '正在填报' }
 const route = useRoute()
 const router = useRouter()
 const { admin, hasPerm } = useAdmin()
@@ -25,7 +26,7 @@ const stateTabs = computed<StateTab[]>(() => {
   if (myState.value) items.push({ value: 'mine', label: '待我审核', count: counts.value[myState.value] ?? 0 })
   if (myState.value !== 'pending_town') items.push({ value: 'pending_town', label: '待镇级审核', count: counts.value.pending_town ?? 0 })
   if (myState.value !== 'pending_county') items.push({ value: 'pending_county', label: '待县级审核', count: counts.value.pending_county ?? 0 })
-  items.push({ value: 'draft', label: '正在编辑', count: counts.value.draft ?? 0 })
+  items.push({ value: 'draft', label: '正在填报', count: counts.value.draft ?? 0 })
   items.push({ value: 'approved', label: '审核通过', count: counts.value.approved ?? 0 })
   items.push({ value: 'rejected', label: '审核失败', count: counts.value.rejected ?? 0 })
   items.push({ value: '', label: '全部', count: counts.value.all ?? 0 })
@@ -227,7 +228,7 @@ onMounted(() => {
         <VenueSelect v-model="filters.venueId" clearable style="width: 260px" />
         <el-date-picker v-model="filters.month" type="month" value-format="YYYY-MM" placeholder="公开月份" />
         <el-select v-model="filters.state" clearable placeholder="全部状态">
-          <el-option v-for="(label, value) in REVIEW_LABELS" :key="value" :label="label" :value="value" />
+          <el-option v-for="(label, value) in FINANCE_LABELS" :key="value" :label="label" :value="value" />
         </el-select>
         <el-button plain @click="load">查询</el-button>
         <div class="toolbar-actions">
@@ -245,7 +246,7 @@ onMounted(() => {
           <el-table-column label="支出" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.expense) }}</template></el-table-column>
           <el-table-column label="上月结余" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.previous_balance) }}</template></el-table-column>
           <el-table-column label="本月结余" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.current_balance) }}</template></el-table-column>
-          <el-table-column label="状态" width="110"><template #default="{ row }"><el-tag :type="REVIEW_TAG_TYPES[row.state]">{{ REVIEW_LABELS[row.state] }}</el-tag></template></el-table-column>
+          <el-table-column label="状态" width="110"><template #default="{ row }"><el-tag :type="REVIEW_TAG_TYPES[row.state]">{{ FINANCE_LABELS[row.state] }}</el-tag></template></el-table-column>
           <el-table-column v-if="hasPerm('finance:publish')" label="公开" width="80">
             <template #default="{ row }">
               <el-tooltip content="审核通过后才能公开" :disabled="row.state === 'approved'" placement="top">
@@ -339,7 +340,7 @@ onMounted(() => {
           </div>
         </section>
         <aside class="review-side">
-          <ReviewTimeline :record="current" />
+          <ReviewTimeline :record="current" :labels="FINANCE_LABELS" />
           <ReviewActions :state="current.state" edit-permission="finance:edit" review-permission="finance:review" :submit-validator="validateSubmit" @action="review" />
         </aside>
       </div>
