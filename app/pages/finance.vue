@@ -244,9 +244,9 @@ onMounted(() => {
             <template #default="{ row }">
               <span v-if="isTown && row.state === 'draft'" class="muted" aria-hidden="true">—</span>
               <TableActions v-else>
-                <el-button v-if="hasPerm('finance:edit') && ['draft', 'rejected'].includes(row.state)" size="large" type="primary" :aria-label="`录入${row.venue_name}${row.bill_month}的收支明细`" @click="openBill(row)">录入明细</el-button>
-                <el-button v-else size="large" type="primary" plain :aria-label="`查看${row.venue_name}${row.bill_month}的审核`" @click="openBill(row)">查看审核</el-button>
-                <el-button v-if="hasPerm('finance:delete') && row.state === 'draft'" size="large" type="danger" plain :aria-label="`删除${row.venue_name}${row.bill_month}账单`" @click="remove(row)">删除</el-button>
+                <el-button v-if="hasPerm('finance:edit') && ['draft', 'rejected'].includes(row.state)" type="primary" :aria-label="`录入${row.venue_name}${row.bill_month}的收支明细`" @click="openBill(row)">录入明细</el-button>
+                <el-button v-else type="primary" plain :aria-label="`查看${row.venue_name}${row.bill_month}的审核`" @click="openBill(row)">查看审核</el-button>
+                <el-button v-if="hasPerm('finance:delete') && row.state === 'draft'" type="danger" plain :aria-label="`删除${row.venue_name}${row.bill_month}账单`" @click="remove(row)">删除</el-button>
               </TableActions>
             </template>
           </el-table-column>
@@ -383,9 +383,9 @@ onMounted(() => {
 .review-card :deep(.el-card__header) { padding: 12px 16px; border-block-end-color: var(--line); }
 .review-card-title { font-size: 14px; font-weight: 600; color: #344054; }
 .review-card :deep(.el-card__body) { display: grid; gap: 20px; padding: 16px; }
-.review-card :deep(.review-actions) { flex-direction: column; align-items: stretch; }
-.review-card :deep(.review-actions .el-button) { margin: 0; width: 100%; }
-.review-card :deep(.review-actions .el-input) { flex: none; }
+.review-card :deep(.review-actions) { flex-direction: column; align-items: flex-start; gap: 8px; }
+.review-card :deep(.review-actions .el-button) { margin: 0; height: 28px; padding-inline: 12px; font-size: 13px; }
+.review-card :deep(.review-actions .el-input) { flex: none; width: 100%; }
 .summary-grid { display: grid; gap: 16px; margin-block-end: 18px; }
 .previous-balance-card { display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: #f8fafc; }
 .previous-balance-card .el-input { flex: 0 1 240px; width: 240px; min-width: 0; }
