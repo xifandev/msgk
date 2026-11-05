@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import { REVIEW_LABELS, REVIEW_TAG_TYPES, reviewActionMessage } from '~~/shared/review'
+import { REVIEW_ACTION_MESSAGES, REVIEW_LABELS, REVIEW_TAG_TYPES } from '~~/shared/review'
 const FINANCE_LABELS: Record<string, string> = { ...REVIEW_LABELS, draft: '正在填报' }
+const FINANCE_ACTION_MESSAGES: Record<string, string> = { ...REVIEW_ACTION_MESSAGES, reopen: '已退回为填报中，修改后需重新提交审核' }
+const financeActionMessage = (action: string) => FINANCE_ACTION_MESSAGES[action] ?? '审核状态已更新'
 const route = useRoute()
 const router = useRouter()
 const { admin, hasPerm } = useAdmin()
@@ -173,7 +175,7 @@ function validateSubmit() {
 async function review(action: string, reason?: string) {
   try {
     await $fetch(`/api/admin/finance/${current.value.id}/review`, { method: 'POST', body: { action, reason } })
-    ElMessage.success(reviewActionMessage(action))
+    ElMessage.success(financeActionMessage(action))
     await Promise.all([load(), openBill(current.value)])
   } catch (error) { ElMessage.error(errorMessage(error)) }
 }
@@ -341,7 +343,7 @@ onMounted(() => {
         </section>
         <aside class="review-side">
           <ReviewTimeline :record="current" :labels="FINANCE_LABELS" />
-          <ReviewActions :state="current.state" edit-permission="finance:edit" review-permission="finance:review" :submit-validator="validateSubmit" @action="review" />
+          <ReviewActions :state="current.state" edit-permission="finance:edit" review-permission="finance:review" :submit-validator="validateSubmit" reopen-label="重新填报" @action="review" />
         </aside>
       </div>
     </el-drawer>

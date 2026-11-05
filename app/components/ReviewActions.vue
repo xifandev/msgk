@@ -9,6 +9,8 @@ const props = defineProps<{
   submitValidator?: () => string | null
   /** 页面已有自己的提交审核入口时，隐藏组件内的“提交审核”按钮。 */
   hideSubmit?: boolean
+  /** 退回草稿按钮的文案，默认“重新编辑”，财务公开等场景可传“重新填报”。 */
+  reopenLabel?: string
 }>()
 const emit = defineEmits<{ action: [action: 'submit' | 'approve' | 'reject' | 'reopen', reason?: string] }>()
 const { admin, hasPerm } = useAdmin()
@@ -55,7 +57,7 @@ async function reject() {
 }
 
 async function reopen() {
-  if (await confirmAction('确定要重新编辑吗？编辑后需重新审核，已公开的内容将被取消公开。')) emit('action', 'reopen')
+  if (await confirmAction(`确定要${props.reopenLabel ?? '重新编辑'}吗？操作后需重新审核，已公开的内容将被取消公开。`)) emit('action', 'reopen')
 }
 </script>
 
@@ -67,7 +69,7 @@ async function reopen() {
       <el-button type="success" @click="approve">通过审核</el-button>
       <el-button type="danger" plain @click="reject">未通过审核</el-button>
     </template>
-    <el-button v-if="hasPerm(editPermission) && state !== 'draft'" plain @click="reopen">重新编辑</el-button>
+    <el-button v-if="hasPerm(editPermission) && state !== 'draft'" plain @click="reopen">{{ reopenLabel ?? '重新编辑' }}</el-button>
   </div>
 </template>
 

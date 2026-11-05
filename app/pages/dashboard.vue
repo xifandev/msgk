@@ -80,7 +80,7 @@ const months = computed(() => data.value?.months ?? [])
 const rows = computed(() => data.value?.rows ?? [])
 const matrix = computed(() => data.value?.matrix ?? { level: 'township' as const, rows: [] as MatrixRow[] })
 const townshipMode = computed(() => matrix.value.level === 'township')
-/** 已上报 = 应报 − 未上报（含审核中、未通过、编辑中） */
+/** 已上报 = 应报 − 未上报（含审核中、未通过、填报中） */
 const submittedOf = (bucket: { total: number, missing: number }) => Math.max(bucket.total - bucket.missing, 0)
 
 const STATE_TEXT: Record<PeriodState, string> = {
@@ -88,7 +88,7 @@ const STATE_TEXT: Record<PeriodState, string> = {
   approved: '待公开',
   pending: '审核中',
   rejected: '未通过',
-  draft: '编辑中',
+  draft: '填报中',
   missing: '未上报'
 }
 
@@ -144,7 +144,7 @@ function cellTip(label: string, point: MatrixCell) {
   if (point.missing) parts.push(`未报 ${point.missing}`)
   if (point.pending) parts.push(`审核中 ${point.pending}`)
   if (point.rejected) parts.push(`未通过 ${point.rejected}`)
-  if (point.draft) parts.push(`编辑中 ${point.draft}`)
+  if (point.draft) parts.push(`填报中 ${point.draft}`)
   if (point.approved) parts.push(`待公开 ${point.approved}`)
   if (point.published) parts.push(`已公开 ${point.published}`)
   return `${label} ${monthLabelOf(point.month)}：${parts.join('，')}`
@@ -165,7 +165,7 @@ const todoGroups = computed(() => {
     { key: 'missing', label: '未上报', filter: 'missing', items: backlog.value.filter((row) => row.state === 'missing') },
     { key: 'pending', label: '审核中', filter: 'pending', items: backlog.value.filter((row) => row.state === 'pending') },
     { key: 'rejected', label: '审核未通过', filter: 'rejected', items: backlog.value.filter((row) => row.state === 'rejected') },
-    { key: 'active', label: '编辑中 / 待公开', filter: 'all', items: backlog.value.filter((row) => row.state === 'draft' || row.state === 'approved') }
+    { key: 'active', label: '填报中 / 待公开', filter: 'all', items: backlog.value.filter((row) => row.state === 'draft' || row.state === 'approved') }
   ]
   return groups
     .filter((group) => group.items.length)
