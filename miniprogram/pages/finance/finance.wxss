@@ -7,10 +7,11 @@
   min-height: 60vh;
 }
 
-/* 内容区与滚动区统一浅绿底，去掉说明文字下方的白色底块；
+/* 内容区、滚动区与标签页主体统一浅绿底，去掉说明文字下方的白色底块；
    不改 page-main 的 env(safe-area-inset-bottom) 外边距，继续保留 iPhone 底部安全区 */
 .cellgroup,
-.cellgroup__scroll {
+.cellgroup__scroll,
+.ms-tabs {
   background-color: #f4faf6;
 }
 
