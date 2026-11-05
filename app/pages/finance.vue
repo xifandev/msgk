@@ -376,8 +376,8 @@ onMounted(() => {
 .table-actions.compact :deep(.el-button) { height: 26px; padding-inline: 10px; font-size: 13px; }
 :global(.finance-drawer .el-drawer__body) { container-type: inline-size; }
 :global(.finance-drawer .finance-drawer-title) { display: grid; gap: 2px; line-height: 1.3; }
-:global(.finance-drawer .finance-drawer-venue) { font-size: 19px; font-weight: 600; color: #1f2937; }
-:global(.finance-drawer .finance-drawer-month) { font-size: 15px; font-weight: 700; color: var(--brand); font-variant-numeric: tabular-nums; }
+:global(.finance-drawer .finance-drawer-venue) { font-size: 17px; font-weight: 600; color: #1f2937; }
+:global(.finance-drawer .finance-drawer-month) { font-size: 22px; font-weight: 700; color: var(--brand); font-variant-numeric: tabular-nums; letter-spacing: 0.5px; }
 :global(.finance-drawer .el-drawer__close-btn) { flex: none; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 1px solid transparent; border-radius: 50%; color: #475467; font-size: 24px; transition: color .15s, background-color .15s, border-color .15s, transform .15s; }
 :global(.finance-drawer .el-drawer__close-btn:hover),
 :global(.finance-drawer .el-drawer__close-btn:focus-visible) { border-color: #b9cce1; background: var(--brand-soft); color: var(--brand); transform: scale(1.08); }
