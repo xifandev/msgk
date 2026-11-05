@@ -102,6 +102,7 @@ onMounted(load)
           </el-table-column>
           <el-table-column prop="note" label="备注" min-width="80" show-overflow-tooltip><template #default="{ row }">{{ row.note || '—' }}</template></el-table-column>
           <el-table-column prop="last_login_at" label="最近一次登录" width="150" />
+          <el-table-column prop="last_action_at" label="最近一次操作" width="150"><template #default="{ row }">{{ row.last_action_at || '—' }}</template></el-table-column>
           <el-table-column label="可用状态" width="90">
             <template #default="{ row }">
               <el-switch v-model="row.status" :active-value="1" :inactive-value="0" :disabled="row.id === currentAdmin?.id || row.role_code === 'super'" :aria-label="`${row.name}账号状态`" @change="toggleStatus(row)" />

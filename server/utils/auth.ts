@@ -4,7 +4,7 @@ import { parseJson, queryOne } from './db'
 import { assertSameOrigin } from './http'
 
 export const AUTH_COOKIE = 'msgk_token'
-const COOKIE_MAX_AGE = 12 * 60 * 60
+const COOKIE_MAX_AGE = 30 * 24 * 60 * 60
 
 export interface AdminContext {
   id: number
