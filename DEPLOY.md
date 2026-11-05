@@ -15,7 +15,7 @@
 
 1. 创建 MySQL 8 数据库并导入 `database/schema.sql`。如需保留旧数据，先备份新旧两个库，将旧库以 `msgk_legacy` 放在同一实例，再按注释演练并执行 `database/migrate-legacy.sql`；该脚本只适合全新业务库，不能重复执行。
 2. 种子管理员手机号为 `13800000000`，首次部署后应立即改为实际可用的系统管理员手机号；不要删除该保护账号。
-3. 在宝塔创建站点和 SSL，反向代理到 `http://127.0.0.1:3005`。
+3. 在宝塔创建站点和 SSL，反向代理到 `http://127.0.0.1:3005`。反向代理必须保留原始域名头：`proxy_set_header Host $host;`（可选 `X-Forwarded-Host $host`）。服务端同源校验按 Host 比对，不依赖 `X-Forwarded-Proto`。
 3. 在服务器 `/www/wwwroot/msgk/.env` 填写真实配置；模板为 `.env.example`。
 4. OSS Bucket 设置公共读；图片由 Nuxt 服务端校验后上传，无需配置浏览器 PUT CORS。
 5. 确保阿里云 RAM 用户只有 MSGK 所需的短信和 OSS 权限。

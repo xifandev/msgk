@@ -31,15 +31,43 @@ export function pageParams(event: H3Event) {
   return { page, pageSize, offset: (page - 1) * pageSize, search: String(input.search ?? '').trim() }
 }
 
+function firstHeaderValue(value: unknown): string {
+  return String(value ?? '').split(',')[0]!.trim()
+}
+
+// 反向代理下协议由 Nginx/CDN 决定，服务端只可靠拿到 Host，因此按主机名比对
+function normalizeHost(value: unknown): string {
+  return String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/\.$/, '')
+    .replace(/:(?:80|443)$/, '')
+}
+
+function requestHosts(event: H3Event): string[] {
+  const hosts = [
+    firstHeaderValue(getHeader(event, 'x-forwarded-host')),
+    firstHeaderValue(getHeader(event, 'host'))
+  ].map(normalizeHost).filter(Boolean)
+  return [...new Set(hosts)]
+}
+
 export function assertSameOrigin(event: H3Event) {
   const method = event.method.toUpperCase()
   if (['GET', 'HEAD', 'OPTIONS'].includes(method)) return
-  const fetchSite = getHeader(event, 'sec-fetch-site')
+  const fetchSite = String(getHeader(event, 'sec-fetch-site') ?? '')
   if (fetchSite === 'cross-site') throw createError({ statusCode: 403, message: '拒绝跨站请求' })
   const origin = getHeader(event, 'origin')
-  if (!origin) return
-  const expected = `${getRequestProtocol(event)}://${getRequestHost(event)}`
-  if (origin !== expected) throw createError({ statusCode: 403, message: '请求来源不正确' })
+  if (!origin || origin === 'null') return
+  let originHost = ''
+  try {
+    originHost = normalizeHost(new URL(origin).host)
+  } catch {
+    throw createError({ statusCode: 403, message: '请求来源不正确' })
+  }
+  if (!originHost || !requestHosts(event).includes(originHost)) {
+    throw createError({ statusCode: 403, message: '请求来源不正确' })
+  }
 }
 
 export function cleanRichText(value: unknown): string {
