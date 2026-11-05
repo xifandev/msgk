@@ -134,16 +134,12 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
     </section>
 
     <section v-else class="login-card maintenance-card" aria-labelledby="maintenance-title">
-      <div class="maintenance-status">
-        <span class="maintenance-status-dot" aria-hidden="true"></span>
-        系统维护通知
-      </div>
       <div class="maintenance-symbol" aria-hidden="true">
         <el-icon><Tools /></el-icon>
       </div>
       <h1 id="maintenance-title">系统优化升级中</h1>
       <p class="maintenance-description">
-        系统正在优化升级中，预计 <strong>11月9日之前</strong> 完成<br>
+        预计 <strong>11月9日之前</strong> 完成<br>
         请稍后登录，感谢支持
       </p>
       <div class="maintenance-contact-card">
@@ -155,7 +151,6 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
           <p class="maintenance-wechat">微信：<strong>15224499331</strong></p>
         </div>
       </div>
-      <p class="maintenance-apology">给您带来不便，敬请谅解</p>
     </section>
 
     <el-drawer v-model="contactVisible" class="contact-drawer" title="场所管理员信息" size="min(480px, 94vw)">
@@ -243,38 +238,18 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   height: 4px;
   background: linear-gradient(90deg, #e3a83e, #f0ca7d, #e3a83e);
 }
-.maintenance-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 11px;
-  border-radius: 999px;
-  background: #fff5df;
-  font-size: 13px;
-  font-weight: 600;
-  color: #9a6a17;
-}
-.maintenance-status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #d99a2b;
-  box-shadow: 0 0 0 3px rgb(217 154 43 / 14%);
-}
 .maintenance-symbol {
   display: grid;
   place-items: center;
   width: 76px;
   height: 76px;
-  margin: 27px auto 20px;
+  margin: 8px auto 22px;
   border: 1px solid #dceafa;
-  border-radius: 23px;
+  border-radius: 20px;
   background: linear-gradient(145deg, #f2f8ff, #e6f1fd);
   color: #347fc4;
   font-size: 37px;
-  transform: rotate(-4deg);
 }
-.maintenance-symbol .el-icon { transform: rotate(4deg); }
 .maintenance-card h1 {
   margin: 0;
   font-size: 27px;
@@ -329,12 +304,6 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   font-weight: 650;
   letter-spacing: .6px;
   color: #263f58;
-}
-.maintenance-apology {
-  margin: 22px 0 0;
-  font-size: 13px;
-  letter-spacing: 1px;
-  color: #9aa5b2;
 }
 
 .login-form .el-input { margin-block-end: 20px; }
