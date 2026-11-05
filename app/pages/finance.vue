@@ -231,7 +231,7 @@ onMounted(() => {
       <div class="pagination"><el-pagination v-model:current-page="filters.page" v-model:page-size="filters.pageSize" :total="total" :page-sizes="[5, 10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" /></div>
     </section>
 
-    <el-drawer v-model="detailVisible" class="finance-drawer" size="min(1200px, 96vw)">
+    <el-drawer v-model="detailVisible" class="finance-drawer" size="min(1080px, calc(100vw - 48px))">
       <template #header>
         <span class="finance-drawer-title">
           <span class="finance-drawer-venue">{{ current.venue_name ?? '' }}</span>
@@ -267,25 +267,6 @@ onMounted(() => {
               </template>
             </el-table-column>
           </el-table>
-          <div class="finance-item-cards">
-            <el-empty v-if="!items.length" description="尚未添加收支明细" />
-            <ol v-else aria-label="收支明细">
-              <li v-for="(item, index) in sortedItems" :key="item.id" class="finance-item-card">
-                <header>
-                  <span>{{ item.occurred_on }}</span>
-                  <el-tag :type="item.kind === 'income' ? 'success' : 'info'">{{ item.kind === 'income' ? '收入' : '支出' }}</el-tag>
-                </header>
-                <dl>
-                  <div><dt>简要描述</dt><dd>{{ item.summary }}</dd></div>
-                  <div><dt>金额</dt><dd>{{ item.kind === 'expense' ? formatExpense(item.amount) : formatMoney(item.amount) }}</dd></div>
-                </dl>
-                <TableActions v-if="billEditable">
-                  <el-button size="small" type="primary" :aria-label="`编辑明细${item.summary}`" @click="editItem(item)">编辑</el-button>
-                  <el-button size="small" type="danger" plain :aria-label="`删除明细${item.summary}`" @click="deleteItem(item)">删除</el-button>
-                </TableActions>
-              </li>
-            </ol>
-          </div>
         </section>
         <aside class="review-side">
           <el-card class="review-card" shadow="never">
@@ -330,7 +311,6 @@ onMounted(() => {
 .table-region :deep(.finance-month-tag) { height: 26px; padding-inline: 10px; font-size: 14px; line-height: 24px; font-variant-numeric: tabular-nums; }
 .muted { color: var(--muted); font-size: 13px; }
 .table-actions.compact :deep(.el-button) { height: 26px; padding-inline: 10px; font-size: 13px; }
-:global(.finance-drawer .el-drawer__body) { container-type: inline-size; }
 :global(.finance-drawer .finance-drawer-title) { display: grid; gap: 2px; line-height: 1.3; }
 :global(.finance-drawer .finance-drawer-venue) { font-size: 17px; font-weight: 600; color: #1f2937; }
 :global(.finance-drawer .finance-drawer-month) { font-size: 22px; font-weight: 700; color: var(--brand); font-variant-numeric: tabular-nums; letter-spacing: 0.5px; }
@@ -343,28 +323,13 @@ onMounted(() => {
   :global(.finance-drawer .el-drawer__close-btn:hover),
   :global(.finance-drawer .el-drawer__close-btn:focus-visible) { transform: none; }
 }
-.detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+.detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
 .detail-main, .review-side { min-width: 0; }
+.review-side { position: sticky; top: 0; }
 .review-card { border-radius: 12px; background: linear-gradient(180deg, #fbfcfe 0%, var(--surface) 100%); }
 .review-card :deep(.el-card__header) { padding: 12px 16px; border-block-end-color: var(--line); }
 .review-card-title { font-size: 14px; font-weight: 600; color: #344054; }
 .review-card :deep(.el-card__body) { display: grid; gap: 20px; padding: 16px; }
 .summary-grid { display: grid; gap: 16px; margin-block-end: 18px; }
 .finance-items-table :deep(.finance-nowrap-cell .cell) { white-space: nowrap; }
-.finance-item-cards { display: none; }
-.finance-item-cards ol { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
-.finance-item-card { padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
-.finance-item-card header { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 13px; }
-.finance-item-card dl { display: grid; gap: 8px; margin: 12px 0; }
-.finance-item-card dl > div { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 10px; }
-.finance-item-card dt { color: var(--muted); }
-.finance-item-card dd { margin: 0; overflow-wrap: anywhere; }
-.finance-item-card .table-actions { padding-block-start: 12px; border-block-start: 1px solid var(--line); }
-@container (max-width: 880px) {
-  .detail-layout { grid-template-columns: minmax(0, 1fr); }
-}
-@container (max-width: 600px) {
-  .finance-items-table { display: none; }
-  .finance-item-cards { display: block; }
-}
 </style>
