@@ -1,6 +1,6 @@
 import { query } from './db'
 
-// 收入、支出、月结余全部由 bill_items 实时计算，bills 表不再维护这些汇总值
+// 收入、支出、期末结余全部由 bill_items 实时计算，bills 表不再维护这些汇总值
 
 export interface BillTotals {
   income: number
@@ -38,7 +38,7 @@ export async function getBillTotals(billIds: number[]) {
   return totals
 }
 
-// 月结余 = 截至该月末的全部明细净额（实时计算，不落库）
+// 期末结余 = 截至该月末的全部明细净额（实时计算，不落库）
 export async function getBillBalance(venueId: number, month: string) {
   const [year, mon] = month.split('-').map(Number)
   const nextMonthStart = new Date(Date.UTC(year ?? 0, mon ?? 1, 1)).toISOString().slice(0, 10)

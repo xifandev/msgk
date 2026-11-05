@@ -205,7 +205,7 @@ onMounted(() => {
           <el-table-column prop="venue_name" label="场所名称" min-width="150" />
           <el-table-column label="收入" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.income) }}</template></el-table-column>
           <el-table-column label="支出" width="110" align="right"><template #default="{ row }">{{ formatExpense(row.expense) }}</template></el-table-column>
-          <el-table-column label="月结余" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.balance) }}</template></el-table-column>
+          <el-table-column label="期末结余" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.balance) }}</template></el-table-column>
           <el-table-column label="状态" width="110"><template #default="{ row }"><el-tag :type="REVIEW_TAG_TYPES[row.state]">{{ REVIEW_LABELS[row.state] }}</el-tag></template></el-table-column>
           <el-table-column v-if="showPublishColumn" label="公开" width="80">
             <template #default="{ row }">
@@ -244,7 +244,7 @@ onMounted(() => {
             <el-descriptions :column="2" border>
               <el-descriptions-item label="本月收入">{{ formatMoney(current.income) }}</el-descriptions-item>
               <el-descriptions-item label="本月支出">{{ formatExpense(current.expense) }}</el-descriptions-item>
-              <el-descriptions-item label="月结余">{{ formatMoney(current.balance) }}</el-descriptions-item>
+              <el-descriptions-item label="期末结余">{{ formatMoney(current.balance) }}</el-descriptions-item>
               <el-descriptions-item label="明细数">{{ items.length }}</el-descriptions-item>
             </el-descriptions>
           </div>

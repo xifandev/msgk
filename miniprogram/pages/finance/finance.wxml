@@ -15,9 +15,9 @@
         </view>
 
         <block wx:if="{{ monthLoaded && bill }}">
-          <!-- 结余主卡：本月结余 + 本月收入/支出 -->
+          <!-- 结余主卡：期末结余 + 本月收入/支出 -->
           <view class="balance">
-            <view class="balance__label">本月结余（元）</view>
+            <view class="balance__label">期末结余（元）</view>
             <view class="balance__value {{ bill.currentNegative ? 'is-negative' : '' }}">{{ bill.currentText }}</view>
 
             <view class="balance__flow">
@@ -124,7 +124,7 @@
             </block>
           </view>
 
-          <!-- 月度明细：本月收入 / 本月支出 / 本月结余 -->
+          <!-- 月度明细：本月收入 / 本月支出 / 期末结余 -->
           <view class="section">
             <view class="section__head">
               <view class="section__bar"></view>
@@ -146,7 +146,7 @@
                   <text class="mstat__value is-expense">{{ item.expenseText }}</text>
                 </view>
                 <view class="mstat">
-                  <text class="mstat__label">本月结余</text>
+                  <text class="mstat__label">期末结余</text>
                   <text class="mstat__value {{ item.currentNegative ? 'is-negative' : '' }}">{{ item.currentText }}</text>
                 </view>
               </view>

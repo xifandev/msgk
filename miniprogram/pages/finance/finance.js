@@ -45,7 +45,7 @@ Page({
     // --------- 月度 ---------
     month: '', // YYYY-MM
     monthText: '',
-    bill: null, // 结余卡数据（本月结余 + 本月收入/支出）
+    bill: null, // 结余卡数据（期末结余 + 本月收入/支出）
     items: [],
     groups: [], // 按日期分组的明细
     monthLoaded: false,
@@ -134,7 +134,7 @@ Page({
     return patch;
   },
 
-  // 结余卡：本月结余（截至当月末的累计结余）+ 本月收入/支出
+  // 结余卡：期末结余（截至当月末的累计结余）+ 本月收入/支出
   buildBill(raw) {
     if (!raw) {
       return null;
@@ -217,7 +217,7 @@ Page({
           };
         });
 
-        // 月度明细：本月收入 / 本月支出 / 本月结余（截至当月末的累计结余）
+        // 月度明细：本月收入 / 本月支出 / 期末结余（截至当月末的累计结余）
         const months = rows.map((item) => {
           const currentNum = Number(item.currentBalance) || 0;
           return {
@@ -233,7 +233,7 @@ Page({
         const rawTotals = res.totals || { income: 0, expense: 0 };
         const incomeNum = Number(rawTotals.income) || 0;
         const expenseNum = Number(rawTotals.expense) || 0;
-        // 期末结余 = 最后一个公开月份的累计月结余
+        // 年度期末结余 = 最后一个公开月份的累计结余
         const last = rows.length > 0 ? rows[rows.length - 1] : null;
         const balanceNum = last ? Number(last.currentBalance) || 0 : 0;
         const totals = {

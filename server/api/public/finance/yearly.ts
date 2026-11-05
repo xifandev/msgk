@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
   )
   const published = new Set(rows.map(row => row.bill_month))
 
-  // 收入、支出、月结余全部按明细现算；结余按截至当月末的明细净额滚动
+  // 收入、支出、期末结余全部按明细现算；结余按截至当月末的明细净额滚动
   const aggregates = await query<AggregateRow>(
     `SELECT DATE_FORMAT(occurred_on, '%Y-%m') AS ym,
             COALESCE(SUM(CASE WHEN kind = 'income' THEN amount ELSE 0 END), 0) AS income,
