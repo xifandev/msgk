@@ -192,30 +192,41 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
 }
 .login-form h1 .el-icon { font-size: 28px; color: #409eff; }
 
-.login-form .el-input { margin-block-end: 18px; }
-.login-form :deep(.el-input__wrapper) { border-radius: 10px; }
-.login-form :deep(.el-input__inner) { font-size: 16px; }
+.login-form .el-input { margin-block-end: 20px; }
+.login-form :deep(.el-input__wrapper) {
+  min-height: 56px;
+  padding: 0 16px;
+  border-radius: 10px;
+}
+.login-form :deep(.el-input__inner) { font-size: 19px; }
+.login-form :deep(.el-input__prefix) { font-size: 20px; }
 
 .code-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
   gap: 10px;
-  margin-block-end: 26px;
+  margin-block-end: 28px;
 }
 .code-row .el-input { margin-block-end: 0; }
-.code-btn { min-width: 118px; border-radius: 10px; font-size: 15px; }
+.code-btn {
+  height: 100%;
+  min-width: 126px;
+  border-radius: 10px;
+  font-size: 16px;
+}
 
 .submit,
 .contacts-btn {
   width: 100%;
   margin: 0;
-  height: 48px;
+  height: 56px;
   border-radius: 10px;
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 600;
   letter-spacing: 2px;
 }
-.contacts-btn { margin-block-start: 16px; letter-spacing: 0; font-size: 16px; }
+.contacts-btn { margin-block-start: 16px; letter-spacing: 0; font-size: 17px; }
 
 .sr-only {
   position: absolute;

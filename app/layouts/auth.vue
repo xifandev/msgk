@@ -4,7 +4,13 @@ const year = new Date().getFullYear()
 
 <template>
   <main class="auth-layout">
-    <header class="auth-logo">沂水宗教码上公开管理系统</header>
+    <header class="auth-logo">
+      <span class="auth-logo-bar" aria-hidden="true" />
+      <span class="auth-logo-text">
+        <strong>沂水宗教码上公开管理系统</strong>
+        <small>YISHUI RELIGIOUS AFFAIRS OPEN PLATFORM</small>
+      </span>
+    </header>
     <slot />
     <footer class="auth-footer">
       <p>技术支持：山东盖特网络有限公司</p>
@@ -30,12 +36,38 @@ const year = new Date().getFullYear()
 /* 左上角系统名称 */
 .auth-logo {
   position: absolute;
-  top: 33px;
-  left: 35px;
+  top: 36px;
+  left: 38px;
+  display: flex;
+  align-items: stretch;
+  gap: 14px;
   color: #fff;
+}
+.auth-logo-bar {
+  width: 5px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #fff 0%, rgb(255 255 255 / 35%) 100%);
+  box-shadow: 0 0 12px rgb(255 255 255 / 45%);
+}
+.auth-logo-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding-block: 2px;
+}
+.auth-logo-text strong {
   font-size: clamp(22px, 2.2vw, 30px);
-  font-weight: 900;
-  letter-spacing: -.8px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  line-height: 1.2;
+  text-shadow: 0 2px 12px rgb(0 30 70 / 35%);
+}
+.auth-logo-text small {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 3.5px;
+  color: rgb(255 255 255 / 55%);
 }
 
 /* 左下角备案信息 */
