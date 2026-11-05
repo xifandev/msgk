@@ -379,31 +379,30 @@
 .foot-support {
   display: inline-flex;
   align-items: center;
-  padding: 10rpx 12rpx 10rpx 28rpx;
+  padding: 16rpx 28rpx;
   border-radius: 999rpx;
-  transition: background-color 0.2s ease;
+  border: 1rpx solid #e8e9ec;
+  background: #ffffff;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .foot-support__text {
-  font-size: 26rpx;
-  letter-spacing: 1rpx;
-  color: #8a8b8e;
+  font-size: 24rpx;
+  line-height: 1;
+  letter-spacing: 0;
+  color: #85868a;
 }
 
 .foot-support__arrow {
   display: flex;
   align-items: center;
-  justify-content: center;
   flex-shrink: 0;
-  width: 34rpx;
-  height: 34rpx;
-  margin-left: 10rpx;
-  border-radius: 50%;
-  background: #f2f3f5;
+  margin-left: 8rpx;
 }
 
 .foot-support--hover {
-  background: #f5f6f7;
+  background: #f7f8fa;
+  border-color: #dcdee2;
 }
 
 /* ---------- 场所选择（全屏） ---------- */

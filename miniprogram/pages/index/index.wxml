@@ -150,7 +150,7 @@
   >
     <text class="foot-support__text">技术支持：山东盖特网络有限公司</text>
     <view class="foot-support__arrow">
-      <ms-icon name="arrow" size="20rpx" color="#969799" />
+      <ms-icon name="arrow" size="22rpx" color="#9a9b9e" />
     </view>
   </view>
 </view>
