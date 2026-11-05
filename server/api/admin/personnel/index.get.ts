@@ -42,18 +42,12 @@ export default defineEventHandler(async (event) => {
      LIMIT ? OFFSET ?`,
     [...params, pageSize, offset]
   )
-  // 分类统计：只受数据权限与搜索词影响，不受当前分类筛选影响
-  const countConditions = [scope.sql]
-  const countParams: unknown[] = [...scope.params]
-  if (search) {
-    countConditions.push('(v.name LIKE ? OR v.township LIKE ?)')
-    countParams.push(`%${search}%`, `%${search}%`)
-  }
+  // 状态计数只受数据权限影响，与搜索等查询条件无关：胶囊上的数字始终反映全局
   const rows = await query<{ state: string; total: number | string }>(
     `SELECT COALESCE(p.state, 'draft') AS state, COUNT(*) AS total
      FROM venues v LEFT JOIN personnel p ON p.venue_id = v.id
-     WHERE ${countConditions.join(' AND ')} GROUP BY COALESCE(p.state, 'draft')`,
-    countParams
+     WHERE ${scope.sql} GROUP BY COALESCE(p.state, 'draft')`,
+    scope.params
   )
   const counts: Record<string, number> = { all: 0 }
   for (const value of REVIEW_STATES) counts[value] = 0

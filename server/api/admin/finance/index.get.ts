@@ -22,8 +22,6 @@ export default defineEventHandler(async (event) => {
     where.push('v.name LIKE ?')
     params.push(`%${search}%`)
   }
-  const baseCondition = where.join(' AND ')
-  const baseParams = [...params]
   if (input.state) {
     if (!REVIEW_STATES.includes(String(input.state) as ReviewState)) throw createError({ statusCode: 400, message: '审核状态不正确' })
     where.push('b.state = ?')
@@ -49,10 +47,11 @@ export default defineEventHandler(async (event) => {
     row.income = item?.income ?? 0
     row.expense = item?.expense ?? 0
   }
+  // 状态计数只受数据权限影响，与场所/月份/搜索等查询条件无关：胶囊上的数字始终反映全局
   const rows = await query<{ state: string, total: number | string }>(
     `SELECT b.state, COUNT(*) AS total FROM bills b JOIN venues v ON v.id = b.venue_id
-     WHERE ${baseCondition} GROUP BY b.state`,
-    baseParams
+     WHERE ${scope.sql} GROUP BY b.state`,
+    scope.params
   )
   const counts: Record<string, number> = { all: 0 }
   for (const value of REVIEW_STATES) counts[value] = 0
