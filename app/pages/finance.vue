@@ -236,9 +236,6 @@ onMounted(() => {
         <el-table v-loading="loading" :data="list">
           <el-table-column type="index" label="序号" width="64" :index="rowIndex" />
           <el-table-column prop="venue_name" label="场所名称" min-width="150" />
-          <el-table-column label="公开月份" width="110">
-            <template #default="{ row }"><el-tag effect="plain">{{ row.bill_month }}</el-tag></template>
-          </el-table-column>
           <el-table-column label="收入" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.income) }}</template></el-table-column>
           <el-table-column label="支出" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.expense) }}</template></el-table-column>
           <el-table-column label="上月结余" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.previous_balance) }}</template></el-table-column>
@@ -249,6 +246,9 @@ onMounted(() => {
               <el-switch v-if="row.state === 'approved'" v-model="row.published" :active-value="1" :inactive-value="0" :aria-label="`${row.venue_name}${row.bill_month}公开状态`" @change="publish(row)" />
               <span v-else class="muted" aria-hidden="true">—</span>
             </template>
+          </el-table-column>
+          <el-table-column label="公开月份" width="110" fixed="right">
+            <template #default="{ row }"><el-tag effect="plain">{{ row.bill_month }}</el-tag></template>
           </el-table-column>
           <el-table-column v-if="showActionColumn" label="操作" width="160" fixed="right" align="right">
             <template #default="{ row }">
@@ -380,6 +380,11 @@ onMounted(() => {
 .state-tab:focus-visible { outline: 3px solid #84adff; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .state-tab { transition: none; } }
 .el-select, .el-date-picker { min-width: 180px; }
+/* 列表行高略放大，减少拥挤感 */
+.table-region :deep(.el-table th.el-table__cell) { padding-block: 10px; }
+.table-region :deep(.el-table td.el-table__cell) { padding-block: 11px; }
+/* 行悬停高亮更明显（悬停期间持续高亮由 el-table 自带 hover-row 保证） */
+.table-region :deep(.el-table) { --el-table-row-hover-bg-color: #eaf2fc; }
 .muted { color: var(--muted); font-size: 13px; }
 .table-actions.compact :deep(.el-button) { height: 26px; padding-inline: 10px; font-size: 13px; }
 :global(.finance-drawer .el-drawer__body) { container-type: inline-size; }
