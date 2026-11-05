@@ -46,10 +46,6 @@
                   <view class="day__dot"></view>
                   <text>{{ item.label }}</text>
                 </view>
-                <view class="day__sum">
-                  <text wx:if="{{ item.incomeText }}">收入 {{ item.incomeText }}</text>
-                  <text wx:if="{{ item.expenseText }}">支出 {{ item.expenseText }}</text>
-                </view>
               </view>
 
               <view class="day__card">
@@ -155,10 +151,6 @@
             <view class="month" wx:for="{{ months }}" wx:key="month">
               <view class="month__head">
                 <text class="month__name">{{ item.monthText }}</text>
-                <view class="month__balance">
-                  <text>月结余</text>
-                  <text class="month__balance-value">{{ item.currentText }}</text>
-                </view>
               </view>
 
               <view class="month__row">
@@ -169,6 +161,10 @@
                 <view class="mstat">
                   <text class="mstat__label">当月支出</text>
                   <text class="mstat__value is-expense">{{ item.expenseText }}</text>
+                </view>
+                <view class="mstat">
+                  <text class="mstat__label">月结余</text>
+                  <text class="mstat__value">{{ item.currentText }}</text>
                 </view>
               </view>
             </view>
@@ -202,5 +198,5 @@
 
 <!-- 选择年份 -->
 <ms-action-sheet show="{{ yearPickerShow }}" title="选择年份" bind:close="closeYearPicker">
-  <ms-picker columns="{{ yearColumns }}" default-index="{{ yearDefaultIndex }}" bind:confirm="confirmYear" bind:cancel="closeYearPicker" bind:change="onYearChange" />
+  <ms-picker id="year-picker" columns="{{ yearColumns }}" default-index="{{ yearDefaultIndex }}" bind:confirm="confirmYear" bind:cancel="closeYearPicker" bind:change="onYearChange" />
 </ms-action-sheet>

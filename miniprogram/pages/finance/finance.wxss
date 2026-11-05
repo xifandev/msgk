@@ -7,6 +7,17 @@
   min-height: 60vh;
 }
 
+/* 内容区与滚动区统一浅绿底，去掉说明文字下方的白色底块；
+   不改 page-main 的 env(safe-area-inset-bottom) 外边距，继续保留 iPhone 底部安全区 */
+.cellgroup,
+.cellgroup__scroll {
+  background-color: #f4faf6;
+}
+
+.bottom-gap {
+  height: 24rpx;
+}
+
 /* ---------- 时间选择条 ---------- */
 /* 不再做成独立卡片：去掉白底、描边和阴影，直接落在浅绿内容区上，
    靠字号、留白和右侧文字链接区分层级，避免顶部堆三条横线 */
@@ -64,7 +75,7 @@
 
 /* ---------- 结余主卡 ---------- */
 .balance {
-  margin: 14rpx 24rpx 0;
+  margin: 22rpx 24rpx 0;
   padding: 32rpx 28rpx 26rpx;
   border-radius: 28rpx;
   /* 去掉描边后靠渐变自身的深浅拉开与浅绿底色的差别（浅端不能太接近 #f4faf6），再加投影分层 */
@@ -144,7 +155,7 @@
 
 /* ---------- 区块标题 ---------- */
 .section {
-  margin-top: 30rpx;
+  margin-top: 36rpx;
 }
 
 .section__head {
@@ -199,17 +210,6 @@
   border-radius: 50%;
   background: #17a273;
   margin-right: 10rpx;
-}
-
-.day__sum {
-  display: flex;
-  align-items: center;
-  font-size: 22rpx;
-  color: #9a9ca1;
-}
-
-.day__sum text {
-  margin-left: 16rpx;
 }
 
 .day__card {
@@ -461,27 +461,12 @@
 .month__head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
 }
 
 .month__name {
   font-size: 30rpx;
   font-weight: 600;
   color: #17211c;
-}
-
-.month__balance {
-  display: flex;
-  align-items: baseline;
-  font-size: 22rpx;
-  color: #9a9ca1;
-}
-
-.month__balance-value {
-  margin-left: 8rpx;
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #0a7d59;
 }
 
 .month__row {
@@ -495,16 +480,24 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  padding: 0 8rpx;
+  text-align: center;
+}
+
+.mstat + .mstat {
+  border-left: 1rpx solid #edf3ef;
 }
 
 .mstat__label {
-  font-size: 22rpx;
+  font-size: 21rpx;
   color: #9a9ca1;
 }
 
 .mstat__value {
-  margin-top: 6rpx;
-  font-size: 28rpx;
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  line-height: 1.4;
   color: #17211c;
   font-weight: 500;
   word-break: break-all;

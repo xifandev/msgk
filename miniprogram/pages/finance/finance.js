@@ -156,7 +156,7 @@ Page({
     };
   },
 
-  // 明细按日期分组，组头显示当日收支小计
+  // 明细按日期分组
   groupByDay(items) {
     const groups = [];
     const index = {};
@@ -164,19 +164,9 @@ Page({
       const key = item.date || '未知日期';
       if (index[key] == null) {
         index[key] = groups.length;
-        groups.push({ date: key, label: dayLabel(key), income: 0, expense: 0, incomeText: '', expenseText: '', items: [] });
+        groups.push({ date: key, label: dayLabel(key), items: [] });
       }
-      const group = groups[index[key]];
-      group.items.push(item);
-      if (item.kind === 'expense') {
-        group.expense += Number(item.amount) || 0;
-      } else {
-        group.income += Number(item.amount) || 0;
-      }
-    });
-    groups.forEach((group) => {
-      group.incomeText = group.income > 0 ? formatAmount(group.income) : '';
-      group.expenseText = group.expense > 0 ? formatAmount(group.expense) : '';
+      groups[index[key]].items.push(item);
     });
     return groups;
   },
@@ -277,7 +267,18 @@ Page({
   },
 
   openYearPicker() {
-    this.setData({ yearPickerShow: true });
+    const currentIndex = this.data.yearColumns.indexOf(String(this.data.year));
+    const index = Math.max(currentIndex, 0);
+    this.setData(
+      { yearDefaultIndex: index, pendingYearIndex: index, yearPickerShow: true },
+      () => {
+        // 弹窗复用时也强制回到当前年份，避免保留组件初始值或上次滚动位置
+        const picker = this.selectComponent('#year-picker');
+        if (picker) {
+          picker.refresh();
+        }
+      }
+    );
   },
 
   closeYearPicker() {
