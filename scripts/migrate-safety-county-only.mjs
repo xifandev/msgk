@@ -68,15 +68,35 @@ for (const role of roleRows) {
 }
 
 // 2. 存量文章置为已通过
+// 注意：updated_at 带 ON UPDATE CURRENT_TIMESTAMP，必须显式写 updated_at = updated_at，
+// 否则整表更新会把所有文章的编辑时间刷成执行时刻。
 const [pending] = await db.query(`SELECT COUNT(*) AS c FROM safety_articles WHERE state <> 'approved'`)
 if (pending[0].c > 0) {
-  console.log(`将把 ${pending[0].c} 篇非 approved 状态的存量文章置为 approved（审核流程已取消）`)
+  console.log(`将把 ${pending[0].c} 篇非 approved 状态的存量文章置为 approved（审核流程已取消，不改动 updated_at）`)
   if (APPLY) {
-    const [result] = await db.query(`UPDATE safety_articles SET state = 'approved' WHERE state <> 'approved'`)
+    const [result] = await db.query(
+      `UPDATE safety_articles SET state = 'approved', updated_at = updated_at WHERE state <> 'approved'`
+    )
     console.log(`已更新 ${result.affectedRows} 行`)
   }
 } else {
   console.log('跳过：没有需要调整状态的存量文章')
+}
+
+// 3. 可选修复：把被误刷的 updated_at 还原为发布时间（created_at）
+// 仅当确知编辑时间被整表更新污染时使用。
+const REPAIR = process.argv.includes('--repair-updated-at')
+if (REPAIR) {
+  const [stale] = await db.query(
+    `SELECT COUNT(*) AS c FROM safety_articles WHERE updated_at > created_at`
+  )
+  console.log(`将把 ${stale[0].c} 篇文章的 updated_at 还原为 created_at（发布时间）`)
+  if (APPLY) {
+    const [result] = await db.query(
+      `UPDATE safety_articles SET updated_at = created_at WHERE updated_at > created_at`
+    )
+    console.log(`已更新 ${result.affectedRows} 行`)
+  }
 }
 
 console.log(APPLY ? '\n迁移完成。' : '\n干跑结束（未写库）。加 --apply 参数执行。')

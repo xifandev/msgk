@@ -106,7 +106,7 @@ onMounted(load)
           <el-table-column prop="title" label="安全标题" min-width="200" show-overflow-tooltip />
           <el-table-column prop="authorName" label="发布人" width="100"><template #default="{ row }">{{ row.authorName || '—' }}</template></el-table-column>
           <el-table-column prop="publishUnit" label="发布单位" min-width="140" show-overflow-tooltip><template #default="{ row }">{{ row.publishUnit || '—' }}</template></el-table-column>
-          <el-table-column prop="updatedAt" label="编辑时间" width="160"><template #default="{ row }">{{ row.updatedAt || '—' }}</template></el-table-column>
+          <el-table-column prop="createdAt" label="发布时间" width="200"><template #default="{ row }"><span class="time-cell">{{ row.createdAt || '—' }}</span></template></el-table-column>
           <el-table-column v-if="isCounty" label="是否公开" width="100">
             <template #default="{ row }">
               <el-switch v-model="row.published" :active-value="1" :inactive-value="0" :aria-label="`《${row.title}》公开状态`" @change="publish(row)" />
@@ -148,7 +148,7 @@ onMounted(load)
         <el-descriptions :column="2" border class="detail-meta">
           <el-descriptions-item label="发布人">{{ current.authorName || '—' }}</el-descriptions-item>
           <el-descriptions-item label="发布单位">{{ current.publishUnit || '—' }}</el-descriptions-item>
-          <el-descriptions-item label="更新时间">{{ current.updatedAt || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="发布时间">{{ current.createdAt || '—' }}</el-descriptions-item>
           <el-descriptions-item v-if="isCounty" label="公开状态">{{ current.published ? '已公开' : '未公开' }}</el-descriptions-item>
         </el-descriptions>
         <article class="rich-content" v-html="current.content" />
@@ -160,6 +160,7 @@ onMounted(load)
 
 <style scoped>
 .muted { color: var(--muted); font-size: 13px; }
+.time-cell { white-space: nowrap; }
 .toolbar .el-input { max-width: 260px; }
 .toolbar .el-select { min-width: 160px; }
 :global(.safety-drawer .el-drawer__body) { container-type: inline-size; }
