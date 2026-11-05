@@ -16,20 +16,27 @@ const items = computed(() => NAVIGATION.filter((item) => {
 }))
 const mainItems = computed(() => items.value.filter((item) => !item.superOnly))
 const opsItems = computed(() => items.value.filter((item) => item.superOnly && admin.value?.roleCode === 'super'))
-/** 导航分组分隔线：三个「公开」栏目共用一个光柱分组，锚定在可见的第一个公开栏目前 */
+/** 导航分组分隔线：三个「公开」栏目共用一组光柱（上下各一根，锚定在可见栏目的边界上） */
+const PUBLIC_PATHS = ['/finance', '/profiles', '/personnel']
 const NAV_GROUPS: { anchor: string[], label: string }[] = [
-  { anchor: ['/finance', '/profiles', '/personnel'], label: '公开内容' },
+  { anchor: PUBLIC_PATHS, label: '公开内容' },
   { anchor: ['/venues'], label: '场所与账号管理' }
 ]
 const navDividers = computed(() => {
-  const map: Record<string, string> = {}
+  const map: Record<string, string | undefined> = {}
   for (const group of NAV_GROUPS) {
     const hit = mainItems.value.find((item) => group.anchor.includes(item.path))
     if (hit) map[hit.path] = group.label
   }
+  // 公开组收尾：最后一个可见公开栏目之后的下一项前补一根光柱，把三个公开框成一组
+  const list = mainItems.value
+  let lastPublic = -1
+  list.forEach((item, index) => { if (PUBLIC_PATHS.includes(item.path)) lastPublic = index })
+  const next = list[lastPublic + 1]
+  if (lastPublic >= 0 && next && !(next.path in map)) map[next.path] = undefined
   return map
 })
-const dividerLabel = (path: string) => navDividers.value[path]
+const hasDivider = (path: string) => path in navDividers.value
 watch(() => route.path, () => { mobileMenu.value = false })
 
 const accountUnit = computed(() => {
@@ -75,10 +82,10 @@ async function switchBack() {
         <el-menu :default-active="route.path" router>
           <template v-for="item in mainItems" :key="item.path">
             <div
-              v-if="dividerLabel(item.path)"
+              v-if="hasDivider(item.path)"
               class="nav-meteor-divider"
               role="separator"
-              :aria-label="dividerLabel(item.path)"
+              :aria-label="navDividers[item.path]"
             />
             <el-menu-item
               :index="item.path"
@@ -108,10 +115,10 @@ async function switchBack() {
         <el-menu :default-active="route.path" router>
           <template v-for="item in mainItems" :key="item.path">
             <div
-              v-if="dividerLabel(item.path)"
+              v-if="hasDivider(item.path)"
               class="nav-meteor-divider"
               role="separator"
-              :aria-label="dividerLabel(item.path)"
+              :aria-label="navDividers[item.path]"
             />
             <el-menu-item
               :index="item.path"
