@@ -69,7 +69,7 @@ async function reopen() {
       <el-button type="success" @click="approve">通过审核</el-button>
       <el-button type="danger" plain @click="reject">未通过审核</el-button>
     </template>
-    <el-button v-if="hasPerm(editPermission) && state !== 'draft'" plain @click="reopen">{{ reopenLabel ?? '重新编辑' }}</el-button>
+    <el-button v-if="hasPerm(editPermission) && state !== 'draft'" type="primary" plain @click="reopen">{{ reopenLabel ?? '重新编辑' }}</el-button>
   </div>
 </template>
 
