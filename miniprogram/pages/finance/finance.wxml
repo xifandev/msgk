@@ -18,7 +18,7 @@
           <!-- 结余主卡：当月结余 + 当月收入/支出 -->
           <view class="balance">
             <view class="balance__label">当月结余（元）</view>
-            <view class="balance__value">{{ bill.currentText }}</view>
+            <view class="balance__value {{ bill.currentNegative ? 'is-negative' : '' }}">{{ bill.currentText }}</view>
 
             <view class="balance__flow">
               <view class="flow">
@@ -96,49 +96,32 @@
         </view>
 
         <block wx:if="{{ yearLoaded && months.length > 0 }}">
-          <!-- 年度账单卡 -->
+          <!-- 年度账单卡：只放数值结论（年结余 / 总收入 / 总支出） -->
           <view class="year">
+            <view class="year__glow"></view>
+
             <view class="year__head">
               <text class="year__title">{{ year }} 年度账单</text>
-              <text class="year__sub">共 {{ months.length }} 个月有公开数据</text>
+              <text class="year__tag">已公开 {{ months.length }} 个月</text>
             </view>
 
-            <view class="year__totals" wx:if="{{ totals }}">
-              <view class="total">
-                <text class="total__label">总收入</text>
-                <text class="total__value is-income">{{ totals.incomeText }}</text>
+            <block wx:if="{{ totals }}">
+              <view class="year__hero">
+                <text class="year__hero-label">年结余（元）</text>
+                <text class="year__hero-value {{ totals.balanceNegative ? 'is-negative' : '' }}">{{ totals.balanceText }}</text>
               </view>
-              <view class="total">
-                <text class="total__label">总支出</text>
-                <text class="total__value is-expense">{{ totals.expenseText }}</text>
-              </view>
-              <view class="total">
-                <text class="total__label">期末结余</text>
-                <text class="total__value">{{ totals.balanceText }}</text>
-              </view>
-            </view>
 
-            <!-- 月度柱状对比 -->
-            <view class="chart">
-              <view class="chart__grid">
-                <view class="chart__line"></view>
-                <view class="chart__line"></view>
-                <view class="chart__line"></view>
-              </view>
-              <view class="chart__cols">
-                <view class="chart__col" wx:for="{{ chart }}" wx:key="month">
-                  <view class="chart__bars">
-                    <view class="chart__bar chart__bar--income" style="height:{{ item.incomeHeight }}%"></view>
-                    <view class="chart__bar chart__bar--expense" style="height:{{ item.expenseHeight }}%"></view>
-                  </view>
-                  <text class="chart__label">{{ item.label }}</text>
+              <view class="year__flow">
+                <view class="year__item">
+                  <text class="year__item-label">总收入</text>
+                  <text class="year__item-value is-income">{{ totals.incomeText }}</text>
+                </view>
+                <view class="year__item year__item--right">
+                  <text class="year__item-label">总支出</text>
+                  <text class="year__item-value is-expense">{{ totals.expenseText }}</text>
                 </view>
               </view>
-            </view>
-            <view class="chart__legend">
-              <view class="legend"><view class="dot dot--income"></view><text>收入</text></view>
-              <view class="legend"><view class="dot dot--expense"></view><text>支出</text></view>
-            </view>
+            </block>
           </view>
 
           <!-- 月度明细：当月收入 / 当月支出 / 月结余 -->
@@ -164,7 +147,7 @@
                 </view>
                 <view class="mstat">
                   <text class="mstat__label">月结余</text>
-                  <text class="mstat__value">{{ item.currentText }}</text>
+                  <text class="mstat__value {{ item.currentNegative ? 'is-negative' : '' }}">{{ item.currentText }}</text>
                 </view>
               </view>
             </view>

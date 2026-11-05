@@ -20,15 +20,6 @@ function buildYearColumns(targetYear) {
   return { yearColumns, yearDefaultIndex };
 }
 
-// 柱状高度：有值至少留 4% 让细柱可见
-function barHeight(value, max) {
-  const num = Number(value);
-  if (!num || num <= 0 || !max || max <= 0) {
-    return 0;
-  }
-  return Math.max(Math.round((num / max) * 100), 4);
-}
-
 // 'YYYY-MM-DD' → '11月04日 周二'
 function dayLabel(date) {
   const parts = String(date || '').split('-');
@@ -54,7 +45,7 @@ Page({
     // --------- 月度 ---------
     month: '', // YYYY-MM
     monthText: '',
-    bill: null, // 结余卡数据（含百分比与环比文案）
+    bill: null, // 结余卡数据（当月结余 + 当月收入/支出）
     items: [],
     groups: [], // 按日期分组的明细
     monthLoaded: false,
@@ -68,7 +59,6 @@ Page({
     year: 0,
     months: [],
     totals: null,
-    chart: [],
     yearLoaded: false,
     // 年份选择
     yearPickerShow: false,
@@ -144,15 +134,19 @@ Page({
     return patch;
   },
 
-  // 结余卡：当月结余 + 当月收入/支出
+  // 结余卡：当月结余（当月收入 − 当月支出）+ 当月收入/支出
   buildBill(raw) {
     if (!raw) {
       return null;
     }
+    const income = Number(raw.income) || 0;
+    const expense = Number(raw.expense) || 0;
+    const current = Math.round((income - expense) * 100) / 100;
     return {
-      incomeText: formatAmount(Number(raw.income) || 0),
-      expenseText: formatAmount(Number(raw.expense) || 0),
-      currentText: formatAmount(Number(raw.currentBalance) || 0),
+      incomeText: formatAmount(income),
+      expenseText: formatAmount(expense),
+      currentText: formatAmount(current),
+      currentNegative: current < 0,
     };
   },
 
@@ -221,48 +215,42 @@ Page({
             ...item,
             incomeNum: Number(item.income) || 0,
             expenseNum: Number(item.expense) || 0,
-            currentNum: Number(item.currentBalance) || 0,
             monthText: parts.length === 2 ? `${parts[0]}年${parseInt(parts[1], 10)}月份` : String(item.month),
           };
         });
 
-        const maxValue = rows.reduce(
-          (max, item) => Math.max(max, item.incomeNum, item.expenseNum),
-          0
-        );
-
-        // 柱状图数据
-        const chart = rows.map((item) => ({
-          month: item.month,
-          label: `${parseInt(String(item.month).split('-')[1], 10)}月`,
-          incomeHeight: barHeight(item.incomeNum, maxValue),
-          expenseHeight: barHeight(item.expenseNum, maxValue),
-        }));
-
-        // 月度明细：当月收入 / 当月支出 / 月结余
-        const months = rows.map((item) => ({
-          month: item.month,
-          monthText: item.monthText,
-          incomeText: formatAmount(item.incomeNum),
-          expenseText: formatAmount(item.expenseNum),
-          currentText: formatAmount(item.currentNum),
-        }));
+        // 月度明细：当月收入 / 当月支出 / 月结余（收 − 支）
+        const months = rows.map((item) => {
+          const currentNum = Math.round((item.incomeNum - item.expenseNum) * 100) / 100;
+          return {
+            month: item.month,
+            monthText: item.monthText,
+            incomeText: formatAmount(item.incomeNum),
+            expenseText: formatAmount(item.expenseNum),
+            currentText: formatAmount(currentNum),
+            currentNegative: currentNum < 0,
+          };
+        });
 
         const rawTotals = res.totals || { income: 0, expense: 0 };
-        const last = rows.length > 0 ? rows[rows.length - 1] : null;
+        const incomeNum = Number(rawTotals.income) || 0;
+        const expenseNum = Number(rawTotals.expense) || 0;
+        // 年结余 = 全年收入 − 全年支出，与卡面两个总数自洽
+        const balanceNum = Math.round((incomeNum - expenseNum) * 100) / 100;
         const totals = {
-          incomeText: formatAmount(rawTotals.income),
-          expenseText: formatAmount(rawTotals.expense),
-          balanceText: formatAmount(last ? last.currentNum : 0), // 最近一个月账面结余
+          incomeText: formatAmount(incomeNum),
+          expenseText: formatAmount(expenseNum),
+          balanceText: formatAmount(balanceNum),
+          balanceNegative: balanceNum < 0,
         };
 
-        this.setData({ months, totals, chart, yearLoaded: true });
+        this.setData({ months, totals, yearLoaded: true });
       })
       .catch(() => {
         if (requestId !== this.yearlyRequestId) {
           return;
         }
-        this.setData({ months: [], totals: null, chart: [], yearLoaded: true });
+        this.setData({ months: [], totals: null, yearLoaded: true });
       });
   },
 
@@ -302,7 +290,6 @@ Page({
         yearPickerShow: false,
         months: [],
         totals: null,
-        chart: [],
       },
       () => this.loadYearly()
     );

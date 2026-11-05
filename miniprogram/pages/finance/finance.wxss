@@ -100,6 +100,11 @@
   word-break: break-all;
 }
 
+/* 结余为负（支大于收）时换暖色，并保留负号，不只靠颜色区分 */
+.balance__value.is-negative {
+  color: #9a5410;
+}
+
 .balance__flow {
   display: flex;
   align-items: center;
@@ -137,21 +142,6 @@
 
 .flow__value.is-expense {
   color: #c98214;
-}
-
-.dot {
-  width: 10rpx;
-  height: 10rpx;
-  border-radius: 50%;
-  margin-right: 8rpx;
-}
-
-.dot--income {
-  background: #0a7d59;
-}
-
-.dot--expense {
-  background: #d99a2b;
 }
 
 /* ---------- 区块标题 ---------- */
@@ -297,157 +287,127 @@
 }
 
 /* ---------- 年度账单卡 ---------- */
+/* 深绿实地卡片，只承载三个数值结论：年结余为主视觉，总收入 / 总支出在下沿分行对置。
+   不再放柱状图与图例，靠字号、留白和明暗对比撑住版面。 */
 .year {
-  margin: 18rpx 24rpx 0;
-  padding: 26rpx 24rpx 22rpx;
-  border-radius: 26rpx;
-  background: linear-gradient(160deg, #ffffff 0%, #f2faf6 100%);
-  box-shadow: 0 10rpx 28rpx rgba(6, 89, 63, 0.07);
-}
-
-.year__title {
-  display: block;
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #17211c;
-}
-
-.year__sub {
-  display: block;
-  margin-top: 8rpx;
-  font-size: 24rpx;
-  color: #7f8782;
-}
-
-/* 三栏汇总用浅底块分组，不画上下两条横线 */
-.year__totals {
-  display: flex;
-  align-items: stretch;
-  margin-top: 22rpx;
-  padding: 20rpx 0;
-  border-radius: 16rpx;
-  background: #f5faf7;
-}
-
-.total {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 0;
-}
-
-.total__label {
-  font-size: 24rpx;
-  color: #7f8782;
-}
-
-.total__value {
-  margin-top: 8rpx;
-  font-size: 34rpx;
-  font-weight: 600;
-  color: #17211c;
-  word-break: break-all;
-}
-
-.total__value.is-income {
-  color: #0a7d59;
-}
-
-.total__value.is-expense {
-  color: #c98214;
-}
-
-/* 柱状对比图：柱区固定 210rpx，下方 40rpx 留给月份标签，避免与图例重叠 */
-.chart {
   position: relative;
-  margin-top: 26rpx;
-  height: 250rpx;
+  overflow: hidden;
+  margin: 18rpx 24rpx 0;
+  padding: 40rpx 36rpx 36rpx;
+  border-radius: 32rpx;
+  background: linear-gradient(158deg, #10714f 0%, #08462f 58%, #06331f 100%);
+  box-shadow: 0 18rpx 40rpx rgba(6, 58, 40, 0.22);
 }
 
-.chart__grid {
+/* 右上角柔光：纯装饰，不承载信息 */
+.year__glow {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 210rpx;
+  top: -170rpx;
+  right: -130rpx;
+  width: 440rpx;
+  height: 440rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(94, 226, 168, 0.32) 0%, rgba(94, 226, 168, 0) 68%);
+  pointer-events: none;
+}
+
+.year__head {
+  position: relative;
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: space-between;
 }
 
-.chart__line {
-  height: 1rpx;
-  background: #e9f2ed;
-}
-
-.chart__cols {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  height: 250rpx;
-}
-
-.chart__col {
-  position: relative;
+.year__title {
   flex: 1;
   min-width: 0;
-  max-width: 96rpx;
-  height: 210rpx;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 1rpx;
 }
 
-.chart__bars {
-  width: 100%;
-  height: 100%;
+/* 公开月份数收进描边小标签，避免在标题下再压一行说明文字 */
+.year__tag {
+  flex-shrink: 0;
+  margin-left: 16rpx;
+  padding: 4rpx 16rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.24);
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.year__hero {
+  position: relative;
+  margin-top: 48rpx;
+}
+
+.year__hero-label {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.58);
+  letter-spacing: 2rpx;
+}
+
+.year__hero-value {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 76rpx;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: 1rpx;
+  color: #edfff6;
+  word-break: break-all;
+}
+
+/* 年结余为负时换成暖沙色，不只靠符号区分 */
+.year__hero-value.is-negative {
+  color: #f7c98d;
+}
+
+.year__flow {
+  position: relative;
   display: flex;
   align-items: flex-end;
-  justify-content: center;
+  margin-top: 42rpx;
+  padding-top: 30rpx;
+  border-top: 1rpx solid rgba(255, 255, 255, 0.14);
 }
 
-.chart__bar {
-  width: 20rpx;
-  border-radius: 8rpx 8rpx 2rpx 2rpx;
-  transition: height 0.3s ease;
-}
-
-.chart__bar--income {
-  background: linear-gradient(180deg, #3fd39a 0%, #0a7d59 100%);
-  margin-right: 6rpx;
-}
-
-.chart__bar--expense {
-  background: linear-gradient(180deg, #fbcf8a 0%, #e0a137 100%);
-}
-
-.chart__label {
-  position: absolute;
-  bottom: -34rpx;
-  left: 0;
-  right: 0;
-  text-align: center;
-  font-size: 22rpx;
-  color: #7f8782;
-  line-height: 1;
-}
-
-.chart__legend {
+.year__item {
+  flex: 1;
+  min-width: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 10rpx;
+  flex-direction: column;
 }
 
-.legend {
-  display: flex;
-  align-items: center;
-  margin: 0 14rpx;
-  font-size: 23rpx;
-  color: #6f7a74;
+.year__item--right {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.year__item-label {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.58);
+  letter-spacing: 1rpx;
+}
+
+.year__item-value {
+  margin-top: 12rpx;
+  font-size: 38rpx;
+  font-weight: 600;
+  letter-spacing: 0.5rpx;
+  word-break: break-all;
+}
+
+.year__item-value.is-income {
+  color: #7fe3b4;
+}
+
+.year__item-value.is-expense {
+  color: #f6cd8e;
 }
 
 /* ---------- 月度明细卡 ---------- */
@@ -510,6 +470,10 @@
 
 .mstat__value.is-expense {
   color: #c98214;
+}
+
+.mstat__value.is-negative {
+  color: #9a5410;
 }
 
 /* ---------- 空态 / 骨架 / 说明 ---------- */
