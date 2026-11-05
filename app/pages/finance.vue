@@ -65,6 +65,17 @@ const previewBalance = computed(() => {
   if (![previous, income, expense].every(Number.isFinite)) return null
   return previous + income - expense
 })
+// 录入态按日期倒序（最新日期优先，便于确认刚录入内容）；审核态按日期正序（从小到大）
+const sortedItems = computed(() => {
+  const arr = [...items.value]
+  const desc = billEditable.value
+  arr.sort((a, b) => {
+    const da = String(a.occurred_on ?? '')
+    const db = String(b.occurred_on ?? '')
+    return desc ? db.localeCompare(da) : da.localeCompare(db)
+  })
+  return arr
+})
 
 function rowIndex(index: number) {
   return (filters.page - 1) * filters.pageSize + index + 1
@@ -281,8 +292,7 @@ onMounted(() => {
           <div class="toolbar">
             <el-button v-if="hasPerm('finance:edit') && billEditable" type="primary" @click="editItem()">添加收支</el-button>
           </div>
-          <el-table :data="items" class="finance-items-table" aria-label="收支明细">
-            <el-table-column type="index" label="序号" width="64" class-name="finance-nowrap-cell" label-class-name="finance-nowrap-cell" />
+          <el-table :data="sortedItems" class="finance-items-table" aria-label="收支明细">
             <el-table-column prop="occurred_on" label="日期" width="115" class-name="finance-nowrap-cell" label-class-name="finance-nowrap-cell" />
             <el-table-column label="收支类型" width="80">
               <template #default="{ row }"><el-tag :type="row.kind === 'income' ? 'success' : 'info'">{{ row.kind === 'income' ? '收入' : '支出' }}</el-tag></template>
@@ -301,13 +311,12 @@ onMounted(() => {
           <div class="finance-item-cards">
             <el-empty v-if="!items.length" description="尚未添加收支明细" />
             <ol v-else aria-label="收支明细">
-              <li v-for="(item, index) in items" :key="item.id" class="finance-item-card">
+              <li v-for="(item, index) in sortedItems" :key="item.id" class="finance-item-card">
                 <header>
-                  <span>第 {{ index + 1 }} 条</span>
+                  <span>{{ item.occurred_on }}</span>
                   <el-tag :type="item.kind === 'income' ? 'success' : 'info'">{{ item.kind === 'income' ? '收入' : '支出' }}</el-tag>
                 </header>
                 <dl>
-                  <div><dt>日期</dt><dd>{{ item.occurred_on }}</dd></div>
                   <div><dt>简要描述</dt><dd>{{ item.summary }}</dd></div>
                   <div><dt>金额</dt><dd>{{ formatMoney(item.amount) }}</dd></div>
                 </dl>
