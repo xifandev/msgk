@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Check, Close } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const props = defineProps<{
@@ -22,6 +23,7 @@ const canReview = computed(() => {
   if (['county', 'super'].includes(admin.value?.roleCode ?? '')) return props.state === 'pending_county'
   return ['pending_town', 'pending_county'].includes(props.state)
 })
+const canReopen = computed(() => hasPerm(props.editPermission) && props.state !== 'draft')
 
 async function confirmAction(message: string) {
   try {
@@ -47,10 +49,10 @@ async function approve() {
 
 async function reject() {
   if (!reason.value.trim()) {
-    ElMessage.warning('请输入审核失败原因')
+    ElMessage.warning('请输入未通过原因')
     return
   }
-  if (await confirmAction('确定要拒绝这条审核吗？')) {
+  if (await confirmAction('确定审核不通过并退回吗？')) {
     emit('action', 'reject', reason.value.trim())
     reason.value = ''
   }
@@ -63,17 +65,41 @@ async function reopen() {
 
 <template>
   <div class="review-actions">
-    <el-button v-if="canSubmit" type="primary" @click="submit">提交审核</el-button>
     <template v-if="canReview">
-      <el-input v-model="reason" placeholder="请输入未通过原因" maxlength="500" aria-label="未通过原因" />
-      <el-button type="success" @click="approve">通过审核</el-button>
-      <el-button type="danger" plain @click="reject">未通过审核</el-button>
+      <div class="review-field">
+        <label class="review-field-label" for="review-reason">未通过原因</label>
+        <el-input
+          id="review-reason"
+          v-model="reason"
+          type="textarea"
+          :rows="2"
+          maxlength="500"
+          resize="none"
+          placeholder="仅审核不通过时填写，将随审核记录展示"
+        />
+      </div>
+      <div class="review-buttons">
+        <el-button type="primary" :icon="Check" @click="approve">通过审核</el-button>
+        <el-button type="danger" plain :icon="Close" @click="reject">未通过审核</el-button>
+      </div>
     </template>
-    <el-button v-if="hasPerm(editPermission) && state !== 'draft'" type="primary" plain @click="reopen">{{ reopenLabel ?? '重新编辑' }}</el-button>
+    <div v-if="canSubmit || canReopen" class="review-secondary">
+      <el-button v-if="canSubmit" type="primary" @click="submit">提交审核</el-button>
+      <el-button v-if="canReopen" text @click="reopen">{{ reopenLabel ?? '重新编辑' }}</el-button>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.review-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-.review-actions .el-input { flex: 1 1 240px; }
+.review-actions { display: grid; gap: 14px; }
+.review-field { display: grid; gap: 6px; }
+.review-field-label { font-size: 12px; color: var(--muted); }
+/* 主操作两枚按钮等分一行，任何侧栏宽度下都整齐 */
+.review-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.review-buttons .el-button { margin: 0; width: 100%; }
+/* 次级操作弱化为文字按钮，避免与审核主操作争夺注意力 */
+.review-secondary { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-block-start: 12px; border-block-start: 1px dashed var(--line); }
+.review-secondary .el-button { margin: 0; }
+.review-secondary .el-button:not(.el-button--primary) { color: var(--muted); }
+.review-secondary .el-button:not(.el-button--primary):hover { color: var(--brand); }
 </style>

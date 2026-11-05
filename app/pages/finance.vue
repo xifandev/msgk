@@ -349,9 +349,6 @@ onMounted(() => {
 .review-card :deep(.el-card__header) { padding: 12px 16px; border-block-end-color: var(--line); }
 .review-card-title { font-size: 14px; font-weight: 600; color: #344054; }
 .review-card :deep(.el-card__body) { display: grid; gap: 20px; padding: 16px; }
-.review-card :deep(.review-actions) { flex-direction: column; align-items: flex-start; gap: 8px; }
-.review-card :deep(.review-actions .el-button) { margin: 0; height: 28px; padding-inline: 12px; font-size: 13px; }
-.review-card :deep(.review-actions .el-input) { flex: none; width: 100%; }
 .summary-grid { display: grid; gap: 16px; margin-block-end: 18px; }
 .finance-items-table :deep(.finance-nowrap-cell .cell) { white-space: nowrap; }
 .finance-item-cards { display: none; }
