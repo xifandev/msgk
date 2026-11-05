@@ -64,9 +64,10 @@ const tabs = computed<TabItem[]>(() => {
   items.push({ value: '', label: '全部', count: counts.value.all ?? 0 })
   return items
 })
-// 实际请求用的状态：由点击胶囊写入；工具栏查询会把它清空，但不改胶囊选中项
+// 两套查询完全独立：胶囊只管状态，工具栏只管关键词；最后使用哪一套，列表就按哪一套取数
+const queryMode = ref<'tab' | 'toolbar'>('tab')
+// 胶囊自己的状态取值（'mine' 映射为当前角色的待审状态）
 const requestState = ref('')
-const stateParam = computed(() => (isReviewer.value ? requestState.value : '') || undefined)
 const needsMyReview = (row: any) => showMine.value && row.state === myState.value
 const noteOf = (row: any) => (row.state === 'rejected' ? row.county_note || row.town_note || '' : '')
 
@@ -80,14 +81,11 @@ async function load() {
   const sequence = ++loadSequence
   loading.value = true
   try {
-    const response = await $fetch<any>('/api/admin/personnel', {
-      query: {
-        page: query.page,
-        pageSize: query.pageSize,
-        search: query.search || undefined,
-        state: stateParam.value
-      }
-    })
+    // 胶囊模式只带状态；工具栏模式只带关键词，互不叠加
+    const params = queryMode.value === 'tab'
+      ? { page: query.page, pageSize: query.pageSize, state: (isReviewer.value ? requestState.value : '') || undefined }
+      : { page: query.page, pageSize: query.pageSize, search: query.search || undefined }
+    const response = await $fetch<any>('/api/admin/personnel', { query: params })
     if (sequence !== loadSequence) return
     list.value = response.list
     total.value = response.total
@@ -99,18 +97,19 @@ async function load() {
   }
 }
 
-// 胶囊选中项只服务于它自己的状态过滤，工具栏查询不读也不改它
+// 胶囊是一套独立查询：只按状态取数，不读工具栏的关键词，也不改工具栏的输入
 function setTab(value: string) {
   activeTab.value = value
   requestState.value = value === 'mine' ? myState.value : value
   query.page = 1
+  queryMode.value = 'tab'
   syncTabQuery(value)
   void load()
 }
 
-// 工具栏查询（场所/乡镇关键词）不参与状态筛选：请求不带 state，胶囊外观保持不动
+// 工具栏是另一套独立查询：只按关键词取数，不读状态，也不改胶囊选中项
 function search() {
-  requestState.value = ''
+  queryMode.value = 'toolbar'
   query.page = 1
   void load()
 }

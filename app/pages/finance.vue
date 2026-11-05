@@ -10,14 +10,18 @@ const list = ref<any[]>([])
 const total = ref(0)
 const counts = ref<Record<string, number>>({})
 const filters = reactive({ page: 1, pageSize: 10, venueId: null as number | null, month: '', state: '' })
+// 两套查询完全独立：胶囊只管状态，工具栏只管场所/月份；最后使用哪一套，列表就按哪一套取数
+const queryMode = ref<'tab' | 'toolbar'>('tab')
+// 当前列表实际生效的状态：仅“胶囊查询”模式下参与取数
+const effectiveState = computed(() => (queryMode.value === 'tab' ? filters.state : ''))
 
 interface StateTab { value: string, label: string, count: number }
 const canReview = computed(() => hasPerm('finance:review'))
 const isTown = computed(() => admin.value?.roleCode === 'town')
 // 公开列仅在“全部 / 审核通过”视图下展示，其余状态整列隐藏
-const showPublishColumn = computed(() => hasPerm('finance:publish') && (!filters.state || filters.state === 'approved'))
+const showPublishColumn = computed(() => hasPerm('finance:publish') && (!effectiveState.value || effectiveState.value === 'approved'))
 // 镇级管理员无填报权限，查看“正在填报”列表时隐藏整列操作
-const showActionColumn = computed(() => !(isTown.value && filters.state === 'draft'))
+const showActionColumn = computed(() => !(isTown.value && effectiveState.value === 'draft'))
 const myState = computed(() => myReviewState(admin.value?.roleCode ?? ''))
 const stateTab = useReviewStateTab(myState, canReview)
 const mounted = ref(false)
@@ -32,23 +36,24 @@ const stateTabs = computed<StateTab[]>(() => {
   items.push({ value: '', label: '全部', count: counts.value.all ?? 0 })
   return items
 })
-// 胶囊选中项只服务于它自己的状态过滤：工具栏查询不会读它，也不会改它
+// 胶囊是一套独立查询：只按状态取数，不读工具栏的场所/月份，也不改工具栏的选择
 const activeTab = stateTab.activeTab
 function setStateTab(value: string) {
   const state = value === 'mine' ? myState.value : value
   activeTab.value = value
   filters.state = state
   filters.page = 1
+  queryMode.value = 'tab'
   stateTab.syncQuery(value)
 }
-// 工具栏查询（场所/月份）不参与状态筛选：请求不带 state，胶囊外观保持不动
+// 工具栏是另一套独立查询：只按场所/月份取数，不读状态，也不改胶囊选中项
 function queryByToolbar() {
-  const ignoredState = Boolean(filters.state)
+  const wasToolbar = queryMode.value === 'toolbar'
   const wasFirstPage = filters.page === 1
-  filters.state = ''
+  queryMode.value = 'toolbar'
   filters.page = 1
   // 条件确实没变化时，手动刷新一次，保证“查询”有反馈
-  if (!ignoredState && wasFirstPage) void load()
+  if (wasToolbar && wasFirstPage) void load()
 }
 const detailVisible = ref(false)
 const current = ref<Record<string, any>>({})
@@ -87,7 +92,11 @@ function disableOutsideMonth(date: Date) {
 async function load() {
   loading.value = true
   try {
-    const response = await $fetch<{ list: any[], total: number, counts?: Record<string, number> }>('/api/admin/finance', { query: filters })
+    // 胶囊模式只带状态；工具栏模式只带场所/月份，互不叠加
+    const query = queryMode.value === 'tab'
+      ? { page: filters.page, pageSize: filters.pageSize, state: filters.state || undefined }
+      : { page: filters.page, pageSize: filters.pageSize, venueId: filters.venueId ?? undefined, month: filters.month || undefined }
+    const response = await $fetch<{ list: any[], total: number, counts?: Record<string, number> }>('/api/admin/finance', { query })
     list.value = response.list
     total.value = response.total
     counts.value = response.counts ?? {}
@@ -159,7 +168,7 @@ async function remove(row: any) {
     await load()
   } catch (error) { ElMessage.error(errorMessage(error)) }
 }
-watch(() => [filters.page, filters.pageSize, filters.venueId, filters.month, filters.state], load)
+watch(() => [filters.page, filters.pageSize, filters.venueId, filters.month, filters.state, queryMode.value], load)
 onMounted(() => {
   mounted.value = true
   stateTab.initTab()
@@ -169,6 +178,8 @@ onMounted(() => {
   if (Number.isSafeInteger(venueId) && venueId > 0) filters.venueId = venueId
   const month = String(route.query.month ?? '')
   if (/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) filters.month = month
+  // 带场所/月份参数进来的（如工作台跳转），视作工具栏查询
+  if (filters.venueId || filters.month) queryMode.value = 'toolbar'
   void load()
 })
 </script>
@@ -179,7 +190,7 @@ onMounted(() => {
     <section class="panel">
       <div class="toolbar">
         <VenueSelect v-model="filters.venueId" clearable style="width: 260px" @change="queryByToolbar" />
-        <el-date-picker v-model="filters.month" type="month" value-format="YYYY-MM" placeholder="公开月份" />
+        <el-date-picker v-model="filters.month" type="month" value-format="YYYY-MM" placeholder="公开月份" @change="queryByToolbar" />
         <el-button plain @click="queryByToolbar">查询</el-button>
       </div>
       <div class="table-region" tabindex="0" role="region" aria-label="月度账单列表">
