@@ -65,15 +65,14 @@ const previewBalance = computed(() => {
   if (![previous, income, expense].every(Number.isFinite)) return null
   return previous + income - expense
 })
-// 录入态按日期倒序（最新日期优先，便于确认刚录入内容）；审核态按日期正序（从小到大）
+// 录入态按录入顺序倒序（id 倒序，最新录入的排第一，便于确认刚录入内容）；审核态按日期正序（从小到大）
 const sortedItems = computed(() => {
   const arr = [...items.value]
-  const desc = billEditable.value
-  arr.sort((a, b) => {
-    const da = String(a.occurred_on ?? '')
-    const db = String(b.occurred_on ?? '')
-    return desc ? db.localeCompare(da) : da.localeCompare(db)
-  })
+  if (billEditable.value) {
+    arr.sort((a, b) => Number(b.id) - Number(a.id))
+  } else {
+    arr.sort((a, b) => String(a.occurred_on ?? '').localeCompare(String(b.occurred_on ?? '')))
+  }
   return arr
 })
 
