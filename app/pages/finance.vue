@@ -293,7 +293,7 @@ onMounted(() => {
               <template #default="{ row }">
                 <TableActions v-if="billEditable">
                   <el-button size="small" type="primary" :aria-label="`编辑明细${row.summary}`" @click="editItem(row)">编辑</el-button>
-                  <el-button v-if="hasPerm('finance:delete')" size="small" type="danger" plain :aria-label="`删除明细${row.summary}`" @click="deleteItem(row)">删除</el-button>
+                  <el-button size="small" type="danger" plain :aria-label="`删除明细${row.summary}`" @click="deleteItem(row)">删除</el-button>
                 </TableActions>
               </template>
             </el-table-column>
@@ -313,7 +313,7 @@ onMounted(() => {
                 </dl>
                 <TableActions v-if="billEditable">
                   <el-button size="small" type="primary" :aria-label="`编辑明细${item.summary}`" @click="editItem(item)">编辑</el-button>
-                  <el-button v-if="hasPerm('finance:delete')" size="small" type="danger" plain :aria-label="`删除明细${item.summary}`" @click="deleteItem(item)">删除</el-button>
+                  <el-button size="small" type="danger" plain :aria-label="`删除明细${item.summary}`" @click="deleteItem(item)">删除</el-button>
                 </TableActions>
               </li>
             </ol>

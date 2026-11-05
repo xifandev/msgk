@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  const admin = await requirePermission(event, 'finance:delete')
+  const admin = await requirePermission(event, 'finance:edit')
   const itemId = positiveId(getRouterParam(event, 'itemId'), '明细ID')
   await withTransaction(async (conn) => {
     const [rows] = await conn.query(
