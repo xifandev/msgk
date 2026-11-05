@@ -100,11 +100,6 @@ function monthLabelOf(value: string) {
   return `${year}年${Number(mon)}月`
 }
 
-const runningMonth = computed(() => {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-})
-
 const monthLabel = computed(() => monthLabelOf(month.value || data.value?.month || '2026-11'))
 
 function formatTime(value: string | null) {
@@ -184,45 +179,21 @@ async function load(silent = false) {
   }
 }
 
-function changeMonth(value: string | null) {
-  if (!value || value === month.value) return
-  month.value = value
-  tableFilter.value = 'all'
-  void load(true)
-}
-
 function gotoFinance(row: any) {
   return navigateTo(`/finance?venueId=${row.id}&month=${month.value}`)
 }
 
-const heatScroll = ref<HTMLElement>()
-
-/** 窄屏时把统计月份滚到可视区域中间，避免默认停在最早月份 */
-function scrollToMonth() {
-  const box = heatScroll.value
-  if (!box) return
-  if (box.clientWidth > 520) { box.scrollLeft = 0; return }
-  if (box.scrollWidth <= box.clientWidth + 4) return
-  const target = box.querySelector<HTMLElement>(`[data-month="${month.value}"]`)
-  if (!target) return
-  box.scrollTo({ left: Math.max(target.offsetLeft - box.clientWidth / 2 + target.offsetWidth / 2, 0), behavior: 'smooth' })
-}
-
 onMounted(() => { void load() })
-watch(() => [month.value, months.value.length], () => { void nextTick(() => scrollToMonth()) })
 </script>
 
 <template>
   <div class="page dash" v-loading="loading">
-    <section class="banner" aria-label="平台名称与统计月份">
+    <section class="banner" aria-label="平台名称">
+      <NuxtLink v-if="data?.unread && admin?.roleCode !== 'county'" class="notice-link" to="/my-notices">{{ data.unread }} 条未读通知</NuxtLink>
       <div class="banner-copy">
+        <p class="banner-ornament" aria-hidden="true"><i /><span /><i /></p>
         <p class="banner-title">沂水宗教码上公开</p>
-        <p class="banner-sub-title">宗教活动场所信息公开管理系统</p>
-        <p class="banner-sub">
-          {{ venueMode ? '本场所' : `${data?.townshipTotal ?? 0} 个镇级 · ${data?.venueTotal ?? 0} 个场所` }}
-          <span class="sep">·</span>{{ monthLabel }}
-          <NuxtLink v-if="data?.unread && admin?.roleCode !== 'county'" class="notice-link" to="/my-notices">{{ data.unread }} 条未读通知</NuxtLink>
-        </p>
+        <p class="banner-sub-title"><span>宗教活动场所信息公开管理系统</span></p>
       </div>
     </section>
 
@@ -244,7 +215,7 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
             v-for="point in data?.selfHistory ?? []"
             :key="point.month"
             class="timeline-item"
-            :class="[point.state, { on: point.month === month }]"
+            :class="point.state"
           >
             <span class="timeline-month">{{ point.month.slice(0, 4) }}年{{ Number(point.month.slice(5)) }}月</span>
             <span class="timeline-state">{{ STATE_TEXT[point.state] }}</span>
@@ -252,20 +223,14 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
         </div>
 
         <div v-else class="heat-board">
-          <div ref="heatScroll" class="heat-scroll">
+          <div class="heat-scroll">
             <div
               class="heat-grid"
               :style="{ '--cols': months.length, '--label': townshipMode ? '104px' : '168px' }"
             >
               <div class="heat-row is-head">
                 <div class="heat-name is-head">{{ townshipMode ? '镇级' : '场所' }}</div>
-                <div
-                  v-for="point in months"
-                  :key="point"
-                  :data-month="point"
-                  class="heat-month"
-                  :class="{ on: point === month, running: point === runningMonth }"
-                >
+                <div v-for="point in months" :key="point" class="heat-month">
                   {{ Number(point.slice(5)) }}月
                 </div>
               </div>
@@ -274,16 +239,15 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
                 <div class="heat-name" :title="townshipMode ? `${row.label} · 应报 ${row.hint} 个场所` : row.label">
                   <span>{{ row.label }}</span><em v-if="row.hint">{{ row.hint }}</em>
                 </div>
-                <button
+                <div
                   v-for="point in row.history"
                   :key="`${row.key}-${point.month}`"
-                  type="button"
                   class="heat-cell"
                   :class="cellClass(point)"
+                  role="img"
                   :title="cellTip(row.label, point)"
                   :aria-label="`${row.label} ${monthLabelOf(point.month)}：${isMiss(point) ? '有场所未上报' : '已全部上报'}，应报 ${point.total} 个，已报 ${point.submitted} 个`"
-                  @click="changeMonth(point.month)"
-                >{{ isMiss(point) ? '✕' : '✓' }}</button>
+                >{{ isMiss(point) ? '✕' : '✓' }}</div>
               </div>
             </div>
           </div>
@@ -302,7 +266,6 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
             v-for="point in trend.points"
             :key="point.month"
             class="trend-col"
-            :class="{ on: point.month === month }"
             :title="`${monthLabelOf(point.month)}：已报 ${submittedOf(point)} / ${point.total} 个场所，已公开 ${point.published} 个`"
           >
             <span class="trend-val">{{ Math.round(point.rate * 100) }}</span>
@@ -381,61 +344,73 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
 .banner {
   position: relative;
   display: flex;
-  align-items: stretch;
-  justify-content: space-between;
-  gap: 24px;
-  min-height: 216px;
-  padding: 30px 38px 28px;
+  align-items: center;
+  justify-content: center;
+  min-height: 208px;
+  padding: 34px 38px;
   border-radius: 18px;
   overflow: hidden;
   background: linear-gradient(115deg, #d0715f 0%, #c7573f 46%, #bc4534 100%);
   box-shadow: 0 14px 30px rgb(188 69 52 / 20%);
 }
-/* 右侧长城图：只占右半幅，左缘 mask 渐隐融入底色；brightness 提亮去厚重感 */
+/* 右侧长城图：收窄到右半幅并双向渐隐，作为居中标题的底纹衬托，不抢视觉 */
 .banner::before {
   content: "";
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
-  width: 56%;
+  width: 46%;
   background: url("/images/dashboard-banner.jpg") no-repeat right center / cover;
   filter: brightness(1.22) saturate(0.92);
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 52%);
-  mask-image: linear-gradient(90deg, transparent 0%, #000 52%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 8%, #000 78%);
+  mask-image: linear-gradient(90deg, transparent 8%, #000 78%);
   pointer-events: none;
 }
-/* 接缝过渡罩层：与底色同系的红色渐变，盖住图片左缘暗部，消除黑色炫光 */
+/* 整体罩层：从左侧底色平滑过渡到图片区，保证居中文字在任何屏宽下清晰 */
 .banner::after {
   content: "";
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 56%;
-  background: linear-gradient(90deg, #c35541 0%, rgb(195 85 65 / 55%) 38%, rgb(195 85 65 / 0%) 72%);
+  inset: 0;
+  background: linear-gradient(90deg, rgb(199 87 63 / 0%) 30%, rgb(199 87 63 / 30%) 55%, rgb(188 69 52 / 18%) 100%);
   pointer-events: none;
 }
-.banner-copy { position: relative; align-self: flex-end; min-width: 0; }
+.banner-copy { position: relative; z-index: 1; min-width: 0; text-align: center; }
 .banner-title {
   margin: 0;
   color: #fff;
   font-family: "DingTalk JinBuTi", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: 46px;
   line-height: 1.2;
-  letter-spacing: 8px;
+  letter-spacing: 10px;
+  text-indent: 10px;
   text-shadow: 0 2px 20px rgb(0 0 0 / 38%);
 }
+/* 标题与副标之间的装饰分割线：淡金菱形 + 两侧渐隐细线 */
+.banner-ornament { display: flex; align-items: center; justify-content: center; width: min(400px, 78%); margin: 14px auto 12px; }
+.banner-ornament i { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgb(255 255 255 / 55%)); }
+.banner-ornament i:last-child { transform: scaleX(-1); }
+.banner-ornament span { width: 7px; height: 7px; margin-inline: 10px; background: #ffe2ae; transform: rotate(45deg); box-shadow: 0 0 6px rgb(255 226 174 / 55%); }
 .banner-sub-title {
-  margin: 8px 0 14px;
-  color: rgb(255 255 255 / 78%);
+  margin: 0;
+  color: rgb(255 255 255 / 84%);
   font-size: 15px;
-  letter-spacing: 5px;
+  letter-spacing: 7px;
+  text-indent: 7px;
 }
-.banner-sub { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0; color: rgb(255 255 255 / 82%); font-size: 13.5px; }
-.banner-sub .sep { color: rgb(255 255 255 / 45%); }
-.banner-sub .notice-link { padding: 2px 10px; border-radius: 999px; background: rgb(255 255 255 / 16%); border: 1px solid rgb(255 255 255 / 38%); color: #fff; font-size: 12px; }
-.banner-sub .notice-link:hover { background: rgb(255 255 255 / 26%); }
+.notice-link {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  z-index: 1;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 16%);
+  border: 1px solid rgb(255 255 255 / 40%);
+  color: #fff;
+  font-size: 12px;
+}
+.notice-link:hover { background: rgb(255 255 255 / 28%); }
 
 /* ---------- 通用卡片 ---------- */
 .split { display: grid; gap: 18px; align-items: start; }
@@ -503,21 +478,17 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
 .heat-name em { flex: none; padding-inline: 5px; border-radius: 5px; background: #f2f4f7; color: #98a2b3; font-size: 10.5px; font-style: normal; font-variant-numeric: tabular-nums; }
 
 .heat-month { color: #98a2b3; font-size: 12px; text-align: center; font-variant-numeric: tabular-nums; }
-.heat-month.running { color: #b6c0cd; }
-.heat-month.on { color: #0d3f74; font-weight: 700; box-shadow: 0 2.5px 0 0 #17549c; }
 
+/* 纯展示单元格：不可点击，仅保留悬浮提示 */
 .heat-cell {
+  display: grid;
+  place-items: center;
   height: 30px;
-  border: 0;
   border-radius: 7px;
   font-size: 13px;
   font-weight: 600;
   line-height: 1;
-  cursor: pointer;
-  transition: filter .15s ease;
 }
-.heat-cell:hover { filter: brightness(.965); }
-.heat-cell:focus-visible { outline: 2px solid #17549c; outline-offset: 1px; }
 
 /* 已报齐：绿色 ✓；未报齐：弱化成浅灰 ✕，不再用红色块 */
 .cell-done { background: #e6f3ec; color: #12805c; }
@@ -527,7 +498,6 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
 /* ---------- 场所角色时间线 ---------- */
 .timeline { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
 .timeline-item { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid #e9edf3; border-radius: 10px; background: #fbfcfe; }
-.timeline-item.on { border-color: #17549c; box-shadow: inset 0 0 0 1px #17549c; }
 .timeline-month { color: #667085; font-size: 12px; font-variant-numeric: tabular-nums; }
 .timeline-state { color: #344054; font-size: 13px; font-weight: 600; }
 .timeline-item.published .timeline-state { color: #067647; }
@@ -565,8 +535,6 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
 .trend-track i { width: 100%; border-radius: 5px 5px 0 0; background: linear-gradient(180deg, #4a86c8 0%, #17549c 100%); transition: height .4s ease; }
 .trend-track i.zero { background: #dfe4ec; }
 .trend-month { color: #98a2b3; font-size: 11px; font-variant-numeric: tabular-nums; }
-.trend-col.on .trend-val { color: #17549c; font-weight: 700; }
-.trend-col.on .trend-month { color: #17549c; font-weight: 600; }
 
 /* ---------- 基础信息公开 ---------- */
 .info-list { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
@@ -612,14 +580,15 @@ watch(() => [month.value, months.value.length], () => { void nextTick(() => scro
 }
 @media (max-width: 900px) {
   .split-even { grid-template-columns: minmax(0, 1fr); }
-  .banner { flex-direction: column; gap: 18px; }
-  .banner-copy { align-self: flex-start; }
 }
 @media (max-width: 720px) {
   .dash { --card-pad: 18px; gap: 12px; }
-  .banner { min-height: 0; padding: 22px 20px 20px; }
-  .banner-title { font-size: 30px; letter-spacing: 4px; }
-  .banner-sub-title { font-size: 12.5px; letter-spacing: 3px; margin-block: 6px 10px; }
+  .banner { min-height: 0; padding: 26px 20px; }
+  .banner::before { width: 60%; }
+  .banner-title { font-size: 28px; letter-spacing: 6px; text-indent: 6px; }
+  .banner-ornament { margin-block: 10px 8px; }
+  .banner-sub-title { font-size: 12.5px; letter-spacing: 4px; text-indent: 4px; }
+  .notice-link { top: 12px; right: 12px; font-size: 11px; }
   .info-list a { grid-template-columns: 64px minmax(0, 1fr) 46px; }
   .info-pending { display: none; }
 }
