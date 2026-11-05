@@ -1,7 +1,18 @@
+<script setup lang="ts">
+const year = new Date().getFullYear()
+</script>
+
 <template>
   <main class="auth-layout">
-    <div class="auth-glow" aria-hidden="true" />
+    <header class="auth-logo">沂水宗教码上公开管理系统</header>
     <slot />
+    <footer class="auth-footer">
+      <p>技术支持：山东盖特网络有限公司</p>
+      <p>
+        Copyright © 2023-{{ year }} All Rights Reserved
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">鲁ICP备2023008080号</a>
+      </p>
+    </footer>
   </main>
 </template>
 
@@ -11,32 +22,39 @@
   min-height: 100dvh;
   display: grid;
   place-items: center;
-  padding: 24px;
+  padding: 90px 24px 110px;
   overflow: hidden;
-  background:
-    radial-gradient(900px 520px at 8% -10%, #e6eefb 0%, transparent 62%),
-    radial-gradient(760px 460px at 102% 106%, #e8f0fb 0%, transparent 58%),
-    linear-gradient(180deg, #f7f9fd 0%, #eef3fa 100%);
+  background-color: #1278e4;
 }
-.auth-layout::before {
-  content: '';
+
+/* 左上角系统名称 */
+.auth-logo {
   position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgb(23 84 156 / 5%) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(23 84 156 / 5%) 1px, transparent 1px);
-  background-size: 56px 56px;
-  mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 20%, transparent 78%);
-  pointer-events: none;
+  top: 33px;
+  left: 35px;
+  color: #fff;
+  font-size: clamp(22px, 2.2vw, 30px);
+  font-weight: 900;
+  letter-spacing: -.8px;
 }
-.auth-glow {
+
+/* 左下角备案信息 */
+.auth-footer {
   position: absolute;
-  inset-block-start: -220px;
-  inset-inline-end: -180px;
-  width: 620px;
-  height: 620px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgb(23 84 156 / 12%) 0%, transparent 68%);
-  pointer-events: none;
+  left: 32px;
+  bottom: 28px;
+  color: #fff;
+  opacity: .75;
+  font-size: 13px;
+  line-height: 1.8;
+}
+.auth-footer p { margin: 0; }
+.auth-footer a { color: #fff; text-decoration: none; }
+.auth-footer a:hover { text-decoration: underline; }
+
+@media (max-width: 760px) {
+  .auth-layout { padding: 84px 16px 120px; }
+  .auth-logo { top: 24px; left: 20px; right: 20px; }
+  .auth-footer { left: 20px; right: 20px; bottom: 20px; font-size: 12px; }
 }
 </style>
