@@ -17,11 +17,8 @@ const effectiveState = computed(() => (queryMode.value === 'tab' ? filters.state
 
 interface StateTab { value: string, label: string, count: number }
 const canReview = computed(() => hasPerm('finance:review'))
-const isTown = computed(() => admin.value?.roleCode === 'town')
 // 公开列仅在“全部 / 审核通过”视图下展示，其余状态整列隐藏
 const showPublishColumn = computed(() => hasPerm('finance:publish') && (!effectiveState.value || effectiveState.value === 'approved'))
-// 镇级管理员无填报权限，查看“正在填报”列表时隐藏整列操作
-const showActionColumn = computed(() => !(isTown.value && effectiveState.value === 'draft'))
 // 账单删除入口暂时屏蔽；保留逻辑，后续需要时开启
 const enableBillDelete = false
 const myState = computed(() => myReviewState(admin.value?.roleCode ?? ''))
@@ -218,10 +215,9 @@ onMounted(() => {
           <el-table-column label="公开月份" width="118" fixed="right" class-name="finance-month-cell" label-class-name="finance-month-head">
             <template #default="{ row }"><el-tag effect="plain" class="finance-month-tag">{{ row.bill_month }}</el-tag></template>
           </el-table-column>
-          <el-table-column v-if="showActionColumn" label="操作" width="160" fixed="right" align="right">
+          <el-table-column label="操作" width="160" fixed="right" align="right">
             <template #default="{ row }">
-              <span v-if="isTown && row.state === 'draft'" class="muted" aria-hidden="true">—</span>
-              <TableActions v-else class="compact">
+              <TableActions class="compact">
                 <el-button v-if="hasPerm('finance:edit') && ['draft', 'rejected'].includes(row.state)" type="primary" :aria-label="`录入${row.venue_name}${row.bill_month}的收支明细`" @click="openBill(row)">录入明细</el-button>
                 <el-button v-else type="primary" plain :aria-label="`查看${row.venue_name}${row.bill_month}的审核`" @click="openBill(row)">查看审核</el-button>
                 <el-button v-if="enableBillDelete && hasPerm('finance:delete') && row.state === 'draft'" type="danger" plain :aria-label="`删除${row.venue_name}${row.bill_month}账单`" @click="remove(row)">删除</el-button>

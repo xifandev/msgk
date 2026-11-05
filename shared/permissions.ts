@@ -49,7 +49,7 @@ export const TOWN_PERMISSIONS = [
   // 场所安全：镇级仅查看/阅读
   'safety:view',
   'news:view', 'notices:view',
-  'finance:view', 'finance:review', 'finance:publish'
+  'finance:view', 'finance:edit', 'finance:review', 'finance:publish'
 ]
 
 export const VENUE_PERMISSIONS = [

@@ -8,7 +8,14 @@ const saving = ref(false)
 const form = reactive({ id: 0, code: '', name: '', permissions: [] as string[] })
 const groups = computed(() => Object.groupBy(PERMISSIONS, (item: PermissionDefinition) => item.group))
 async function load() { try { list.value = (await $fetch<{ list: any[] }>('/api/admin/roles')).list } catch (error) { ElMessage.error(errorMessage(error)) } }
-function edit(row?: any) { Object.assign(form, row ? { id: row.id, code: row.code, name: row.name, permissions: [...row.permissions] } : { id: 0, code: '', name: '', permissions: [] }); visible.value = true }
+function edit(row?: any) {
+  // 编辑时剔除历史遗留、已下线的权限代码，避免保存时被后端判定为无效权限
+  const permissions = row
+    ? row.code === 'super' ? ['*'] : row.permissions.filter((code: string) => PERMISSIONS.some((item) => item.code === code))
+    : []
+  Object.assign(form, row ? { id: row.id, code: row.code, name: row.name, permissions } : { id: 0, code: '', name: '', permissions: [] })
+  visible.value = true
+}
 function groupCodes(items?: PermissionDefinition[]) {
   return (items ?? []).map((item) => item.code)
 }
