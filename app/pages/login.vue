@@ -11,6 +11,7 @@ const loginSuccess = ref(false)
 const loginFailed = ref(false)
 const countdown = ref(0)
 let timer: ReturnType<typeof setInterval> | undefined
+const maintenanceMode = true
 const contactVisible = ref(false)
 const contactVenues = ref<{ id: number, name: string, township: string }[]>([])
 const contactVenueId = ref<number | null>(null)
@@ -77,7 +78,7 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   <div class="login-stage">
     <img class="login-illustration" src="/images/login-illustration.png" alt="" aria-hidden="true" width="400" height="400">
 
-    <section class="login-card" :class="{ shake: loginFailed }" aria-labelledby="login-title">
+    <section v-if="!maintenanceMode" class="login-card" :class="{ shake: loginFailed }" aria-labelledby="login-title">
       <transition name="success-fade">
         <div v-if="loginSuccess" class="success-overlay" role="status" aria-live="polite">
           <svg class="success-mark" viewBox="0 0 72 72" fill="none" aria-hidden="true">
@@ -94,20 +95,6 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
           <el-icon><Edit /></el-icon>
           <span>欢迎登录</span>
         </h1>
-
-        <aside class="maintenance-notice" aria-labelledby="maintenance-title">
-          <div class="maintenance-icon" aria-hidden="true">
-            <el-icon><Tools /></el-icon>
-          </div>
-          <div class="maintenance-content">
-            <div class="maintenance-heading">
-              <h2 id="maintenance-title">系统维护</h2>
-              <span class="maintenance-badge">升级中</span>
-            </div>
-            <p>系统正在优化升级中，预计 <strong>11月9日之前</strong> 完成，请稍后登录，感谢支持。</p>
-            <p class="maintenance-contact">有紧急问题可联系技术人员微信：<strong>15224499331</strong></p>
-          </div>
-        </aside>
 
         <label class="sr-only" for="login-phone">手机号</label>
         <el-input
@@ -144,6 +131,31 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
         <el-button class="submit" type="primary" native-type="submit" size="large" :loading="submitting">登录</el-button>
         <el-button class="contacts-btn" type="primary" size="large" @click="openContacts">查询各场所管理员信息</el-button>
       </form>
+    </section>
+
+    <section v-else class="login-card maintenance-card" aria-labelledby="maintenance-title">
+      <div class="maintenance-status">
+        <span class="maintenance-status-dot" aria-hidden="true"></span>
+        系统维护通知
+      </div>
+      <div class="maintenance-symbol" aria-hidden="true">
+        <el-icon><Tools /></el-icon>
+      </div>
+      <h1 id="maintenance-title">系统优化升级中</h1>
+      <p class="maintenance-description">
+        系统正在优化升级中，预计 <strong>11月9日之前</strong> 完成<br>
+        请稍后登录，感谢支持
+      </p>
+      <div class="maintenance-contact-card">
+        <div class="maintenance-contact-icon" aria-hidden="true">
+          <el-icon><ChatLineSquare /></el-icon>
+        </div>
+        <div>
+          <p>有紧急问题可联系技术人员</p>
+          <p class="maintenance-wechat">微信：<strong>15224499331</strong></p>
+        </div>
+      </div>
+      <p class="maintenance-apology">给您带来不便，敬请谅解</p>
     </section>
 
     <el-drawer v-model="contactVisible" class="contact-drawer" title="场所管理员信息" size="min(480px, 94vw)">
@@ -220,68 +232,109 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
 }
 .login-form h1 .el-icon { font-size: 28px; color: #409eff; }
 
-.maintenance-notice {
-  display: flex;
-  align-items: flex-start;
-  gap: 13px;
-  margin: -4px 0 24px;
-  padding: 17px 18px;
-  border: 1px solid #f2dfb8;
-  border-radius: 13px;
-  background: linear-gradient(135deg, #fffaf0 0%, #fff6e5 100%);
-  color: #6b542e;
+.maintenance-card {
+  padding: 38px 34px 30px;
+  text-align: center;
 }
-.maintenance-icon {
+.maintenance-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, #e3a83e, #f0ca7d, #e3a83e);
+}
+.maintenance-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: #fff5df;
+  font-size: 13px;
+  font-weight: 600;
+  color: #9a6a17;
+}
+.maintenance-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d99a2b;
+  box-shadow: 0 0 0 3px rgb(217 154 43 / 14%);
+}
+.maintenance-symbol {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  margin: 27px auto 20px;
+  border: 1px solid #dceafa;
+  border-radius: 23px;
+  background: linear-gradient(145deg, #f2f8ff, #e6f1fd);
+  color: #347fc4;
+  font-size: 37px;
+  transform: rotate(-4deg);
+}
+.maintenance-symbol .el-icon { transform: rotate(4deg); }
+.maintenance-card h1 {
+  margin: 0;
+  font-size: 27px;
+  font-weight: 650;
+  letter-spacing: 1px;
+  color: #263b52;
+}
+.maintenance-description {
+  margin: 16px 0 25px;
+  font-size: 16px;
+  line-height: 1.9;
+  color: #637387;
+}
+.maintenance-description strong {
+  font-weight: 650;
+  color: #a16a15;
+}
+.maintenance-contact-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 16px 18px;
+  border: 1px solid #e2ebf4;
+  border-radius: 13px;
+  background: #f7fafd;
+  text-align: left;
+}
+.maintenance-contact-icon {
   display: grid;
   place-items: center;
   flex: none;
-  width: 38px;
-  height: 38px;
-  margin-block-start: 1px;
+  width: 40px;
+  height: 40px;
   border-radius: 11px;
-  background: #f5e4bc;
-  color: #a97419;
+  background: #e5f0fb;
+  color: #3c83c4;
   font-size: 21px;
 }
-.maintenance-content { min-width: 0; }
-.maintenance-heading {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin-block-end: 7px;
-}
-.maintenance-heading h2 {
+.maintenance-contact-card p {
   margin: 0;
-  font-size: 17px;
-  font-weight: 650;
-  line-height: 1.4;
-  color: #725116;
-}
-.maintenance-badge {
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: #f3e2b9;
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1.5;
-  color: #9a6a17;
-}
-.maintenance-content p {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.75;
-}
-.maintenance-content p strong { font-weight: 650; color: #8b601a; }
-.maintenance-content .maintenance-contact {
-  margin-block-start: 6px;
-  padding-block-start: 7px;
-  border-block-start: 1px dashed #e8d4aa;
   font-size: 13px;
+  line-height: 1.6;
+  color: #718196;
 }
-.maintenance-contact strong {
+.maintenance-contact-card .maintenance-wechat {
+  margin-block-start: 2px;
   font-size: 15px;
-  letter-spacing: .4px;
-  white-space: nowrap;
+  color: #40546b;
+}
+.maintenance-wechat strong {
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: .6px;
+  color: #263f58;
+}
+.maintenance-apology {
+  margin: 22px 0 0;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: #9aa5b2;
 }
 
 .login-form .el-input { margin-block-end: 20px; }
@@ -399,6 +452,11 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   .login-card { border-radius: 18px; }
   .login-form { padding: 26px 22px 32px; }
   .login-form h1 { font-size: 24px; margin-block-end: 20px; }
+  .maintenance-card { padding: 32px 22px 26px; }
+  .maintenance-card h1 { font-size: 24px; }
+  .maintenance-symbol { width: 68px; height: 68px; margin-block-start: 24px; }
+  .maintenance-description { font-size: 15px; }
+  .maintenance-contact-card { padding: 14px; }
   .submit,
   .contacts-btn { height: 52px; font-size: 17px; }
   .contacts-btn { font-size: 16px; }
