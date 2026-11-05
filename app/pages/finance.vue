@@ -231,7 +231,7 @@ onMounted(() => {
       <div class="pagination"><el-pagination v-model:current-page="filters.page" v-model:page-size="filters.pageSize" :total="total" :page-sizes="[5, 10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" /></div>
     </section>
 
-    <el-drawer v-model="detailVisible" class="finance-drawer" size="min(1000px, 96vw)">
+    <el-drawer v-model="detailVisible" class="finance-drawer" size="min(1200px, 96vw)">
       <template #header>
         <span class="finance-drawer-title">
           <span class="finance-drawer-venue">{{ current.venue_name ?? '' }}</span>
@@ -343,7 +343,7 @@ onMounted(() => {
   :global(.finance-drawer .el-drawer__close-btn:hover),
   :global(.finance-drawer .el-drawer__close-btn:focus-visible) { transform: none; }
 }
-.detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 24px; align-items: start; }
+.detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
 .detail-main, .review-side { min-width: 0; }
 .review-card { border-radius: 12px; background: linear-gradient(180deg, #fbfcfe 0%, var(--surface) 100%); }
 .review-card :deep(.el-card__header) { padding: 12px 16px; border-block-end-color: var(--line); }
