@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
-import { ChatLineSquare, Edit, Iphone } from '@element-plus/icons-vue'
+import { ChatLineSquare, Edit, InfoFilled, Iphone } from '@element-plus/icons-vue'
 
 definePageMeta({ layout: 'auth' })
 const { admin } = useAdmin()
@@ -141,6 +141,17 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
         <el-descriptions-item label="姓名">{{ contact.name }}</el-descriptions-item>
         <el-descriptions-item label="电话">{{ contact.phone }}</el-descriptions-item>
       </el-descriptions>
+
+      <div class="contact-note" role="note">
+        <el-icon class="contact-note__icon"><InfoFilled /></el-icon>
+        <div class="contact-note__body">
+          <p class="contact-note__title">温馨提示</p>
+          <p class="contact-note__text">
+            如果人员管理员信息已调整，请联系微信重新录入
+          </p>
+          <p class="contact-note__wechat">微信号：<strong>15224499331</strong></p>
+        </div>
+      </div>
     </el-drawer>
   </div>
 </template>
@@ -304,5 +315,47 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   .login-card { border-radius: 18px; }
   .login-form { padding: 26px 22px 32px; }
   .login-form h1 { font-size: 24px; margin-block-end: 20px; }
+}
+
+/* 抽屉内的联系提示（drawer 传送到 body，需全局选择器） */
+:global(.contact-note) {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-block-start: 18px;
+  padding: 14px 16px;
+  border: 1px solid #d9e5f2;
+  border-radius: 10px;
+  background: #f3f8fd;
+  color: #3a4a5c;
+}
+:global(.contact-note__icon) {
+  flex: none;
+  margin-block-start: 2px;
+  font-size: 20px;
+  color: #409eff;
+}
+:global(.contact-note__body) { min-width: 0; }
+:global(.contact-note__title) {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #2f3f52;
+}
+:global(.contact-note__text) {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.7;
+}
+:global(.contact-note__wechat) {
+  margin: 6px 0 0;
+  font-size: 15px;
+  line-height: 1.6;
+}
+:global(.contact-note__wechat strong) {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  color: #1f2d3d;
 }
 </style>
