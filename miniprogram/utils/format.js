@@ -16,15 +16,6 @@ function formatDate(value) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-// 金额保留两位小数
-function formatMoney(value) {
-  const num = Number(value);
-  if (isNaN(num)) {
-    return '0.00';
-  }
-  return num.toFixed(2);
-}
-
 // 金额千分位，用于大额展示：1234.5 → 1,234.50
 function formatAmount(value) {
   const num = Number(value);
@@ -37,4 +28,4 @@ function formatAmount(value) {
   return `${num < 0 ? '-' : ''}${intPart}.${parts[1]}`;
 }
 
-module.exports = { formatDate, formatMoney, formatAmount };
+module.exports = { formatDate, formatAmount };

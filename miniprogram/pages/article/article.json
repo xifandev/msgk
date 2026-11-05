@@ -1,7 +1,6 @@
 {
   "usingComponents": {
-    "ms-empty": "/components/ms-empty/index",
-    "ms-icon": "/components/ms-icon/index"
+    "ms-empty": "/components/ms-empty/index"
   },
   "navigationBarTitleText": "",
   "navigationBarBackgroundColor": "#ffffff",

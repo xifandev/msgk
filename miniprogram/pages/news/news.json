@@ -1,8 +1,6 @@
 {
   "usingComponents": {
     "page-main": "/components/page-main/page-main",
-    "ms-tabs": "/components/ms-tabs/index",
-    "ms-cell": "/components/ms-cell/index",
     "ms-icon": "/components/ms-icon/index",
     "ms-empty": "/components/ms-empty/index",
     "ms-loading": "/components/ms-loading/index"
