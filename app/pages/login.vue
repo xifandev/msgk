@@ -132,7 +132,7 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
       </form>
     </section>
 
-    <el-drawer v-model="contactVisible" title="场所管理员信息" size="min(480px, 94vw)">
+    <el-drawer v-model="contactVisible" class="contact-drawer" title="场所管理员信息" size="min(480px, 94vw)">
       <el-select v-model="contactVenueId" filterable placeholder="请选择场所" style="width: 100%" @change="loadContacts">
         <el-option v-for="venue in contactVenues" :key="venue.id" :value="venue.id" :label="`${venue.name}（${venue.township}）`" />
       </el-select>
@@ -188,14 +188,6 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   border-radius: 22px;
   background: #fff;
   box-shadow: 0 18px 48px -12px rgb(0 0 0 / 28%);
-  animation: card-in .42s cubic-bezier(.22, .61, .36, 1);
-}
-@keyframes card-in {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .login-card { animation: none; }
 }
 
 .login-form {
@@ -338,6 +330,8 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
 }
 
 /* 抽屉内的联系提示（drawer 传送到 body，需全局选择器） */
+:global(.contact-drawer .el-drawer__body) { padding-block-start: 22px; }
+:global(.contact-drawer .el-descriptions) { margin-block-start: 22px; }
 :global(.contact-note) {
   display: flex;
   align-items: flex-start;
