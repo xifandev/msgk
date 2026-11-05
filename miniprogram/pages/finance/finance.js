@@ -20,14 +20,6 @@ function buildYearColumns(targetYear) {
   return { yearColumns, yearDefaultIndex };
 }
 
-// 百分比取整，避免出现 NaN
-function percent(value, total) {
-  if (!total || total <= 0) {
-    return 0;
-  }
-  return Math.round((Number(value) / Number(total)) * 100);
-}
-
 // 柱状高度：有值至少留 4% 让细柱可见
 function barHeight(value, max) {
   const num = Number(value);
@@ -57,6 +49,7 @@ Page({
     // 当前标签页索引：0 月度收支 / 1 年度收支
     active: 0,
     venueId: '',
+    venueName: '',
 
     // --------- 月度 ---------
     month: '', // YYYY-MM
@@ -151,35 +144,15 @@ Page({
     return patch;
   },
 
-  // 结余卡：金额、环比、收支占比
+  // 结余卡：当月结余 + 当月收入/支出
   buildBill(raw) {
     if (!raw) {
       return null;
     }
-    const income = Number(raw.income) || 0;
-    const expense = Number(raw.expense) || 0;
-    const previous = Number(raw.previousBalance) || 0;
-    const current = Number(raw.currentBalance) || 0;
-    const delta = Math.round((current - previous) * 100) / 100;
-    const flow = income + expense;
-    const incomePercent = flow > 0 ? percent(income, flow) : 0;
-
-    let deltaText = '与上月持平';
-    if (delta !== 0) {
-      deltaText = `${delta > 0 ? '较上月增加' : '较上月减少'} ${formatAmount(Math.abs(delta))}`;
-    }
-
     return {
-      incomeText: formatAmount(income),
-      expenseText: formatAmount(expense),
-      previousText: formatAmount(previous),
-      currentText: formatAmount(current),
-      deltaText,
-      deltaUp: delta > 0,
-      deltaFlat: delta === 0,
-      hasFlow: flow > 0,
-      incomePercent,
-      expensePercent: flow > 0 ? 100 - incomePercent : 0,
+      incomeText: formatAmount(Number(raw.income) || 0),
+      expenseText: formatAmount(Number(raw.expense) || 0),
+      currentText: formatAmount(Number(raw.currentBalance) || 0),
     };
   },
 
@@ -258,7 +231,6 @@ Page({
             ...item,
             incomeNum: Number(item.income) || 0,
             expenseNum: Number(item.expense) || 0,
-            previousNum: Number(item.previousBalance) || 0,
             currentNum: Number(item.currentBalance) || 0,
             monthText: parts.length === 2 ? `${parts[0]}年${parseInt(parts[1], 10)}月份` : String(item.month),
           };
@@ -277,20 +249,14 @@ Page({
           expenseHeight: barHeight(item.expenseNum, maxValue),
         }));
 
-        // 月度明细（含单月收入/支出对比条）
-        const months = rows.map((item) => {
-          const monthMax = Math.max(item.incomeNum, item.expenseNum);
-          return {
-            month: item.month,
-            monthText: item.monthText,
-            incomeText: formatAmount(item.incomeNum),
-            expenseText: formatAmount(item.expenseNum),
-            previousText: formatAmount(item.previousNum),
-            currentText: formatAmount(item.currentNum),
-            incomeWidth: barHeight(item.incomeNum, monthMax),
-            expenseWidth: barHeight(item.expenseNum, monthMax),
-          };
-        });
+        // 月度明细：当月收入 / 当月支出 / 月结余
+        const months = rows.map((item) => ({
+          month: item.month,
+          monthText: item.monthText,
+          incomeText: formatAmount(item.incomeNum),
+          expenseText: formatAmount(item.expenseNum),
+          currentText: formatAmount(item.currentNum),
+        }));
 
         const rawTotals = res.totals || { income: 0, expense: 0 };
         const last = rows.length > 0 ? rows[rows.length - 1] : null;
@@ -341,6 +307,17 @@ Page({
     );
   },
 
+  // 顶部展示场所名：失败不影响主数据，静默忽略
+  loadVenueName() {
+    get(`/api/public/venues/${this.data.venueId}`, {}, { loading: false })
+      .then((res) => {
+        if (res && res.name) {
+          this.setData({ venueName: res.name });
+        }
+      })
+      .catch(() => {});
+  },
+
   // ------------------- 生命周期 -------------------
   onLoad(options) {
     const venueId = getVenueId(options);
@@ -364,7 +341,10 @@ Page({
         yearDefaultIndex: columns.yearDefaultIndex,
         pendingYearIndex: columns.yearDefaultIndex,
       },
-      () => this.loadMonthly()
+      () => {
+        this.loadVenueName();
+        this.loadMonthly();
+      }
     );
   },
 

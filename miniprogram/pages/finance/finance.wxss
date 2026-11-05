@@ -64,42 +64,12 @@
 
 /* ---------- 结余主卡 ---------- */
 .balance {
-  position: relative;
   margin: 14rpx 24rpx 0;
   padding: 32rpx 28rpx 26rpx;
   border-radius: 28rpx;
   /* 去掉描边后靠渐变自身的深浅拉开与浅绿底色的差别（浅端不能太接近 #f4faf6），再加投影分层 */
   background: linear-gradient(148deg, #d9fae8 0%, #c2f2d7 50%, #a2e7c2 100%);
   box-shadow: 0 14rpx 32rpx rgba(32, 143, 91, 0.13);
-  overflow: hidden;
-}
-
-/* 右上柔光 + 左下反光，营造「阳光公示」的通透感 */
-.balance__glow {
-  position: absolute;
-  right: -120rpx;
-  top: -160rpx;
-  width: 360rpx;
-  height: 360rpx;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, rgba(206, 250, 228, 0.42) 0%, rgba(206, 250, 228, 0) 70%);
-}
-
-.balance__sheen {
-  position: absolute;
-  left: -110rpx;
-  bottom: -170rpx;
-  width: 340rpx;
-  height: 340rpx;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 70%);
-}
-
-.balance__top {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 }
 
 .balance__label {
@@ -108,49 +78,7 @@
   letter-spacing: 1rpx;
 }
 
-.balance__delta {
-  display: flex;
-  align-items: center;
-  max-width: 62%;
-  height: 40rpx;
-  padding: 0 14rpx;
-  border-radius: 20rpx;
-  background: rgba(255, 255, 255, 0.58);
-  font-size: 21rpx;
-  color: #17643f;
-}
-
-.balance__delta text {
-  margin-left: 4rpx;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.balance__delta .balance__delta-arrow {
-  margin-left: 0;
-  margin-right: 4rpx;
-  overflow: visible;
-  font-size: 24rpx;
-  line-height: 1;
-}
-
-/* 环比方向除颜色外还有箭头图标与文字，不单靠颜色区分 */
-.balance__delta.is-up {
-  background: #f2fff7;
-}
-
-.balance__delta.is-down {
-  background: #fff0d4;
-  color: #85550b;
-}
-
-.balance__delta.is-flat {
-  background: rgba(255, 255, 255, 0.58);
-}
-
 .balance__value {
-  position: relative;
   margin-top: 14rpx;
   font-size: 68rpx;
   font-weight: 700;
@@ -161,7 +89,6 @@
 }
 
 .balance__flow {
-  position: relative;
   display: flex;
   align-items: center;
   margin-top: 26rpx;
@@ -170,7 +97,7 @@
   background: rgba(255, 255, 255, 0.52);
 }
 
-/* 三栏之间靠间距分隔，不画竖线 */
+/* 两栏之间靠间距分隔，不画竖线 */
 .flow {
   flex: 1;
   display: flex;
@@ -188,50 +115,16 @@
   margin-top: 8rpx;
   font-size: 27rpx;
   font-weight: 600;
-  color: #12573a;
   letter-spacing: 0;
   word-break: break-all;
 }
 
-/* 收支占比条 */
-.ratio {
-  position: relative;
-  margin-top: 22rpx;
+.flow__value.is-income {
+  color: #0a7d59;
 }
 
-.ratio__bar {
-  display: flex;
-  width: 100%;
-  height: 10rpx;
-  border-radius: 6rpx;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.72);
-}
-
-.ratio__income {
-  height: 100%;
-  background: linear-gradient(90deg, #0a7d59, #35b77e);
-  transition: width 0.3s ease;
-}
-
-.ratio__expense {
-  height: 100%;
-  background: linear-gradient(90deg, #f7c983, #dda13c);
-  transition: width 0.3s ease;
-}
-
-.ratio__legend {
-  display: flex;
-  align-items: center;
-  margin-top: 12rpx;
-}
-
-.ratio__legend-item {
-  display: flex;
-  align-items: center;
-  margin-right: 24rpx;
-  font-size: 21rpx;
-  color: #315f49;
+.flow__value.is-expense {
+  color: #c98214;
 }
 
 .dot {
@@ -247,14 +140,6 @@
 
 .dot--expense {
   background: #d99a2b;
-}
-
-.ratio__legend .dot--income {
-  background: #0a7d59;
-}
-
-.ratio__legend .dot--expense {
-  background: #c98214;
 }
 
 /* ---------- 区块标题 ---------- */
@@ -419,12 +304,6 @@
   box-shadow: 0 10rpx 28rpx rgba(6, 89, 63, 0.07);
 }
 
-.year__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-}
-
 .year__title {
   display: block;
   font-size: 32rpx;
@@ -437,17 +316,6 @@
   margin-top: 8rpx;
   font-size: 22rpx;
   color: #9a9ca1;
-}
-
-.year__badge {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: 18rpx;
-  background: linear-gradient(135deg, #1aab7c, #04593f);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 6rpx 14rpx rgba(10, 125, 89, 0.24);
 }
 
 /* 三栏汇总用浅底块分组，不画上下两条横线 */
@@ -648,26 +516,6 @@
 
 .mstat__value.is-expense {
   color: #c98214;
-}
-
-.month__bar {
-  display: flex;
-  width: 100%;
-  height: 8rpx;
-  margin-top: 18rpx;
-  border-radius: 6rpx;
-  overflow: hidden;
-  background: #f2f5f3;
-}
-
-.month__bar-income {
-  height: 100%;
-  background: linear-gradient(90deg, #3fd39a, #0a7d59);
-}
-
-.month__bar-expense {
-  height: 100%;
-  background: linear-gradient(90deg, #fbcf8a, #e0a137);
 }
 
 /* ---------- 空态 / 骨架 / 说明 ---------- */

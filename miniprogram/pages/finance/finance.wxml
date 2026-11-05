@@ -1,4 +1,4 @@
-<page-main theme="green" custom-nav title="财务公开" title1="收支公开透明化" title2="阳光监督新举措">
+<page-main theme="green" custom-nav title="财务公开" subtitle="{{ venueName }}">
   <ms-tabs tabs="{{ ['月度收支', '年度收支'] }}" active="{{ active }}" animated swipeable sticky color="#0a7d59" bind:change="onTabChange">
     <view class="pane">
       <!-- ================= 月度收支 ================= -->
@@ -15,48 +15,19 @@
         </view>
 
         <block wx:if="{{ monthLoaded && bill }}">
-          <!-- 结余主卡 -->
+          <!-- 结余主卡：当月结余 + 当月收入/支出 -->
           <view class="balance">
-            <view class="balance__glow"></view>
-            <view class="balance__sheen"></view>
-            <view class="balance__top">
-              <text class="balance__label">本月结余（元）</text>
-              <view class="balance__delta {{ bill.deltaFlat ? 'is-flat' : (bill.deltaUp ? 'is-up' : 'is-down') }}">
-                <text class="balance__delta-arrow" wx:if="{{ !bill.deltaFlat }}">{{ bill.deltaUp ? '↑' : '↓' }}</text>
-                <text>{{ bill.deltaText }}</text>
-              </view>
-            </view>
+            <view class="balance__label">当月结余（元）</view>
             <view class="balance__value">{{ bill.currentText }}</view>
 
             <view class="balance__flow">
               <view class="flow">
-                <text class="flow__label">上月结余</text>
-                <text class="flow__value">{{ bill.previousText }}</text>
+                <text class="flow__label">当月收入</text>
+                <text class="flow__value is-income">{{ bill.incomeText }}</text>
               </view>
               <view class="flow">
-                <text class="flow__label">本月收入</text>
-                <text class="flow__value">{{ bill.incomeText }}</text>
-              </view>
-              <view class="flow">
-                <text class="flow__label">本月支出</text>
-                <text class="flow__value">{{ bill.expenseText }}</text>
-              </view>
-            </view>
-
-            <view class="ratio" wx:if="{{ bill.hasFlow }}">
-              <view class="ratio__bar">
-                <view class="ratio__income" style="width:{{ bill.incomePercent }}%"></view>
-                <view class="ratio__expense" style="width:{{ bill.expensePercent }}%"></view>
-              </view>
-              <view class="ratio__legend">
-                <view class="ratio__legend-item">
-                  <view class="dot dot--income"></view>
-                  <text>收入 {{ bill.incomePercent }}%</text>
-                </view>
-                <view class="ratio__legend-item">
-                  <view class="dot dot--expense"></view>
-                  <text>支出 {{ bill.expensePercent }}%</text>
-                </view>
+                <text class="flow__label">当月支出</text>
+                <text class="flow__value is-expense">{{ bill.expenseText }}</text>
               </view>
             </view>
           </view>
@@ -132,13 +103,8 @@
           <!-- 年度账单卡 -->
           <view class="year">
             <view class="year__head">
-              <view>
-                <text class="year__title">{{ year }} 年度账单</text>
-                <text class="year__sub">共 {{ months.length }} 个月有公开数据</text>
-              </view>
-              <view class="year__badge">
-                <ms-icon name="chart-bar" size="34rpx" color="#ffffff" />
-              </view>
+              <text class="year__title">{{ year }} 年度账单</text>
+              <text class="year__sub">共 {{ months.length }} 个月有公开数据</text>
             </view>
 
             <view class="year__totals" wx:if="{{ totals }}">
@@ -179,7 +145,7 @@
             </view>
           </view>
 
-          <!-- 月度明细 -->
+          <!-- 月度明细：当月收入 / 当月支出 / 月结余 -->
           <view class="section">
             <view class="section__head">
               <view class="section__bar"></view>
@@ -190,29 +156,20 @@
               <view class="month__head">
                 <text class="month__name">{{ item.monthText }}</text>
                 <view class="month__balance">
-                  <text>本月结余</text>
+                  <text>月结余</text>
                   <text class="month__balance-value">{{ item.currentText }}</text>
                 </view>
               </view>
 
               <view class="month__row">
                 <view class="mstat">
-                  <text class="mstat__label">收入</text>
+                  <text class="mstat__label">当月收入</text>
                   <text class="mstat__value is-income">{{ item.incomeText }}</text>
                 </view>
                 <view class="mstat">
-                  <text class="mstat__label">支出</text>
+                  <text class="mstat__label">当月支出</text>
                   <text class="mstat__value is-expense">{{ item.expenseText }}</text>
                 </view>
-                <view class="mstat">
-                  <text class="mstat__label">上月结余</text>
-                  <text class="mstat__value">{{ item.previousText }}</text>
-                </view>
-              </view>
-
-              <view class="month__bar">
-                <view class="month__bar-income" style="width:{{ item.incomeWidth }}%"></view>
-                <view class="month__bar-expense" style="width:{{ item.expenseWidth }}%"></view>
               </view>
             </view>
           </view>

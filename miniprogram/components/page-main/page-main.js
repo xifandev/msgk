@@ -10,6 +10,8 @@ Component({
 
   properties: {
     title: { type: String, value: '' },
+    // 纯文本副标题（无图标），如场所名
+    subtitle: { type: String, value: '' },
     title1: { type: String, value: '' },
     title2: { type: String, value: '' },
     title3: { type: String, value: '' },
