@@ -112,12 +112,12 @@ onMounted(load)
               <el-switch v-model="row.published" :active-value="1" :inactive-value="0" :aria-label="`《${row.title}》公开状态`" @change="publish(row)" />
             </template>
           </el-table-column>
-          <el-table-column label="操作" :width="isCounty ? 216 : 120" fixed="right" align="right">
+          <el-table-column label="操作" :width="isCounty ? 160 : 120" fixed="right" align="right">
             <template #default="{ row }">
               <TableActions>
-                <el-button size="small" type="primary" :aria-label="`${isCounty ? '查看并处理' : '阅读查看'}《${row.title}》`" @click="openDetail(row)">{{ isCounty ? '查看/处理' : '阅读查看' }}</el-button>
-                <template v-if="isCounty">
-                  <el-button size="small" type="primary" plain :aria-label="`编辑《${row.title}》`" @click="editArticle(row)">编辑</el-button>
+                <el-button v-if="!isCounty" size="small" type="primary" :aria-label="`阅读查看《${row.title}》`" @click="openDetail(row)">阅读查看</el-button>
+                <template v-else>
+                  <el-button size="small" type="primary" :aria-label="`编辑《${row.title}》`" @click="editArticle(row)">编辑</el-button>
                   <el-button size="small" type="danger" plain :aria-label="`删除《${row.title}》`" @click="removeArticle(row)">删除</el-button>
                 </template>
               </TableActions>
