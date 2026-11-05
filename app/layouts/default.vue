@@ -16,6 +16,20 @@ const items = computed(() => NAVIGATION.filter((item) => {
 }))
 const mainItems = computed(() => items.value.filter((item) => !item.superOnly))
 const opsItems = computed(() => items.value.filter((item) => item.superOnly && admin.value?.roleCode === 'super'))
+/** 导航分组分隔线：三个「公开」栏目共用一个光柱分组，锚定在可见的第一个公开栏目前 */
+const NAV_GROUPS: { anchor: string[], label: string }[] = [
+  { anchor: ['/finance', '/profiles', '/personnel'], label: '公开内容' },
+  { anchor: ['/venues'], label: '场所与账号管理' }
+]
+const navDividers = computed(() => {
+  const map: Record<string, string> = {}
+  for (const group of NAV_GROUPS) {
+    const hit = mainItems.value.find((item) => group.anchor.includes(item.path))
+    if (hit) map[hit.path] = group.label
+  }
+  return map
+})
+const dividerLabel = (path: string) => navDividers.value[path]
 watch(() => route.path, () => { mobileMenu.value = false })
 
 const accountUnit = computed(() => {
@@ -61,16 +75,10 @@ async function switchBack() {
         <el-menu :default-active="route.path" router>
           <template v-for="item in mainItems" :key="item.path">
             <div
-              v-if="item.path === '/venues'"
+              v-if="dividerLabel(item.path)"
               class="nav-meteor-divider"
               role="separator"
-              aria-label="场所与账号管理"
-            />
-            <div
-              v-if="item.path === '/profiles'"
-              class="nav-meteor-divider"
-              role="separator"
-              aria-label="公开内容维护"
+              :aria-label="dividerLabel(item.path)"
             />
             <el-menu-item
               :index="item.path"
@@ -100,16 +108,10 @@ async function switchBack() {
         <el-menu :default-active="route.path" router>
           <template v-for="item in mainItems" :key="item.path">
             <div
-              v-if="item.path === '/venues'"
+              v-if="dividerLabel(item.path)"
               class="nav-meteor-divider"
               role="separator"
-              aria-label="场所与账号管理"
-            />
-            <div
-              v-if="item.path === '/profiles'"
-              class="nav-meteor-divider"
-              role="separator"
-              aria-label="公开内容维护"
+              :aria-label="dividerLabel(item.path)"
             />
             <el-menu-item
               :index="item.path"
