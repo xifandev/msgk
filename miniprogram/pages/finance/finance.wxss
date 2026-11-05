@@ -59,7 +59,7 @@
 .period__right {
   display: flex;
   align-items: center;
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: #8f939a;
 }
 
@@ -85,7 +85,7 @@
 }
 
 .balance__label {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: #386b52;
   letter-spacing: 1rpx;
 }
@@ -119,13 +119,13 @@
 }
 
 .flow__label {
-  font-size: 21rpx;
+  font-size: 23rpx;
   color: #386b52;
 }
 
 .flow__value {
   margin-top: 8rpx;
-  font-size: 27rpx;
+  font-size: 30rpx;
   font-weight: 600;
   letter-spacing: 0;
   word-break: break-all;
@@ -181,8 +181,8 @@
 }
 
 .section__extra {
-  font-size: 22rpx;
-  color: #9a9ca1;
+  font-size: 24rpx;
+  color: #7f8782;
 }
 
 /* ---------- 日期分组 ---------- */
@@ -200,7 +200,7 @@
 .day__date {
   display: flex;
   align-items: center;
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: #4c545e;
   font-weight: 500;
 }
@@ -276,8 +276,8 @@
 
 .bill__sub {
   margin-top: 6rpx;
-  font-size: 22rpx;
-  color: #9a9ca1;
+  font-size: 24rpx;
+  color: #7f8782;
 }
 
 .bill__amount {
@@ -315,8 +315,8 @@
 .year__sub {
   display: block;
   margin-top: 8rpx;
-  font-size: 22rpx;
-  color: #9a9ca1;
+  font-size: 24rpx;
+  color: #7f8782;
 }
 
 /* 三栏汇总用浅底块分组，不画上下两条横线 */
@@ -338,13 +338,13 @@
 }
 
 .total__label {
-  font-size: 22rpx;
-  color: #9a9ca1;
+  font-size: 24rpx;
+  color: #7f8782;
 }
 
 .total__value {
   margin-top: 8rpx;
-  font-size: 32rpx;
+  font-size: 34rpx;
   font-weight: 600;
   color: #17211c;
   word-break: break-all;
@@ -430,8 +430,8 @@
   left: 0;
   right: 0;
   text-align: center;
-  font-size: 20rpx;
-  color: #9a9ca1;
+  font-size: 22rpx;
+  color: #7f8782;
   line-height: 1;
 }
 
@@ -446,7 +446,7 @@
   display: flex;
   align-items: center;
   margin: 0 14rpx;
-  font-size: 21rpx;
+  font-size: 23rpx;
   color: #6f7a74;
 }
 
@@ -491,16 +491,16 @@
 }
 
 .mstat__label {
-  font-size: 21rpx;
-  color: #9a9ca1;
+  font-size: 23rpx;
+  color: #7f8782;
 }
 
 .mstat__value {
   margin-top: 8rpx;
-  font-size: 26rpx;
+  font-size: 30rpx;
   line-height: 1.4;
   color: #17211c;
-  font-weight: 500;
+  font-weight: 600;
   word-break: break-all;
 }
 
@@ -522,7 +522,7 @@
 
 .empty-card__hint {
   margin-top: 10rpx;
-  font-size: 21rpx;
+  font-size: 23rpx;
   color: #9db2a7;
   line-height: 1.6;
   text-align: center;
@@ -570,7 +570,7 @@
 .notice__text {
   flex: 1;
   margin-left: 10rpx;
-  font-size: 21rpx;
+  font-size: 23rpx;
   color: #4d7f68;
   line-height: 1.6;
 }
