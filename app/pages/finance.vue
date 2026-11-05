@@ -183,7 +183,7 @@ onMounted(() => {
           <el-table-column type="index" label="序号" width="64" :index="rowIndex" />
           <el-table-column prop="venue_name" label="场所名称" min-width="150" />
           <el-table-column label="收入" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.income) }}</template></el-table-column>
-          <el-table-column label="支出" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.expense) }}</template></el-table-column>
+          <el-table-column label="支出" width="110" align="right"><template #default="{ row }">{{ formatExpense(row.expense) }}</template></el-table-column>
           <el-table-column label="月结余" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.balance) }}</template></el-table-column>
           <el-table-column label="状态" width="110"><template #default="{ row }"><el-tag :type="REVIEW_TAG_TYPES[row.state]">{{ REVIEW_LABELS[row.state] }}</el-tag></template></el-table-column>
           <el-table-column v-if="showPublishColumn" label="公开" width="80">
@@ -222,7 +222,7 @@ onMounted(() => {
           <div class="summary-grid">
             <el-descriptions :column="2" border>
               <el-descriptions-item label="本月收入">{{ formatMoney(current.income) }}</el-descriptions-item>
-              <el-descriptions-item label="本月支出">{{ formatMoney(current.expense) }}</el-descriptions-item>
+              <el-descriptions-item label="本月支出">{{ formatExpense(current.expense) }}</el-descriptions-item>
               <el-descriptions-item label="月结余">{{ formatMoney(current.balance) }}</el-descriptions-item>
               <el-descriptions-item label="明细数">{{ items.length }}</el-descriptions-item>
             </el-descriptions>
@@ -236,7 +236,7 @@ onMounted(() => {
               <template #default="{ row }"><el-tag :type="row.kind === 'income' ? 'success' : 'info'">{{ row.kind === 'income' ? '收入' : '支出' }}</el-tag></template>
             </el-table-column>
             <el-table-column prop="summary" label="简要描述" min-width="100" />
-            <el-table-column label="金额" width="104" align="right"><template #default="{ row }">{{ formatMoney(row.amount) }}</template></el-table-column>
+            <el-table-column label="金额" width="104" align="right"><template #default="{ row }">{{ row.kind === 'expense' ? formatExpense(row.amount) : formatMoney(row.amount) }}</template></el-table-column>
             <el-table-column label="操作" width="128" fixed="right" align="right">
               <template #default="{ row }">
                 <TableActions v-if="billEditable">
@@ -256,7 +256,7 @@ onMounted(() => {
                 </header>
                 <dl>
                   <div><dt>简要描述</dt><dd>{{ item.summary }}</dd></div>
-                  <div><dt>金额</dt><dd>{{ formatMoney(item.amount) }}</dd></div>
+                  <div><dt>金额</dt><dd>{{ item.kind === 'expense' ? formatExpense(item.amount) : formatMoney(item.amount) }}</dd></div>
                 </dl>
                 <TableActions v-if="billEditable">
                   <el-button size="small" type="primary" :aria-label="`编辑明细${item.summary}`" @click="editItem(item)">编辑</el-button>

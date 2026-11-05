@@ -13,3 +13,12 @@ export function formatMoney(value: unknown): string {
   if (!Number.isFinite(num)) return '—'
   return `¥${num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
+
+/** 支出金额展示：负号置于货币符号前，如 -¥360.00；零值不带负号，非法值仍返回 —。 */
+export function formatExpense(value: unknown): string {
+  const num = Number(value)
+  if (!Number.isFinite(num)) return '—'
+  const abs = Math.abs(num)
+  if (abs === 0) return formatMoney(0)
+  return `-${formatMoney(abs)}`
+}
