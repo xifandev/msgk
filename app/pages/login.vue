@@ -11,7 +11,7 @@ const loginSuccess = ref(false)
 const loginFailed = ref(false)
 const countdown = ref(0)
 let timer: ReturnType<typeof setInterval> | undefined
-const maintenanceMode = true
+const maintenanceMode = false
 const contactVisible = ref(false)
 const contactVenues = ref<{ id: number, name: string, township: string }[]>([])
 const contactVenueId = ref<number | null>(null)
