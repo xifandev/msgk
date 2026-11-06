@@ -63,6 +63,7 @@ const items = ref<any[]>([])
 const itemVisible = ref(false)
 const itemSaving = ref(false)
 const itemForm = reactive({ id: 0, kind: 'income', occurredOn: '', summary: '', amount: '' })
+const amountLabel = computed(() => itemForm.kind === 'income' ? '收入金额' : '支出金额')
 const billEditable = computed(() => ['draft', 'rejected'].includes(current.value.state))
 // 录入态按录入顺序倒序（id 倒序，最新录入的排第一，便于确认刚录入内容）；审核态按日期正序（从小到大）
 const sortedItems = computed(() => {
@@ -123,7 +124,7 @@ function normalizeAmount() {
 async function saveItem() {
   if (!itemForm.occurredOn) { ElMessage.warning('请选择日期'); return }
   if (!itemForm.summary.trim()) { ElMessage.warning('请输入简要描述'); return }
-  if (!(Number(itemForm.amount) > 0)) { ElMessage.warning('请输入收支金额'); return }
+  if (!(Number(itemForm.amount) > 0)) { ElMessage.warning(`请输入${amountLabel.value}`); return }
   const url = itemForm.id ? `/api/admin/finance/items/${itemForm.id}` : `/api/admin/finance/${current.value.id}/items`
   itemSaving.value = true
   try {
@@ -281,8 +282,8 @@ onMounted(() => {
         <el-form-item label="收支类型" required><el-radio-group v-model="itemForm.kind"><el-radio-button value="income">收入</el-radio-button><el-radio-button value="expense">支出</el-radio-button></el-radio-group></el-form-item>
         <el-form-item label="选择日期" required><el-date-picker v-model="itemForm.occurredOn" value-format="YYYY-MM-DD" :disabled-date="disableOutsideMonth" placeholder="日期需在账单月份内" /></el-form-item>
         <el-form-item label="简要描述" required><el-input v-model="itemForm.summary" maxlength="100" placeholder="请输入简要描述" /></el-form-item>
-        <el-form-item label="收支金额" required>
-          <el-input v-model="itemForm.amount" inputmode="decimal" placeholder="请输入收支金额" @blur="normalizeAmount" />
+        <el-form-item :label="amountLabel" required>
+          <el-input v-model="itemForm.amount" inputmode="decimal" :placeholder="`请输入${amountLabel}`" @blur="normalizeAmount" />
         </el-form-item>
       </el-form>
       <template #footer>
