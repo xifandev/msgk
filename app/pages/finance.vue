@@ -205,15 +205,15 @@ onMounted(() => {
           <el-table-column label="收入" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.income) }}</template></el-table-column>
           <el-table-column label="支出" width="110" align="right"><template #default="{ row }">{{ formatExpense(row.expense) }}</template></el-table-column>
           <el-table-column label="期末结余" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.balance) }}</template></el-table-column>
+          <el-table-column label="公开月份" width="118" fixed="right" class-name="finance-month-cell" label-class-name="finance-month-head">
+            <template #default="{ row }"><el-tag effect="plain" class="finance-month-tag">{{ row.bill_month }}</el-tag></template>
+          </el-table-column>
           <el-table-column label="状态" width="110"><template #default="{ row }"><el-tag :type="REVIEW_TAG_TYPES[row.state]">{{ REVIEW_LABELS[row.state] }}</el-tag></template></el-table-column>
           <el-table-column v-if="showPublishColumn" label="公开" width="80">
             <template #default="{ row }">
               <el-switch v-if="row.state === 'approved'" v-model="row.published" :active-value="1" :inactive-value="0" :aria-label="`${row.venue_name}${row.bill_month}公开状态`" @change="publish(row)" />
               <span v-else class="muted" aria-hidden="true">—</span>
             </template>
-          </el-table-column>
-          <el-table-column label="公开月份" width="118" fixed="right" class-name="finance-month-cell" label-class-name="finance-month-head">
-            <template #default="{ row }"><el-tag effect="plain" class="finance-month-tag">{{ row.bill_month }}</el-tag></template>
           </el-table-column>
           <el-table-column label="操作" width="160" fixed="right" align="right">
             <template #default="{ row }">
