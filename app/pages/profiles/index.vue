@@ -291,9 +291,6 @@ onMounted(async () => {
           <el-table v-loading="loading" :data="list">
             <el-table-column prop="venue_name" label="场所名称" min-width="170" />
             <el-table-column prop="township" label="乡镇" width="110" />
-            <el-table-column label="场所类别" width="120">
-              <template #default="{ row }">{{ row.category || '—' }}</template>
-            </el-table-column>
             <el-table-column label="状态" width="100">
               <template #default="{ row }"><el-tag :type="REVIEW_TAG_TYPES[row.state] ?? 'info'">{{ REVIEW_LABELS[row.state] ?? row.state }}</el-tag></template>
             </el-table-column>

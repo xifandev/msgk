@@ -15,7 +15,6 @@ interface PersonnelRow {
   county_note: string | null
   updated_at: string | null
   member_count: number | null
-  first_member: string | null
 }
 
 interface Member {
@@ -328,9 +327,6 @@ onBeforeUnmount(destroyMemberSortable)
             <el-table-column prop="township" label="乡镇" width="110" />
             <el-table-column label="人数" width="80" align="right">
               <template #default="{ row }">{{ row.member_count ?? 0 }}</template>
-            </el-table-column>
-            <el-table-column label="首位成员" width="110">
-              <template #default="{ row }">{{ row.first_member || '—' }}</template>
             </el-table-column>
             <el-table-column label="状态" width="100">
               <template #default="{ row }"><el-tag :type="REVIEW_TAG_TYPES[row.state] ?? 'info'">{{ REVIEW_LABELS[row.state] ?? row.state }}</el-tag></template>
