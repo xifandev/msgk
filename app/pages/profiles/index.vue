@@ -34,7 +34,8 @@ const canEditVenue = computed(() => hasPerm('venues:edit'))
 const myState = computed(() => myReviewState(roleCode.value))
 const showMine = computed(() => isReviewer.value && !!myState.value)
 // 状态筛选栏仅镇级、县级审核员可见，场所管理员直接看完整列表
-const { activeTab, initTab, syncQuery: syncTabQuery, clearTab } = useReviewStateTab(myState, isReviewer)
+// 默认落在“全部”，审核员可手动切到“待我审核”
+const { activeTab, initTab, syncQuery: syncTabQuery, clearTab } = useReviewStateTab(myState, isReviewer, false)
 const mounted = ref(false)
 const tabs = computed<TabItem[]>(() => {
   const items: TabItem[] = []
