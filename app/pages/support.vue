@@ -39,11 +39,6 @@ onBeforeUnmount(() => {
 
       <div class="support-content">
         <div class="contact-details">
-          <div class="engineer">
-            <span class="contact-label">技术支持工程师</span>
-            <strong class="engineer-name">程龙</strong>
-          </div>
-
           <div class="wechat-row">
             <div>
               <span class="contact-label">微信号</span>
@@ -54,30 +49,6 @@ onBeforeUnmount(() => {
               {{ copied ? '已复制' : '复制微信号' }}
             </el-button>
           </div>
-
-          <ol class="contact-steps">
-            <li>
-              <span class="step-number" aria-hidden="true">1</span>
-              <div>
-                <strong>添加工程师微信</strong>
-                <p>搜索微信号，或扫描右侧二维码添加好友。</p>
-              </div>
-            </li>
-            <li>
-              <span class="step-number" aria-hidden="true">2</span>
-              <div>
-                <strong>说明遇到的问题</strong>
-                <p>告诉我们您所在的场所、操作栏目和具体情况。</p>
-              </div>
-            </li>
-            <li>
-              <span class="step-number" aria-hidden="true">3</span>
-              <div>
-                <strong>补充问题截图</strong>
-                <p>如有报错或异常页面，可一并发送，便于准确定位。</p>
-              </div>
-            </li>
-          </ol>
         </div>
 
         <figure class="qr-card">
@@ -158,19 +129,12 @@ onBeforeUnmount(() => {
   padding: 34px 40px 36px;
 }
 .contact-details { min-width: 0; }
-.engineer {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-block-end: 18px;
-}
 .contact-label {
   display: block;
   color: #667085;
   font-size: 13px;
   line-height: 1.6;
 }
-.engineer-name { color: #344054; font-size: 20px; font-weight: 650; }
 .wechat-row {
   display: flex;
   align-items: center;
@@ -194,29 +158,6 @@ onBeforeUnmount(() => {
 }
 .wechat-row .el-button { flex: none; margin: 0; }
 .wechat-row .el-icon { margin-inline-end: 6px; }
-.contact-steps {
-  display: grid;
-  gap: 18px;
-  margin: 26px 0 0;
-  padding: 0;
-  list-style: none;
-}
-.contact-steps li { display: flex; align-items: flex-start; gap: 12px; }
-.step-number {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 24px;
-  height: 24px;
-  margin-block-start: 1px;
-  border-radius: 50%;
-  background: var(--brand-soft);
-  color: var(--brand);
-  font-size: 13px;
-  font-weight: 700;
-}
-.contact-steps strong { display: block; color: #344054; font-size: 14px; font-weight: 650; }
-.contact-steps p { margin: 2px 0 0; color: #667085; font-size: 13px; line-height: 1.7; }
 .qr-card {
   margin: 0;
   padding: 22px;
