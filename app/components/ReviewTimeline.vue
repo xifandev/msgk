@@ -18,7 +18,7 @@ const items = computed(() => [
       {{ record.published ? '已公开' : '未公开' }}
     </el-tag>
     <el-timeline v-if="items.length" class="timeline">
-      <el-timeline-item v-for="item in items" :key="item.label" :timestamp="formatDateTime(item.value)">
+      <el-timeline-item v-for="item in items" :key="item.label" :timestamp="formatReviewTime(item.value)">
         <strong>{{ item.label }}</strong><p v-if="item.note">{{ item.note }}</p>
       </el-timeline-item>
     </el-timeline>

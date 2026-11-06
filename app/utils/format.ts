@@ -7,6 +7,21 @@ export function formatDateTime(value: unknown): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
+/**
+ * 审核时间展示：旧系统迁移数据的时分秒均为 00:00:00（当日具体时间未知），
+ * 此时只显示 YYYY-MM-DD；新系统的精确时间仍显示 YYYY-MM-DD HH:mm。
+ */
+export function formatReviewTime(value: unknown): string {
+  if (!value) return '—'
+  const raw = String(value)
+  const date = new Date(raw.replace(' ', 'T'))
+  if (Number.isNaN(date.getTime())) return '—'
+  const pad = (num: number) => String(num).padStart(2, '0')
+  const day = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+  if (date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0) return day
+  return `${day} ${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
 /** 金额展示：¥ + 千分位 + 两位小数，如 ¥1,234.56。 */
 export function formatMoney(value: unknown): string {
   const num = Number(value)

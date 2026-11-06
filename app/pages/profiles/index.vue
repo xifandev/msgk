@@ -303,7 +303,7 @@ onMounted(async () => {
               </template>
             </el-table-column>
             <el-table-column label="提交时间" width="165">
-              <template #default="{ row }">{{ row.submitted_at ? formatDateTime(row.submitted_at) : '尚未提交' }}</template>
+              <template #default="{ row }">{{ row.submitted_at ? formatReviewTime(row.submitted_at) : '尚未提交' }}</template>
             </el-table-column>
             <el-table-column label="审核意见" min-width="140">
               <template #default="{ row }"><span :class="{ 'note-danger': noteOf(row) }">{{ noteOf(row) || '—' }}</span></template>
