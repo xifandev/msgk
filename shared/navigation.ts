@@ -23,7 +23,7 @@ export const NAVIGATION: NavigationItem[] = [
   { path: '/news', label: '政策法规', description: '维护政策法规文章及分类，发布后在小程序展示；镇级、场所管理员可在本页学习。', permission: 'news:view', icon: 'Reading' },
   { path: '/notices', label: '公告管理', description: '小程序公告面向公众展示，内部公告仅后台管理员可见。', permission: 'notices:edit', icon: 'Reading' },
   { path: '/my-notices', label: '我的通知', description: '面向管理员的内部公告，打开详情后自动标记为已读。', permission: 'notices:view', icon: 'Message', excludeRoleCodes: ['county'] },
-  { path: '/venues', label: '场所管理', description: '维护宗教活动场所的基础信息，实时获取场所二维码和高清海报。', permission: 'venues:view', icon: 'OfficeBuilding' },
+  { path: '/venues', label: '下载场所二维码', description: '维护宗教活动场所的基础信息，实时获取场所二维码和高清海报。', permission: 'venues:view', icon: 'OfficeBuilding' },
   { path: '/manual', label: '使用手册', description: '按步骤了解各栏目的录入、审核与公开流程。', permission: 'dashboard:view', icon: 'Guide' },
   { path: '/handover', label: '账号交接', description: '将本账号的角色与场所管理权限整体交接给新管理员。', permission: 'dashboard:view', icon: 'Switch' },
   { path: '/admins', label: '管理员', description: '配置登录手机号、功能角色和可管理的场所。', permission: 'system:admins', icon: 'Avatar', group: '运维工具' },
