@@ -22,14 +22,14 @@ export function formatReviewTime(value: unknown): string {
   return `${day} ${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
-/** 金额展示：¥ + 千分位 + 两位小数，如 ¥1,234.56。 */
+/** 金额展示：千分位 + 两位小数，如 1,234.56。 */
 export function formatMoney(value: unknown): string {
   const num = Number(value)
   if (!Number.isFinite(num)) return '—'
-  return `¥${num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  return num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-/** 支出金额展示：负号置于货币符号前，如 -¥360.00；零值不带负号，非法值仍返回 —。 */
+/** 支出金额展示：使用负号，如 -360.00；零值不带负号，非法值仍返回 —。 */
 export function formatExpense(value: unknown): string {
   const num = Number(value)
   if (!Number.isFinite(num)) return '—'
