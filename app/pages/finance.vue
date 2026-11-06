@@ -205,7 +205,7 @@ onMounted(() => {
           <el-table-column label="收入" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.income) }}</template></el-table-column>
           <el-table-column label="支出" width="110" align="right"><template #default="{ row }">{{ formatExpense(row.expense) }}</template></el-table-column>
           <el-table-column label="期末结余" width="110" align="right"><template #default="{ row }">{{ formatMoney(row.balance) }}</template></el-table-column>
-          <el-table-column label="公开月份" width="118" fixed="right" class-name="finance-month-cell" label-class-name="finance-month-head">
+          <el-table-column label="公开月份" width="118" class-name="finance-month-cell" label-class-name="finance-month-head">
             <template #default="{ row }"><el-tag effect="plain" class="finance-month-tag">{{ row.bill_month }}</el-tag></template>
           </el-table-column>
           <el-table-column label="状态" width="110"><template #default="{ row }"><el-tag :type="REVIEW_TAG_TYPES[row.state]">{{ REVIEW_LABELS[row.state] }}</el-tag></template></el-table-column>
