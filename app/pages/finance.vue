@@ -257,9 +257,9 @@ onMounted(() => {
             </el-table-column>
             <el-table-column prop="summary" label="简要描述" min-width="100" />
             <el-table-column label="金额" width="104" align="right"><template #default="{ row }">{{ row.kind === 'expense' ? formatExpense(row.amount) : formatMoney(row.amount) }}</template></el-table-column>
-            <el-table-column label="操作" width="128" fixed="right" align="right">
+            <el-table-column v-if="hasPerm('finance:edit') && billEditable" label="操作" width="128" fixed="right" align="right">
               <template #default="{ row }">
-                <TableActions v-if="billEditable">
+                <TableActions>
                   <el-button size="small" type="primary" :aria-label="`编辑明细${row.summary}`" @click="editItem(row)">编辑</el-button>
                   <el-button size="small" type="danger" plain :aria-label="`删除明细${row.summary}`" @click="deleteItem(row)">删除</el-button>
                 </TableActions>
