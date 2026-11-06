@@ -38,26 +38,28 @@ onBeforeUnmount(() => {
       </header>
 
       <div class="support-content">
-        <div class="contact-details">
-          <div class="wechat-row">
-            <div>
-              <span class="contact-label">微信号</span>
-              <strong class="wechat-number">{{ WECHAT_ID }}</strong>
-            </div>
-            <el-button type="primary" plain @click="copyWechat">
-              <el-icon><Check v-if="copied" /><CopyDocument v-else /></el-icon>
-              {{ copied ? '已复制' : '复制微信号' }}
-            </el-button>
+        <section class="wechat-card" aria-labelledby="wechat-title">
+          <span class="contact-tag">方式一 · 搜索微信号</span>
+          <div class="contact-icon" aria-hidden="true">
+            <el-icon><ChatLineSquare /></el-icon>
           </div>
-        </div>
+          <h3 id="wechat-title">搜索添加工程师</h3>
+          <strong class="wechat-number">{{ WECHAT_ID }}</strong>
+          <p>打开微信搜索该号码，添加工程师后即可咨询。</p>
+          <el-button type="primary" @click="copyWechat">
+            <el-icon><Check v-if="copied" /><CopyDocument v-else /></el-icon>
+            {{ copied ? '已复制' : '复制微信号' }}
+          </el-button>
+        </section>
 
         <figure class="qr-card">
+          <span class="contact-tag">方式二 · 微信扫码</span>
           <div class="qr-frame">
             <img src="/images/manual-support.png" width="220" height="220" alt="技术支持工程师微信二维码">
           </div>
           <figcaption>
-            <strong>微信扫码联系</strong>
-            <span>打开微信扫一扫，添加工程师为好友</span>
+            <strong>微信扫码添加</strong>
+            <span>扫一扫即可添加工程师为好友</span>
           </figcaption>
         </figure>
       </div>
@@ -123,57 +125,84 @@ onBeforeUnmount(() => {
 }
 .support-content {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
-  align-items: center;
-  gap: 44px;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  align-items: stretch;
+  gap: 28px;
   padding: 34px 40px 36px;
 }
-.contact-details { min-width: 0; }
-.contact-label {
-  display: block;
-  color: #667085;
-  font-size: 13px;
-  line-height: 1.6;
-}
-.wechat-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 18px 20px;
-  border: 1px solid #dfe8f3;
-  border-radius: 12px;
-  background: #f7faff;
-}
-.wechat-number {
-  display: block;
-  margin-block-start: 2px;
-  color: #173f70;
-  font-size: 26px;
-  font-weight: 700;
-  line-height: 1.4;
-  letter-spacing: 1.5px;
-  font-variant-numeric: tabular-nums;
-  user-select: all;
-}
-.wechat-row .el-button { flex: none; margin: 0; }
-.wechat-row .el-icon { margin-inline-end: 6px; }
+.wechat-card,
 .qr-card {
-  margin: 0;
-  padding: 22px;
+  min-height: 344px;
+  padding: 26px 28px;
   border: 1px solid #e5eaf0;
   border-radius: 14px;
   background: #fbfcfe;
   text-align: center;
 }
+.wechat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.contact-tag {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 1.5px;
+}
+.contact-icon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin-block-start: 16px;
+  border: 1px solid #d6e4f3;
+  border-radius: 50%;
+  background: #edf4fb;
+  color: var(--brand);
+  font-size: 34px;
+}
+.wechat-card h3 {
+  margin: 18px 0 8px;
+  color: #344054;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: .5px;
+}
+.wechat-number {
+  color: #173f70;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 2px;
+  font-variant-numeric: tabular-nums;
+  user-select: all;
+}
+.wechat-card p {
+  margin: 12px 0 20px;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.wechat-card .el-button { min-width: 160px; margin: 0; }
+.wechat-card .el-icon { margin-inline-end: 6px; }
+.qr-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+}
 .qr-frame {
+  width: min(220px, 100%);
+  margin-block-start: 16px;
   padding: 9px;
   border: 1px solid #e7ebf0;
   border-radius: 10px;
   background: #fff;
 }
 .qr-frame img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; }
-.qr-card figcaption { display: grid; gap: 4px; margin-block-start: 16px; }
+.qr-card figcaption { display: grid; gap: 4px; margin-block-start: 14px; }
 .qr-card figcaption strong { color: #344054; font-size: 16px; font-weight: 650; }
 .qr-card figcaption span { color: #667085; font-size: 12px; line-height: 1.6; }
 .support-note {
@@ -190,21 +219,19 @@ onBeforeUnmount(() => {
 .support-note p { margin: 0; line-height: 1.7; }
 
 @media (max-width: 1000px) {
-  .support-content { grid-template-columns: minmax(0, 1fr) 240px; gap: 26px; padding-inline: 28px; }
+  .support-content { grid-template-columns: minmax(0, 1fr) 280px; gap: 22px; padding-inline: 28px; }
   .support-hero { padding-inline: 28px; }
   .support-note { padding-inline: 28px; }
-  .wechat-number { font-size: 23px; }
+  .wechat-number { font-size: 28px; }
 }
 @media (max-width: 760px) {
   .support-hero { gap: 14px; padding: 26px 22px; }
   .support-symbol { width: 46px; height: 46px; font-size: 23px; }
   .support-hero h2 { font-size: 22px; }
   .support-content { grid-template-columns: 1fr; padding: 26px 22px; }
-  .qr-card { width: min(280px, 100%); margin-inline: auto; }
+  .wechat-card,
+  .qr-card { min-height: 0; }
+  .qr-card { width: min(320px, 100%); margin-inline: auto; }
   .support-note { padding-inline: 22px; }
-}
-@media (max-width: 480px) {
-  .wechat-row { align-items: flex-start; flex-direction: column; }
-  .wechat-row .el-button { width: 100%; }
 }
 </style>
