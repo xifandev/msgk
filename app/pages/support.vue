@@ -32,20 +32,19 @@ onBeforeUnmount(() => {
         </div>
         <div>
           <p class="support-kicker">系统使用支持</p>
-          <h2 id="support-title">遇到问题，随时联系工程师</h2>
-          <p class="support-intro">如果您在使用系统时遇到任何操作问题、功能疑问或不明白的地方，请随时联系工程师，我们会协助您解决。</p>
+          <h2 id="support-title">遇到问题，随时联系技术人员</h2>
+          <p class="support-intro">如果您在使用系统时遇到任何操作问题、功能疑问或不明白的地方，请随时联系技术人员，我们会协助您解决。</p>
         </div>
       </header>
 
       <div class="support-content">
         <section class="wechat-card" aria-labelledby="wechat-title">
-          <span class="contact-tag">方式一 · 搜索微信号</span>
           <div class="contact-icon" aria-hidden="true">
             <el-icon><ChatLineSquare /></el-icon>
           </div>
-          <h3 id="wechat-title">搜索添加工程师</h3>
+          <h3 id="wechat-title">微信添加技术人员</h3>
           <strong class="wechat-number">{{ WECHAT_ID }}</strong>
-          <p>打开微信搜索该号码，添加工程师后即可咨询。</p>
+          <p>打开微信搜索该号码，添加技术人员后即可咨询。</p>
           <el-button type="primary" @click="copyWechat">
             <el-icon><Check v-if="copied" /><CopyDocument v-else /></el-icon>
             {{ copied ? '已复制' : '复制微信号' }}
@@ -53,13 +52,12 @@ onBeforeUnmount(() => {
         </section>
 
         <figure class="qr-card">
-          <span class="contact-tag">方式二 · 微信扫码</span>
           <div class="qr-frame">
-            <img src="/images/manual-support.png" width="220" height="220" alt="技术支持工程师微信二维码">
+            <img src="/images/manual-support.png" width="220" height="220" alt="技术支持人员微信二维码">
           </div>
           <figcaption>
             <strong>微信扫码添加</strong>
-            <span>扫一扫即可添加工程师为好友</span>
+            <span>扫一扫即可添加技术人员为好友</span>
           </figcaption>
         </figure>
       </div>
@@ -145,18 +143,11 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
 }
-.contact-tag {
-  color: #667085;
-  font-size: 12px;
-  font-weight: 650;
-  letter-spacing: 1.5px;
-}
 .contact-icon {
   display: grid;
   place-items: center;
   width: 72px;
   height: 72px;
-  margin-block-start: 16px;
   border: 1px solid #d6e4f3;
   border-radius: 50%;
   background: #edf4fb;
