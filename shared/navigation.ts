@@ -3,7 +3,8 @@ export interface NavigationItem {
   label: string
   /** 顶部标题栏展示的页面说明，一句话讲清这个页面做什么 */
   description: string
-  permission: string | string[]
+  /** 留空表示所有已登录角色均可访问 */
+  permission?: string | string[]
   icon: string
   /** 导航分组标题（目前仅用于底部运维工具组） */
   group?: string
@@ -27,7 +28,8 @@ export const NAVIGATION: NavigationItem[] = [
   { path: '/handover', label: '账号交接', description: '将本账号的角色与场所管理权限整体交接给新管理员。', permission: 'dashboard:view', icon: 'Switch' },
   { path: '/admins', label: '管理员', description: '配置登录手机号、功能角色和可管理的场所。', permission: 'system:admins', icon: 'Avatar', group: '运维工具' },
   { path: '/logs', label: '操作日志', description: '记录登录用户在后台执行的数据变更和审核操作。', permission: 'system:logs', icon: 'List', group: '运维工具', superOnly: true },
-  { path: '/roles', label: '角色权限', description: '功能权限与场所数据范围分开管理，修改后实时生效。', permission: 'system:roles', icon: 'Key', group: '运维工具', superOnly: true }
+  { path: '/roles', label: '角色权限', description: '功能权限与场所数据范围分开管理，修改后实时生效。', permission: 'system:roles', icon: 'Key', group: '运维工具', superOnly: true },
+  { path: '/support', label: '联系客服', description: '使用中遇到操作问题或功能疑问，可随时通过微信联系工程师。', icon: 'ChatLineSquare' }
 ]
 
 /** 按路由匹配导航项：优先精确匹配，其次取最长前缀匹配 */

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
 import {
-  Avatar, DataAnalysis, Document, Guide, Key, List,
+  Avatar, ChatLineSquare, DataAnalysis, Document, Guide, Key, List,
   Message, OfficeBuilding, Reading, Setting, Switch, User, UserFilled, Wallet
 } from '@element-plus/icons-vue'
 import { NAVIGATION, navigationFor } from '~~/shared/navigation'
@@ -10,15 +10,17 @@ import type { NavBadgeCounts } from '~/composables/useNavBadges'
 const { admin, venues, hasPerm, logout, impersonator, stopImpersonate } = useAdmin()
 const route = useRoute()
 const mobileMenu = ref(false)
-const icons = { Avatar, DataAnalysis, Document, Guide, Key, List, Message, OfficeBuilding, Reading, Setting, Switch, User, UserFilled, Wallet }
+const icons = { Avatar, ChatLineSquare, DataAnalysis, Document, Guide, Key, List, Message, OfficeBuilding, Reading, Setting, Switch, User, UserFilled, Wallet }
 const items = computed(() => NAVIGATION.filter((item) => {
   if (item.excludeRoleCodes?.includes(admin.value?.roleCode ?? '')) return false
+  if (!item.permission) return true
   return Array.isArray(item.permission) ? item.permission.some((code) => hasPerm(code)) : hasPerm(item.permission)
 }))
 const isSuper = computed(() => admin.value?.roleCode === 'super')
 const allowedBySuper = (item: { superOnly?: boolean }) => !item.superOnly || isSuper.value
-const mainItems = computed(() => items.value.filter((item) => !item.group && allowedBySuper(item)))
+const mainItems = computed(() => items.value.filter((item) => !item.group && item.path !== '/support' && allowedBySuper(item)))
 const opsItems = computed(() => items.value.filter((item) => item.group === '运维工具' && allowedBySuper(item)))
+const supportItem = computed(() => items.value.find((item) => item.path === '/support'))
 /** 导航分组分隔线：三个「公开」栏目共用一组光柱（上下各一根，锚定在可见栏目的边界上） */
 const PUBLIC_PATHS = ['/finance', '/profiles', '/personnel']
 const NAV_GROUPS: { anchor: string[], label: string }[] = [
@@ -130,6 +132,14 @@ async function switchBack() {
               <span>{{ item.label }}</span>
             </el-menu-item>
           </el-menu-item-group>
+          <el-menu-item
+            v-if="supportItem"
+            :index="supportItem.path"
+            :aria-current="route.path === supportItem.path ? 'page' : undefined"
+          >
+            <el-icon><component :is="icons[supportItem.icon as keyof typeof icons]" /></el-icon>
+            <span>{{ supportItem.label }}</span>
+          </el-menu-item>
         </el-menu>
       </nav>
     </aside>
@@ -165,6 +175,14 @@ async function switchBack() {
               <span>{{ item.label }}</span>
             </el-menu-item>
           </el-menu-item-group>
+          <el-menu-item
+            v-if="supportItem"
+            :index="supportItem.path"
+            :aria-current="route.path === supportItem.path ? 'page' : undefined"
+          >
+            <el-icon><component :is="icons[supportItem.icon as keyof typeof icons]" /></el-icon>
+            <span>{{ supportItem.label }}</span>
+          </el-menu-item>
         </el-menu>
       </nav>
     </el-drawer>
