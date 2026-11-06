@@ -99,7 +99,7 @@ async function reopen() {
     </template>
     <div v-if="canSubmit || canReopen" class="review-secondary">
       <el-button v-if="canSubmit" type="primary" @click="submit">提交审核</el-button>
-      <el-button v-if="canReopen" text @click="reopen">{{ reopenLabel ?? '重新编辑' }}</el-button>
+      <el-button v-if="canReopen" @click="reopen">{{ reopenLabel ?? '重新编辑' }}</el-button>
     </div>
   </div>
 </template>
@@ -109,7 +109,7 @@ async function reopen() {
 /* 主操作两枚按钮等分一行，任何侧栏宽度下都整齐 */
 .review-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .review-buttons .el-button { margin: 0; width: 100%; }
-/* 次级操作弱化为文字按钮，避免与审核主操作争夺注意力 */
+/* 次级操作保留明确边框，同时避免与审核主操作争夺注意力 */
 .review-secondary { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-block-start: 12px; border-block-start: 1px dashed var(--line); }
 .review-secondary .el-button { margin: 0; }
 .review-secondary .el-button:not(.el-button--primary) { color: var(--muted); }
