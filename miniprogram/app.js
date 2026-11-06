@@ -2,8 +2,8 @@
 // 各环境后端地址：develop=开发版（模拟器/真机调试）、trial=体验版、release=正式版
 const API_URLS = {
   develop: 'http://localhost:3000',
-  trial: 'https://api.msgk.getweb.cn',
-  release: 'https://api.msgk.getweb.cn',
+  trial: 'https://msgk.getweb.cn',
+  release: 'https://msgk.getweb.cn',
 };
 
 App({

@@ -6,7 +6,14 @@ import { ElMessage } from 'element-plus'
 const props = defineProps<{ modelValue: string }>()
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 const editorRef = shallowRef()
-const toolbarConfig = { excludeKeys: ['uploadVideo', 'insertVideo', 'fullScreen'] }
+// 面向小白用户精简工具栏：去掉视频、全屏、表情、插入链接、代码块、待办、缩进分组、左对齐
+// 注意：视频/缩进是分组菜单，必须排除分组 key（group-video/group-indent），只排除子项会残留空分组按钮
+const toolbarConfig = {
+  excludeKeys: [
+    'fullScreen', 'emotion', 'insertLink', 'codeBlock', 'todo', 'justifyLeft',
+    'group-video', 'group-indent'
+  ]
+}
 const editorConfig = { placeholder: '请输入内容...', MENU_CONF: {} as Record<string, any> }
 editorConfig.MENU_CONF.uploadImage = {
   async customUpload(file: File, insertFn: (url: string) => void) {

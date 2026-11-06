@@ -9,6 +9,7 @@ const filters = reactive({ page: 1, pageSize: 10, search: '', kind: '', publishe
 const editorVisible = ref(false)
 const saving = ref(false)
 const form = reactive({ id: 0, kind: '', title: '', coverUrl: '', authorName: '', content: '' })
+const { snapshot: snapshotForm, confirmClose: confirmCloseEditor } = useDirtyClose(form)
 const KIND_LABELS: Record<string, string> = { public: '小程序公告', internal: '内部公告' }
 
 async function load() {
@@ -32,6 +33,7 @@ async function editNotice(row?: any) {
   if (!row) {
     Object.assign(form, { id: 0, kind: '', title: '', coverUrl: '', authorName: admin.value?.name ?? '', content: '' })
     editorVisible.value = true
+    snapshotForm()
     return
   }
   try {
@@ -41,6 +43,7 @@ async function editNotice(row?: any) {
       coverUrl: detail.coverUrl ?? '', authorName: detail.authorName ?? '', content: detail.content ?? ''
     })
     editorVisible.value = true
+    snapshotForm()
   } catch (error) { ElMessage.error(errorMessage(error)) }
 }
 async function saveNotice() {
@@ -97,13 +100,7 @@ onMounted(load)
             <template #default="{ row }"><el-tag :type="row.kind === 'internal' ? 'warning' : 'success'" effect="plain">{{ KIND_LABELS[row.kind] ?? row.kind }}</el-tag></template>
           </el-table-column>
           <el-table-column prop="title" label="公告标题" min-width="200" show-overflow-tooltip />
-          <el-table-column label="公告封面图" width="110">
-            <template #default="{ row }">
-              <el-image v-if="row.coverUrl" :src="row.coverUrl" :preview-src-list="[row.coverUrl]" fit="cover" preview-teleported class="cover-thumb" :alt="`${row.title}封面`" />
-              <span v-else class="muted">未上传</span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="authorName" label="编辑" width="110"><template #default="{ row }">{{ row.authorName || '—' }}</template></el-table-column>
+          <el-table-column prop="authorName" label="发布人" width="110"><template #default="{ row }">{{ row.authorName || '—' }}</template></el-table-column>
           <el-table-column prop="createdAt" label="发布时间" width="170" />
           <el-table-column v-if="hasPerm('notices:publish')" label="状态" width="100">
             <template #default="{ row }"><el-switch v-model="row.published" :active-value="1" :inactive-value="0" inline-prompt active-text="发布" inactive-text="隐藏" :aria-label="`《${row.title}》发布状态`" @change="publish(row)" /></template>
@@ -121,7 +118,7 @@ onMounted(load)
       <div class="pagination"><el-pagination v-model:current-page="filters.page" v-model:page-size="filters.pageSize" :total="total" :page-sizes="[5, 10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" /></div>
     </section>
 
-    <el-dialog v-model="editorVisible" :title="form.id ? '编辑公告' : '新建公告'" width="min(960px, 94vw)" destroy-on-close>
+    <el-dialog v-model="editorVisible" :title="form.id ? '编辑公告' : '新建公告'" width="min(960px, 94vw)" destroy-on-close :before-close="confirmCloseEditor">
       <el-form label-position="top" @submit.prevent="saveNotice">
         <div class="form-grid">
           <el-form-item label="选择公告分类" required>
@@ -130,15 +127,14 @@ onMounted(load)
               <el-radio-button value="internal">内部公告</el-radio-button>
             </el-radio-group>
           </el-form-item>
-          <el-form-item label="作者"><el-input v-model="form.authorName" maxlength="50" /></el-form-item>
+          <el-form-item label="发布人"><el-input v-model="form.authorName" maxlength="50" /></el-form-item>
         </div>
         <el-form-item label="标题" required><el-input v-model="form.title" maxlength="200" show-word-limit /></el-form-item>
-        <el-form-item label="封面图片"><ImageUpload v-model="form.coverUrl" label="公告封面" /></el-form-item>
         <el-form-item label="正文内容" required><RichTextEditor v-model="form.content" /></el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-actions">
-          <el-button @click="editorVisible = false">取消</el-button>
+          <el-button @click="confirmCloseEditor(() => editorVisible = false)">取消</el-button>
           <el-button type="primary" :loading="saving" @click="saveNotice">保存公告</el-button>
         </div>
       </template>
@@ -147,8 +143,6 @@ onMounted(load)
 </template>
 
 <style scoped>
-.muted { color: var(--muted); font-size: 13px; }
-.cover-thumb { width: 84px; height: 56px; border-radius: 6px; }
 .toolbar .el-input { max-width: 260px; }
 .toolbar .el-select { min-width: 150px; }
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0 18px; }
