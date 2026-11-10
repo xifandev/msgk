@@ -1,6 +1,6 @@
 // components/page-main/page-main.js
-// 二级页面统一框架：红色渐变页头或财务页紧凑浅色页头
-// theme 控制页头配色：red（默认）/ green
+// 二级页面统一框架：渐变页头 + 标题 + 副标题标签 + 内容区
+// theme 控制页头配色：red（默认）/ green（阳光绿渐变，用于财务公开）
 // customNav 为 true 时页面为全屏（页面 json 需配 navigationStyle: custom），
 // 组件自动预留状态栏 + 胶囊安全区并渲染返回按钮
 const { getSafeArea } = require('../../utils/system');
