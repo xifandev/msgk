@@ -19,129 +19,11 @@
   height: 24rpx;
 }
 
-/* ---------- 时间选择条 ---------- */
-/* 不再做成独立卡片：去掉白底、描边和阴影，直接落在浅绿内容区上，
-   靠字号、留白和右侧文字链接区分层级，避免顶部堆三条横线 */
-.period {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  /* 左右内缩与下方结余卡的内文对齐（卡片外边距 24 + 内边距 28），保持视觉轴线一致 */
-  margin: 16rpx 24rpx 0;
-  padding: 10rpx 26rpx 6rpx;
-  min-height: 80rpx;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  box-sizing: border-box;
-}
-
-/* 无卡片时用文字变主色反馈，避免点按时整行闪白 */
-.period--hover .period__text,
-.period--hover .period__right {
-  color: #0a7d59;
-}
-
-.period__left {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-
-.period__text {
-  margin-left: 10rpx;
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #17211c;
-  letter-spacing: 0.5rpx;
-}
-
-.period__right {
-  display: flex;
-  align-items: center;
-  font-size: 26rpx;
-  color: #8f939a;
-}
-
-.period__right text {
-  margin-right: 6rpx;
-}
-
 /* 吸顶标签栏与浅绿内容区之间靠色差分界，去掉组件自带的分隔线（addGlobalClass 已开启）；
    只留一层极淡的投影，内容滚到栏下方时才有层次，静止时几乎看不见 */
 .ms-tabs.is-sticky .ms-tabs__nav {
   border-bottom: 0;
   box-shadow: 0 3rpx 10rpx rgba(6, 89, 63, 0.04);
-}
-
-/* ---------- 结余主卡 ---------- */
-.balance {
-  margin: 22rpx 24rpx 0;
-  padding: 32rpx 28rpx 26rpx;
-  border-radius: 28rpx;
-  /* 去掉描边后靠渐变自身的深浅拉开与浅绿底色的差别（浅端不能太接近 #f4faf6），再加投影分层 */
-  background: linear-gradient(148deg, #d9fae8 0%, #c2f2d7 50%, #a2e7c2 100%);
-  box-shadow: 0 14rpx 32rpx rgba(32, 143, 91, 0.13);
-}
-
-.balance__label {
-  font-size: 26rpx;
-  color: #386b52;
-  letter-spacing: 1rpx;
-}
-
-.balance__value {
-  margin-top: 14rpx;
-  font-size: 68rpx;
-  font-weight: 700;
-  color: #0c5a38;
-  line-height: 1.2;
-  letter-spacing: 1rpx;
-  word-break: break-all;
-}
-
-/* 结余为负（支大于收）时换暖色，并保留负号，不只靠颜色区分 */
-.balance__value.is-negative {
-  color: #9a5410;
-}
-
-.balance__flow {
-  display: flex;
-  align-items: center;
-  margin-top: 26rpx;
-  padding: 18rpx 10rpx;
-  border-radius: 18rpx;
-  background: rgba(255, 255, 255, 0.52);
-}
-
-/* 两栏之间靠间距分隔，不画竖线 */
-.flow {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 0;
-}
-
-.flow__label {
-  font-size: 23rpx;
-  color: #386b52;
-}
-
-.flow__value {
-  margin-top: 8rpx;
-  font-size: 30rpx;
-  font-weight: 600;
-  letter-spacing: 0;
-  word-break: break-all;
-}
-
-.flow__value.is-income {
-  color: #0a7d59;
-}
-
-.flow__value.is-expense {
-  color: #c98214;
 }
 
 /* ---------- 区块标题 ---------- */
@@ -286,10 +168,10 @@
   color: #17211c;
 }
 
-/* ---------- 年度账单卡 ---------- */
-/* 深绿实地卡片，只承载三个数值结论：期末结余为主视觉，年总收入 / 年总支出在下沿分行对置。
-   年份切换收进标题行，上方不再单独占一条选择条。 */
-.year {
+/* ---------- 账单卡（月度 / 年度共用） ---------- */
+/* 深绿实地卡片，只承载三个数值结论：期末结余为主视觉，收入 / 支出在下沿分行对置。
+   切换时间的入口收在标题行右侧，页面上不再单独占一条选择条。 */
+.bill-card {
   position: relative;
   overflow: hidden;
   margin: 26rpx 24rpx 0;
@@ -300,7 +182,7 @@
 }
 
 /* 右上角柔光：纯装饰，不承载信息 */
-.year__glow {
+.bill-card__glow {
   position: absolute;
   top: -170rpx;
   right: -130rpx;
@@ -311,14 +193,14 @@
   pointer-events: none;
 }
 
-.year__head {
+.bill-card__head {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.year__title {
+.bill-card__title {
   flex: 1;
   min-width: 0;
   font-size: 34rpx;
@@ -327,8 +209,8 @@
   letter-spacing: 1rpx;
 }
 
-/* 年份切换收进卡片标题右侧：描边胶囊 + 下拉箭头，既能读又能点 */
-.year__switch {
+/* 切换年份 / 切换月份收进卡片标题右侧：描边胶囊 + 下拉箭头，既能读又能点 */
+.bill-card__switch {
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -338,43 +220,43 @@
   border-radius: 999rpx;
 }
 
-.year__switch--hover {
+.bill-card__switch--hover {
   background: rgba(255, 255, 255, 0.12);
 }
 
-.year__switch-text {
+.bill-card__switch-text {
   margin-right: 6rpx;
   font-size: 23rpx;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.82);
 }
 
-/* 该年没有公开账单：不摆一排 0.00，只留一句结论 */
-.year__empty {
+/* 该月 / 该年没有公开账单：不摆一排 0.00，只留一句结论 */
+.bill-card__empty {
   position: relative;
   margin-top: 44rpx;
   padding-bottom: 6rpx;
 }
 
-.year__empty-text {
+.bill-card__empty-text {
   font-size: 26rpx;
   color: rgba(255, 255, 255, 0.6);
   line-height: 1.6;
 }
 
-.year__hero {
+.bill-card__hero {
   position: relative;
   margin-top: 48rpx;
 }
 
-.year__hero-label {
+.bill-card__hero-label {
   display: block;
   font-size: 24rpx;
   color: rgba(255, 255, 255, 0.58);
   letter-spacing: 2rpx;
 }
 
-.year__hero-value {
+.bill-card__hero-value {
   display: block;
   margin-top: 16rpx;
   font-size: 76rpx;
@@ -386,11 +268,11 @@
 }
 
 /* 年结余为负时换成暖沙色，不只靠符号区分 */
-.year__hero-value.is-negative {
+.bill-card__hero-value.is-negative {
   color: #f7c98d;
 }
 
-.year__flow {
+.bill-card__flow {
   position: relative;
   display: flex;
   align-items: flex-end;
@@ -399,25 +281,25 @@
   border-top: 1rpx solid rgba(255, 255, 255, 0.14);
 }
 
-.year__item {
+.bill-card__item {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
 }
 
-.year__item--right {
+.bill-card__item--right {
   align-items: flex-end;
   text-align: right;
 }
 
-.year__item-label {
+.bill-card__item-label {
   font-size: 24rpx;
   color: rgba(255, 255, 255, 0.58);
   letter-spacing: 1rpx;
 }
 
-.year__item-value {
+.bill-card__item-value {
   margin-top: 12rpx;
   font-size: 38rpx;
   font-weight: 600;
@@ -425,11 +307,11 @@
   word-break: break-all;
 }
 
-.year__item-value.is-income {
+.bill-card__item-value.is-income {
   color: #7fe3b4;
 }
 
-.year__item-value.is-expense {
+.bill-card__item-value.is-expense {
   color: #f6cd8e;
 }
 
