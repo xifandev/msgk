@@ -17,8 +17,8 @@ function dayLabel(date) {
 }
 
 Page({
-  // 忽略旧请求的响应，防止切换月份/年份时旧数据覆盖新数据
-  monthlyRequestId: 0,
+  // 忽略旧请求的响应，防止切换/翻页时旧数据覆盖新数据
+  streamRequestId: 0,
   yearlyRequestId: 0,
   detailRequestId: 0,
   periodRequestId: 0,
@@ -33,14 +33,12 @@ Page({
     venueId: '',
     venueName: '',
 
-    // --------- 月度 ---------
-    month: '', // YYYY-MM
-    monthText: '',
-    bill: null, // 结余卡数据（期末结余 + 本月收入/支出）
-    items: [],
-    groups: [], // 按日期分组的明细
-    monthLoaded: false,
-    monthError: false,
+    // --------- 月度（信息流：分页拉取已公开月份汇总，下滑加载更多） ---------
+    monthList: [], // [{ month, monthText, incomeText, expenseText, currentText, currentNegative }]
+    monthStreamState: 'idle', // idle | loading | ready | error
+    streamLoadingMore: false,
+    monthHasMore: false,
+    monthOverview: null, // 顶部总览卡：{ publishedText, latestText, latestNegative, incomeText, expenseText }
 
     // --------- 年度 ---------
     year: 0,
@@ -60,6 +58,7 @@ Page({
 
     // --------- 年度页：月度明细抽屉 ---------
     detailShow: false,
+    detailList: [], // 当前抽屉的月份列表（月度信息流 / 年度月份），用于上下月切换
     detailMonth: '', // YYYY-MM
     detailMonthText: '',
     detailIndex: -1, // 在 months 中的位置，用于上下月切换
@@ -72,62 +71,100 @@ Page({
     detailScrollTop: 0, // 切月时在 0/1 之间交替，用于把明细区滚回顶部
   },
 
-  // ------------------- 月度 -------------------
-  loadMonthly() {
-    const requestId = ++this.monthlyRequestId;
-    this.setData({ monthLoaded: false, monthError: false });
-    get('/api/public/finance/monthly', {
-      venueId: this.data.venueId,
-      // 月份为空时由服务端解析为该场所最近一次对外公开的月份
-      month: this.data.month,
-    })
+  // ------------------- 月度（信息流分页） -------------------
+  loadMonthStream(reset) {
+    const requestId = ++this.streamRequestId;
+    this.setData(
+      reset
+        ? { monthStreamState: 'loading', monthList: [], monthHasMore: false, streamLoadingMore: false, monthOverview: null }
+        : { streamLoadingMore: true }
+    );
+
+    const before = reset ? '' : this.currentStreamCursor();
+    const params = { venueId: this.data.venueId, limit: 10 };
+    if (before) {
+      params.before = before;
+    }
+    get('/api/public/finance/months', params, { loading: false })
       .then((res) => {
-        if (requestId !== this.monthlyRequestId) {
+        if (requestId !== this.streamRequestId) {
           return;
         }
-        const bill = this.buildBill(res.bill);
-        const items = this.mapItems(res.items);
-        const monthPatch = this.resolveMonth(res.month);
-        this.setData(
-          Object.assign(
-            { bill, items, groups: this.groupByDay(items), monthLoaded: true },
-            monthPatch
-          ),
-          () => {
-            // 年份跟随最新公开月份变化时，补齐已激活的年度页
-            if (monthPatch && monthPatch.year != null && this.data.active === 1) {
-              this.loadYearly();
+        const rows = this.mapStreamMonths(res.months);
+        const next = {
+          monthStreamState: 'ready',
+          monthList: reset ? rows : this.data.monthList.concat(rows),
+          monthHasMore: !!res.hasMore,
+          streamLoadingMore: false,
+        };
+        if (reset) {
+          next.monthOverview = this.buildOverview(res.overview);
+          // 年度页年份跟随最近公开月份，避免跨年时年度页默认落在空年份
+          const first = rows[0];
+          if (first) {
+            const firstYear = Number(String(first.month).slice(0, 4));
+            if (firstYear && firstYear !== this.data.year) {
+              next.year = firstYear;
             }
           }
-        );
+        }
+        this.setData(next);
       })
       .catch(() => {
-        if (requestId !== this.monthlyRequestId) {
+        if (requestId !== this.streamRequestId) {
           return;
         }
-        this.setData({ bill: null, items: [], groups: [], monthLoaded: true, monthError: true });
+        this.setData({ streamLoadingMore: false, ...(reset ? { monthStreamState: 'error' } : {}) });
       });
   },
 
-  // 服务端回传的实际月份 → 页面展示状态（月份、选择器定位、年度页年份）
-  resolveMonth(month) {
-    if (!month) {
-      return this.data.month ? null : { monthText: '暂无公开记录' };
-    }
-    if (month === this.data.month) {
+  // 当前已加载的最早月份，作为翻页游标（列表按月份降序追加）
+  currentStreamCursor() {
+    const list = this.data.monthList;
+    return list.length ? list[list.length - 1].month : '';
+  },
+
+  // 月份汇总行 → 卡片渲染数据
+  mapStreamMonths(rawMonths) {
+    return (rawMonths || []).map((item) => {
+      const parts = String(item.month).split('-');
+      const currentNum = Number(item.currentBalance) || 0;
+      return {
+        month: item.month,
+        monthText: parts.length === 2 ? `${parts[0]}年${parseInt(parts[1], 10)}月` : String(item.month),
+        incomeText: formatAmount(Number(item.income) || 0),
+        expenseText: formatAmount(Number(item.expense) || 0),
+        currentText: formatAmount(currentNum),
+        currentNegative: currentNum < 0,
+      };
+    });
+  },
+
+  // 顶部总览卡：公开月数 + 最新期末结余 + 累计收入/支出
+  buildOverview(raw) {
+    if (!raw || Number(raw.publishedCount) <= 0) {
       return null;
     }
-    const [y, m] = month.split('-');
-    const targetYear = Number(y);
-    const patch = {
-      month,
-      monthText: `${y}年${parseInt(m, 10)}月`,
+    const latest = Number(raw.latestBalance) || 0;
+    return {
+      publishedText: String(raw.publishedCount),
+      latestText: formatAmount(latest),
+      latestNegative: latest < 0,
+      incomeText: formatAmount(Number(raw.totalIncome) || 0),
+      expenseText: formatAmount(Number(raw.totalExpense) || 0),
     };
-    // 年度页年份跟随最近公开月份变化
-    if (targetYear !== this.data.year) {
-      patch.year = targetYear;
+  },
+
+  // 触底加载更多（page-main 的 chudi 事件），仅月度页生效
+  onScrollLower() {
+    if (this.data.active !== 0 || this.data.streamLoadingMore || !this.data.monthHasMore) {
+      return;
     }
-    return patch;
+    this.loadMonthStream(false);
+  },
+
+  retryMonthStream() {
+    this.loadMonthStream(true);
   },
 
   // 明细行统一加工：收支文案、带符号金额、日期（月度页与抽屉共用）
@@ -169,11 +206,7 @@ Page({
     return groups;
   },
 
-  // ------------------- 选择月份 / 年份（只列已公开账期） -------------------
-  openMonthPicker() {
-    this.openPeriods('month');
-  },
-
+  // ------------------- 选择年份（只列有已公开账期的年份） -------------------
   openYearPicker() {
     this.openPeriods('year');
   },
@@ -244,30 +277,6 @@ Page({
       groups,
       years: groups.filter((group) => group.published > 0).map((group) => ({ year: group.year })),
     };
-  },
-
-  selectMonth(e) {
-    const dataset = (e.currentTarget && e.currentTarget.dataset) || {};
-    const month = dataset.month;
-    // 仅接受已公开月份，异常或旧响应中的其他状态一律不进入
-    if (!month || dataset.status !== 'published') {
-      return;
-    }
-    const parts = String(month).split('-');
-    this.setData(
-      {
-        month,
-        monthText: `${parts[0]}年${parseInt(parts[1], 10)}月`,
-        periodsShow: false,
-        bill: null,
-        items: [],
-        groups: [],
-        // 先回到加载态，避免切换瞬间闪出"该月暂无公开账单"
-        monthLoaded: false,
-        monthError: false,
-      },
-      () => this.loadMonthly()
-    );
   },
 
   selectYear(e) {
@@ -351,11 +360,21 @@ Page({
   },
 
   // ------------------- 年度页：月度明细抽屉 -------------------
-  // 点开某个月份卡片：先出抽屉骨架，再补该月收支明细（接口复用公开月度接口）
+  // 年度页：点开某个月份卡片（明细接口复用公开月度接口）
   openMonthDetail(e) {
-    const dataset = (e.currentTarget && e.currentTarget.dataset) || {};
-    const index = Number(dataset.index);
-    const target = this.data.months[index];
+    const index = Number(((e.currentTarget && e.currentTarget.dataset) || {}).index);
+    this.setData({ detailList: this.data.months }, () => this.showMonthDetail(index));
+  },
+
+  // 月度信息流：点开某个月份卡片
+  openStreamMonthDetail(e) {
+    const index = Number(((e.currentTarget && e.currentTarget.dataset) || {}).index);
+    this.setData({ detailList: this.data.monthList }, () => this.showMonthDetail(index));
+  },
+
+  // 展开抽屉：先出骨架，再补该月收支明细
+  showMonthDetail(index) {
+    const target = this.data.detailList[index];
     if (!target) {
       return;
     }
@@ -387,7 +406,7 @@ Page({
   switchMonthDetail(e) {
     const step = Number((e.currentTarget && e.currentTarget.dataset || {}).step) || 0;
     const index = this.data.detailIndex + step;
-    const target = this.data.months[index];
+    const target = this.data.detailList[index];
     if (!step || !target) {
       return;
     }
@@ -414,7 +433,7 @@ Page({
   resolveNav(index) {
     return {
       detailPrev: index > 0,
-      detailNext: index >= 0 && index < this.data.months.length - 1,
+      detailNext: index >= 0 && index < this.data.detailList.length - 1,
     };
   },
 
@@ -486,21 +505,13 @@ Page({
       return;
     }
 
-    // 默认视图由服务端解析为该场所最近一次对外公开的月份，年度页年份随之对齐
+    // 月度页默认拉取最近一批已公开月份；年度页年份随后对齐到最新公开月份
     const currentYear = new Date().getFullYear();
 
-    this.setData(
-      {
-        venueId,
-        month: '',
-        monthText: '',
-        year: currentYear,
-      },
-      () => {
-        this.loadVenueName();
-        this.loadMonthly();
-      }
-    );
+    this.setData({ venueId, year: currentYear }, () => {
+      this.loadVenueName();
+      this.loadMonthStream(true);
+    });
   },
 
   // 切换标签页：ms-tabs 为受控组件，需同步 active

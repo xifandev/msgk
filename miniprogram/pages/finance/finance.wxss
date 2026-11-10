@@ -212,7 +212,16 @@
   letter-spacing: 1rpx;
 }
 
-/* 切换年份 / 切换月份：白底深绿字的实心胶囊，在深绿卡上作为明确的可点动作 */
+/* 标题右侧的辅助信息（如"已公开 N 个月"），弱化的小字 */
+.bill-card__meta {
+  flex-shrink: 0;
+  margin-left: 20rpx;
+  font-size: 23rpx;
+  color: rgba(255, 255, 255, 0.72);
+  letter-spacing: 1rpx;
+}
+
+/* 切换年份：白底深绿字的实心胶囊，在深绿卡上作为明确的可点动作 */
 .bill-card__switch {
   flex-shrink: 0;
   display: flex;
@@ -411,6 +420,19 @@
   color: #9a5410;
 }
 
+/* ---------- 信息流加载更多页脚 ---------- */
+.stream-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx 0 6rpx;
+}
+
+.stream-foot__text {
+  font-size: 23rpx;
+  color: #8f9a94;
+}
+
 /* ---------- 空态 / 骨架 / 说明 ---------- */
 .empty-card {
   margin: 18rpx 24rpx 0;
@@ -425,6 +447,19 @@
   color: #9db2a7;
   line-height: 1.6;
   text-align: center;
+}
+
+.empty-card__retry {
+  margin-top: 22rpx;
+  padding: 12rpx 36rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid #b9dccb;
+  font-size: 26rpx;
+  color: #0a7d59;
+}
+
+.empty-card__retry--hover {
+  background: #eef7f2;
 }
 
 .skeleton {
