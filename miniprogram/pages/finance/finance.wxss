@@ -601,7 +601,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 14rpx 90rpx 18rpx;
+  padding: 14rpx 96rpx 18rpx;
 }
 
 /* 左右切月：到达当前年份首末月后置灰且不再响应点按 */
@@ -643,11 +643,11 @@
 
 .sheet__close {
   position: absolute;
-  right: 14rpx;
+  right: 12rpx;
   top: 50%;
   transform: translateY(-50%);
-  width: 60rpx;
-  height: 60rpx;
+  width: 76rpx;
+  height: 76rpx;
   border-radius: 50%;
   display: flex;
   align-items: center;

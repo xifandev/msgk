@@ -228,7 +228,7 @@
       </view>
 
       <view class="sheet__close" bind:tap="closeMonthDetail" hover-class="sheet__close--hover" aria-role="button" aria-label="关闭明细">
-        <ms-icon name="cross" size="30rpx" color="#9aa3a0" />
+        <ms-icon name="cross" size="36rpx" color="#8d968f" />
       </view>
     </view>
 
