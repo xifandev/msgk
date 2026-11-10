@@ -16,28 +16,19 @@
             </view>
           </view>
 
-          <!-- 该月明细：沿用原单月明细的日期分组排版 -->
-          <block wx:if="{{ mo.groups.length > 0 }}">
-            <view class="day" wx:for="{{ mo.groups }}" wx:key="date" wx:for-item="g">
-              <view class="day__head">
-                <view class="day__dot"></view>
-                <text class="day__date">{{ g.label }}</text>
+          <!-- 该月明细：一个月一张白卡直接铺开，日期放在摘要下方随行展示 -->
+          <view class="bills-card" wx:if="{{ mo.items.length > 0 }}">
+            <view class="bill" wx:for="{{ mo.items }}" wx:for-item="row" wx:key="id">
+              <view class="bill__mark {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">
+                <text class="bill__kind">{{ row.kindText }}</text>
               </view>
-
-              <view class="day__card">
-                <view class="bill" wx:for="{{ g.items }}" wx:for-item="row" wx:key="id">
-                  <view class="bill__mark {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">
-                    <text class="bill__glyph">{{ row.sign }}</text>
-                  </view>
-                  <view class="bill__body">
-                    <text class="bill__summary">{{ row.summary || '未填写摘要' }}</text>
-                    <text class="bill__sub">{{ row.kindText }}</text>
-                  </view>
-                  <text class="bill__amount {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">{{ row.amountText }}</text>
-                </view>
+              <view class="bill__body">
+                <text class="bill__summary">{{ row.summary || '未填写摘要' }}</text>
+                <text class="bill__sub">{{ row.dateLabel }}</text>
               </view>
+              <text class="bill__amount {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">{{ row.amountText }}</text>
             </view>
-          </block>
+          </view>
 
           <view class="month-group__empty" wx:else>
             <text class="month-group__empty-text">该月暂无收支明细</text>
@@ -261,27 +252,18 @@
     </view>
 
     <scroll-view scroll-y scroll-top="{{ detailScrollTop }}" class="sheet__scroll" wx:if="{{ detailState === 'ready' }}">
-      <block wx:if="{{ detailGroups.length > 0 }}">
-          <view class="day" wx:for="{{ detailGroups }}" wx:key="date">
-            <view class="day__head">
-              <view class="day__dot"></view>
-              <text class="day__date">{{ item.label }}</text>
-            </view>
-
-            <view class="day__card">
-              <view class="bill" wx:for="{{ item.items }}" wx:for-item="row" wx:key="id">
-                <view class="bill__mark {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">
-                  <text class="bill__glyph">{{ row.sign }}</text>
-                </view>
-                <view class="bill__body">
-                  <text class="bill__summary">{{ row.summary || '未填写摘要' }}</text>
-                  <text class="bill__sub">{{ row.kindText }}</text>
-                </view>
-                <text class="bill__amount {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">{{ row.amountText }}</text>
-              </view>
-            </view>
+      <view class="bills-card" wx:if="{{ detailItems.length > 0 }}">
+        <view class="bill" wx:for="{{ detailItems }}" wx:for-item="row" wx:key="id">
+          <view class="bill__mark {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">
+            <text class="bill__kind">{{ row.kindText }}</text>
           </view>
-      </block>
+          <view class="bill__body">
+            <text class="bill__summary">{{ row.summary || '未填写摘要' }}</text>
+            <text class="bill__sub">{{ row.dateLabel }}</text>
+          </view>
+          <text class="bill__amount {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">{{ row.amountText }}</text>
+        </view>
+      </view>
 
       <view class="sheet__empty" wx:else>
         <ms-empty description="{{ detailBill ? '该月无收支明细' : '该月暂无公开数据' }}" />

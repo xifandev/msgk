@@ -64,7 +64,7 @@ Page({
     detailNext: false,
     detailState: 'idle', // idle | loading | ready | error
     detailBill: null,
-    detailGroups: [],
+    detailItems: [],
     detailSub: '',
     detailScrollTop: 0, // 切月时在 0/1 之间交替，用于把明细区滚回顶部
   },
@@ -121,7 +121,7 @@ Page({
     return list.length ? list[list.length - 1].month : '';
   },
 
-  // 月份汇总行 → 卡片渲染数据（含该月明细，按日期分组，直接铺开）
+  // 月份汇总行 → 卡片渲染数据（含该月全部明细，直接铺开，不再按日分组）
   mapStreamMonths(rawMonths) {
     return (rawMonths || []).map((item) => {
       const parts = String(item.month).split('-');
@@ -131,7 +131,7 @@ Page({
         monthText: parts.length === 2 ? `${parts[0]}年${parseInt(parts[1], 10)}月` : String(item.month),
         incomeText: formatAmount(Number(item.income) || 0),
         expenseText: formatAmount(Number(item.expense) || 0),
-        groups: this.groupByDay(items),
+        items,
         count: items.length,
       };
     });
@@ -149,15 +149,20 @@ Page({
     this.loadMonthStream(true);
   },
 
-  // 明细行统一加工：收支文案、带符号金额（收入 + / 支出 -，不只靠颜色区分）、日期（月度页与抽屉共用）
+  // 明细行统一加工：收支文案、带符号金额（收入 + / 支出 -，不只靠颜色区分）、
+  // 日期标签（直接展示在行内，月度页与抽屉共用，不再按日分组）
   mapItems(rawItems) {
-    return (rawItems || []).map((item) => ({
-      ...item,
-      kindText: item.kind === 'expense' ? '支出' : '收入',
-      sign: item.kind === 'expense' ? '−' : '+',
-      amountText: `${item.kind === 'expense' ? '-' : '+'}${formatAmount(Math.abs(Number(item.amount) || 0))}`,
-      date: formatDate(item.occurredOn),
-    }));
+    return (rawItems || []).map((item) => {
+      const date = formatDate(item.occurredOn);
+      return {
+        ...item,
+        kindText: item.kind === 'expense' ? '支出' : '收入',
+        sign: item.kind === 'expense' ? '−' : '+',
+        amountText: `${item.kind === 'expense' ? '-' : '+'}${formatAmount(Math.abs(Number(item.amount) || 0))}`,
+        date,
+        dateLabel: dayLabel(date),
+      };
+    });
   },
 
   // 结余卡：期末结余（截至当月末的累计结余）+ 本月收入/支出
@@ -172,21 +177,6 @@ Page({
       currentText: formatAmount(current),
       currentNegative: current < 0,
     };
-  },
-
-  // 明细按日期分组
-  groupByDay(items) {
-    const groups = [];
-    const index = {};
-    items.forEach((item) => {
-      const key = item.date || '未知日期';
-      if (index[key] == null) {
-        index[key] = groups.length;
-        groups.push({ date: key, label: dayLabel(key), items: [] });
-      }
-      groups[index[key]].items.push(item);
-    });
-    return groups;
   },
 
   // ------------------- 选择年份（只列有已公开账期的年份） -------------------
@@ -362,7 +352,7 @@ Page({
           // 先清掉上一个月份的明细，避免抽屉上升过程中闪出旧数据
           detailState: 'loading',
           detailBill: null,
-          detailGroups: [],
+          detailItems: [],
           detailSub: '正在加载明细',
         },
         this.resolveNav(index)
@@ -426,7 +416,7 @@ Page({
     this.setData({
       detailState: 'loading',
       detailBill: null,
-      detailGroups: [],
+      detailItems: [],
       detailSub: '正在加载明细',
     });
     get('/api/public/finance/monthly', { venueId: this.data.venueId, month }, { loading: false })
@@ -434,7 +424,7 @@ Page({
         const items = this.mapItems(res.items);
         const detail = {
           detailBill: this.buildBill(res.bill),
-          detailGroups: this.groupByDay(items),
+          detailItems: items,
           detailSub: items.length
             ? `共 ${items.length} 笔明细`
             : res.bill
@@ -451,7 +441,7 @@ Page({
         if (requestId !== this.detailRequestId) {
           return;
         }
-        this.setData({ detailState: 'error', detailBill: null, detailGroups: [], detailSub: '明细加载失败' });
+        this.setData({ detailState: 'error', detailBill: null, detailItems: [], detailSub: '明细加载失败' });
       });
   },
 
