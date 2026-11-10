@@ -11,8 +11,14 @@
               <text class="month-group__meta" wx:if="{{ mo.count > 0 }}">共 {{ mo.count }} 笔</text>
             </view>
             <view class="month-group__sum" wx:if="{{ mo.count > 0 }}">
-              <text class="month-group__sum-item is-income">收 {{ mo.incomeText }}</text>
-              <text class="month-group__sum-item is-expense">支 {{ mo.expenseText }}</text>
+              <view class="month-group__sum-item">
+                <text class="month-group__sum-label is-income">收</text>
+                <text class="month-group__sum-value">{{ mo.incomeText }}</text>
+              </view>
+              <view class="month-group__sum-item">
+                <text class="month-group__sum-label is-expense">支</text>
+                <text class="month-group__sum-value">{{ mo.expenseText }}</text>
+              </view>
             </view>
           </view>
 
@@ -20,22 +26,23 @@
           <block wx:if="{{ mo.groups.length > 0 }}">
             <view class="day" wx:for="{{ mo.groups }}" wx:key="date" wx:for-item="g">
               <view class="day__head">
-                <view class="day__date">
-                  <view class="day__dot"></view>
-                  <text>{{ g.label }}</text>
-                </view>
+                <text class="day__date">{{ g.label }}</text>
+                <view class="day__rule"></view>
               </view>
 
               <view class="day__card">
                 <view class="bill" wx:for="{{ g.items }}" wx:for-item="row" wx:key="id">
-                  <view class="bill__icon {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">
-                    <text class="bill__glyph">{{ row.kind === 'expense' ? '−' : '+' }}</text>
+                  <view class="bill__mark {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">
+                    <text class="bill__glyph">{{ row.sign }}</text>
                   </view>
                   <view class="bill__body">
                     <text class="bill__summary">{{ row.summary || '未填写摘要' }}</text>
                     <text class="bill__sub">{{ row.kindText }}</text>
                   </view>
-                  <text class="bill__amount {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">{{ row.amountText }}</text>
+                  <view class="bill__amount {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">
+                    <text class="bill__currency">¥</text>
+                    <text class="bill__value">{{ row.amountText }}</text>
+                  </view>
                 </view>
               </view>
             </view>
@@ -264,27 +271,28 @@
 
     <scroll-view scroll-y scroll-top="{{ detailScrollTop }}" class="sheet__scroll" wx:if="{{ detailState === 'ready' }}">
       <block wx:if="{{ detailGroups.length > 0 }}">
-        <view class="day" wx:for="{{ detailGroups }}" wx:key="date">
-          <view class="day__head">
-            <view class="day__date">
-              <view class="day__dot"></view>
-              <text>{{ item.label }}</text>
+          <view class="day" wx:for="{{ detailGroups }}" wx:key="date">
+            <view class="day__head">
+              <text class="day__date">{{ item.label }}</text>
+              <view class="day__rule"></view>
             </view>
-          </view>
 
-          <view class="day__card">
-            <view class="bill" wx:for="{{ item.items }}" wx:for-item="row" wx:key="id">
-              <view class="bill__icon {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">
-                <text class="bill__glyph">{{ row.kind === 'expense' ? '−' : '+' }}</text>
+            <view class="day__card">
+              <view class="bill" wx:for="{{ item.items }}" wx:for-item="row" wx:key="id">
+                <view class="bill__mark {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">
+                  <text class="bill__glyph">{{ row.sign }}</text>
+                </view>
+                <view class="bill__body">
+                  <text class="bill__summary">{{ row.summary || '未填写摘要' }}</text>
+                  <text class="bill__sub">{{ row.kindText }}</text>
+                </view>
+                <view class="bill__amount {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">
+                  <text class="bill__currency">¥</text>
+                  <text class="bill__value">{{ row.amountText }}</text>
+                </view>
               </view>
-              <view class="bill__body">
-                <text class="bill__summary">{{ row.summary || '未填写摘要' }}</text>
-                <text class="bill__sub">{{ row.kindText }}</text>
-              </view>
-              <text class="bill__amount {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">{{ row.amountText }}</text>
             </view>
           </view>
-        </view>
       </block>
 
       <view class="sheet__empty" wx:else>

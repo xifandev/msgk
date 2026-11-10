@@ -1,5 +1,6 @@
-/* 财务公开：账单式设计 · 阳光绿主题（公开 / 明亮 / 通透）
-   色彩：主色 #0a7d59，嫩绿 #35c885，浅绿底 #f4faf6；支出用暖沙色 #c98214 区分 */
+/* 财务公开：对账单式设计 · 阳光绿主题（公开 / 明亮 / 通透）
+   色彩：主色 #0a7d59，浅绿底 #f4faf6；支出用暗金 #b97a10 点缀。
+   版式原则：编辑排版式层级 —— 细线代替色块、留白分组、单一墨绿 + 暖金两个点缀色 */
 
 .pane {
   background: #f4faf6;
@@ -60,14 +61,14 @@
 /* ---------- 公开明细：月份分组信息流 ---------- */
 /* 每个公开月份一组：顶部是月份标题 + 该月收支小结，下面是按日期分组的完整明细 */
 .month-group {
-  margin-top: 28rpx;
+  margin-top: 48rpx;
 }
 
 .month-group__head {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  padding: 0 24rpx 14rpx;
+  padding: 0 28rpx 16rpx;
 }
 
 .month-group__title-box {
@@ -77,47 +78,63 @@
 }
 
 .month-group__title {
-  font-size: 34rpx;
+  font-size: 36rpx;
   font-weight: 700;
   color: #17211c;
-  letter-spacing: 0.5rpx;
+  letter-spacing: 1rpx;
 }
 
 .month-group__meta {
   margin-left: 14rpx;
-  font-size: 23rpx;
-  color: #8f9a94;
+  font-size: 22rpx;
+  color: #9aa5a0;
+  letter-spacing: 1rpx;
 }
 
 .month-group__sum {
   flex-shrink: 0;
   display: flex;
-  align-items: center;
+  align-items: baseline;
 }
 
 .month-group__sum-item {
-  font-size: 24rpx;
-  color: #7f8782;
+  display: flex;
+  align-items: baseline;
 }
 
 .month-group__sum-item + .month-group__sum-item {
-  margin-left: 16rpx;
+  margin-left: 24rpx;
 }
 
-.month-group__sum-item.is-income {
-  color: #0a7d59;
+/* 收/支只是小标签，数值用墨色 —— 颜色退居其次，层级靠字重 */
+.month-group__sum-label {
+  margin-right: 8rpx;
+  font-size: 21rpx;
+  color: #9aa5a0;
+  letter-spacing: 1rpx;
 }
 
-.month-group__sum-item.is-expense {
-  color: #c98214;
+.month-group__sum-label.is-income {
+  color: #3d9b76;
+}
+
+.month-group__sum-label.is-expense {
+  color: #b97a10;
+}
+
+.month-group__sum-value {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #17211c;
+  letter-spacing: 0.5rpx;
 }
 
 .month-group__empty {
   margin: 0 24rpx;
-  padding: 30rpx 24rpx;
+  padding: 34rpx 24rpx;
   background: #fff;
-  border-radius: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(6, 89, 63, 0.05);
+  border: 1rpx solid #e8efea;
+  border-radius: 24rpx;
   text-align: center;
 }
 
@@ -127,77 +144,98 @@
 }
 
 /* ---------- 日期分组 ---------- */
+/* 日期是小字标签 + 向右延伸的细线，像对账单的栏头，不再用圆点 */
 .day {
-  margin: 0 24rpx 20rpx;
+  margin: 0 24rpx 24rpx;
 }
 
 .day__head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 8rpx 12rpx;
+  padding: 0 10rpx 14rpx;
 }
 
 .day__date {
-  display: flex;
-  align-items: center;
-  font-size: 26rpx;
-  color: #4c545e;
+  flex-shrink: 0;
+  font-size: 22rpx;
+  color: #8f9a94;
   font-weight: 500;
+  letter-spacing: 2rpx;
 }
 
-.day__dot {
-  width: 8rpx;
-  height: 8rpx;
-  border-radius: 50%;
-  background: #17a273;
-  margin-right: 10rpx;
+.day__rule {
+  flex: 1;
+  height: 1rpx;
+  margin-left: 18rpx;
+  background: #e3ebe6;
 }
 
+/* 卡片改平面细边：投影只留一丝，靠留白和细线分层 */
 .day__card {
   background: #fff;
-  border-radius: 20rpx;
-  padding: 4rpx 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(6, 89, 63, 0.05);
+  border: 1rpx solid #e8efea;
+  border-radius: 24rpx;
+  padding: 6rpx 28rpx;
+  box-shadow: 0 1rpx 3rpx rgba(6, 89, 63, 0.03);
   overflow: hidden;
 }
 
 .bill {
+  position: relative;
   display: flex;
   align-items: center;
-  padding: 22rpx 0;
-  border-bottom: 1rpx solid #f2f5f3;
+  padding: 30rpx 0;
 }
 
-.bill:last-child {
-  border-bottom: none;
+/* 行间细线从文字左侧起，不穿过标记圆 */
+.bill::after {
+  content: '';
+  position: absolute;
+  left: 64rpx;
+  right: 0;
+  bottom: 0;
+  height: 1rpx;
+  background: #eef2ef;
 }
 
-.bill__icon {
+.bill:last-child::after {
+  display: none;
+}
+
+/* 收/支标记：细边空心圆 + 正负号，取代原来的大色块图标 */
+.bill__mark {
   flex-shrink: 0;
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: 22rpx;
+  box-sizing: border-box;
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.bill__icon.is-income {
-  background: linear-gradient(135deg, #1aab7c 0%, #0a7d59 100%);
+.bill__mark.is-income {
+  border: 1.5rpx solid #b7ddc9;
 }
 
-.bill__icon.is-expense {
-  background: linear-gradient(135deg, #f2b455 0%, #dd9a2b 100%);
+.bill__mark.is-expense {
+  border: 1.5rpx solid #ecd9b8;
 }
 
 /* 收/支用正负号区分，不只靠颜色 */
 .bill__glyph {
-  font-size: 40rpx;
+  font-size: 26rpx;
   font-weight: 500;
-  color: #fff;
   line-height: 1;
-  transform: translateY(-2rpx);
+  transform: translateY(-1rpx);
+}
+
+.bill__mark.is-income .bill__glyph {
+  color: #0a7d59;
+}
+
+.bill__mark.is-expense .bill__glyph {
+  color: #b97a10;
 }
 
 .bill__body {
@@ -205,35 +243,49 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 0 18rpx;
+  padding: 0 20rpx;
 }
 
 .bill__summary {
-  font-size: 30rpx;
-  color: #17211c;
+  font-size: 29rpx;
+  color: #1b241f;
   line-height: 1.5;
   word-break: break-all;
 }
 
 .bill__sub {
-  margin-top: 6rpx;
-  font-size: 24rpx;
-  color: #7f8782;
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: #8a918c;
+  letter-spacing: 1rpx;
 }
 
+/* 金额列：¥ 缩小降色，数字放大加粗 —— 整行唯一的重音 */
 .bill__amount {
   flex-shrink: 0;
-  margin-left: 12rpx;
-  font-size: 32rpx;
+  margin-left: 16rpx;
+  display: flex;
+  align-items: baseline;
+}
+
+.bill__currency {
+  margin-right: 4rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  color: #9aa5a0;
+}
+
+.bill__value {
+  font-size: 34rpx;
   font-weight: 600;
   letter-spacing: 0.5rpx;
 }
 
-.bill__amount.is-income {
+.bill__amount.is-income .bill__value {
   color: #0a7d59;
 }
 
-.bill__amount.is-expense {
+.bill__amount.is-expense .bill__value {
   color: #17211c;
 }
 
@@ -395,16 +447,17 @@
 /* ---------- 月度明细卡 ---------- */
 /* 卡片本身是抽屉入口：右侧给文字链接 + 箭头做可点提示，点按只加深投影，不整块变色 */
 .month {
-  margin: 0 24rpx 18rpx;
-  padding: 22rpx 24rpx 20rpx;
+  margin: 0 24rpx 20rpx;
+  padding: 26rpx 28rpx 24rpx;
   background: #fff;
-  border-radius: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(6, 89, 63, 0.05);
+  border: 1rpx solid #e8efea;
+  border-radius: 24rpx;
+  box-shadow: 0 1rpx 3rpx rgba(6, 89, 63, 0.03);
   transition: box-shadow 0.16s ease;
 }
 
 .month--hover {
-  box-shadow: 0 8rpx 22rpx rgba(6, 89, 63, 0.1);
+  box-shadow: 0 8rpx 20rpx rgba(6, 89, 63, 0.08);
 }
 
 .month__head {
@@ -451,7 +504,7 @@
 }
 
 .mstat + .mstat {
-  border-left: 1rpx solid #edf3ef;
+  border-left: 1rpx solid #f0f4f1;
 }
 
 .mstat__label {
@@ -664,10 +717,11 @@
   display: flex;
   align-items: stretch;
   margin: 0 24rpx;
-  padding: 20rpx 8rpx;
+  padding: 22rpx 8rpx;
   background: #fff;
-  border-radius: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(6, 89, 63, 0.05);
+  border: 1rpx solid #e8efea;
+  border-radius: 24rpx;
+  box-shadow: 0 1rpx 3rpx rgba(6, 89, 63, 0.03);
 }
 
 .sheet__scroll {

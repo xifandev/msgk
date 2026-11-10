@@ -149,12 +149,13 @@ Page({
     this.loadMonthStream(true);
   },
 
-  // 明细行统一加工：收支文案、带符号金额、日期（月度页与抽屉共用）
+  // 明细行统一加工：收支文案、金额（符号单独给左侧标记，金额列只留 ¥ + 数字）、日期（月度页与抽屉共用）
   mapItems(rawItems) {
     return (rawItems || []).map((item) => ({
       ...item,
       kindText: item.kind === 'expense' ? '支出' : '收入',
-      amountText: `${item.kind === 'expense' ? '-' : '+'}${formatAmount(item.amount)}`,
+      sign: item.kind === 'expense' ? '−' : '+',
+      amountText: formatAmount(Math.abs(Number(item.amount) || 0)),
       date: formatDate(item.occurredOn),
     }));
   },
