@@ -78,6 +78,12 @@ Component({
       }
     },
 
+    onMaskTap() {
+      if (this.data.closeOnClickOverlay) {
+        this.triggerEvent('close');
+      }
+    },
+
     // 手指是否落在面板顶部的拖动区
     inDragZone(clientY) {
       if (!this.data.dragZone) {
