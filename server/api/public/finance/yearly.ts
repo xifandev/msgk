@@ -31,11 +31,12 @@ export default defineEventHandler(async (event) => {
   const published = new Set(rows.map(row => row.bill_month))
 
   // 收入、支出、期末结余全部按明细现算；结余按截至当月末的明细净额滚动
+  // opening（期初结余/历史结余调整）只进入结余，不计入收入和支出
   const aggregates = await query<AggregateRow>(
     `SELECT DATE_FORMAT(occurred_on, '%Y-%m') AS ym,
             COALESCE(SUM(CASE WHEN kind = 'income' THEN amount ELSE 0 END), 0) AS income,
             COALESCE(SUM(CASE WHEN kind = 'expense' THEN amount ELSE 0 END), 0) AS expense,
-            COALESCE(SUM(CASE WHEN kind = 'income' THEN amount ELSE -amount END), 0) AS net
+            COALESCE(SUM(${balanceExpr()}), 0) AS net
      FROM bill_items WHERE venue_id = ? AND occurred_on < ? GROUP BY ym ORDER BY ym`,
     [venueId, `${Number(year) + 1}-01-01`]
   )

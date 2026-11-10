@@ -50,14 +50,14 @@
 
               <view class="day__card">
                 <view class="bill" wx:for="{{ item.items }}" wx:for-item="row" wx:key="id">
-                  <view class="bill__icon {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">
-                    <text class="bill__glyph">{{ row.kind === 'expense' ? '−' : '+' }}</text>
+                  <view class="bill__icon {{ row.kind === 'expense' ? 'is-expense' : row.kind === 'opening' ? 'is-opening' : 'is-income' }}">
+                    <text class="bill__glyph">{{ row.kind === 'expense' ? '−' : row.kind === 'opening' ? '＝' : '+' }}</text>
                   </view>
                   <view class="bill__body">
                     <text class="bill__summary">{{ row.summary || '未填写摘要' }}</text>
                     <text class="bill__sub">{{ row.kindText }}</text>
                   </view>
-                  <text class="bill__amount {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">{{ row.amountText }}</text>
+                  <text class="bill__amount {{ row.kind === 'expense' ? 'is-expense' : row.kind === 'opening' ? 'is-opening' : 'is-income' }}">{{ row.amountText }}</text>
                 </view>
               </view>
             </view>

@@ -1,6 +1,11 @@
 import { query } from './db'
 
-// 收入、支出、期末结余全部由 bill_items 实时计算，bills 表不再维护这些汇总值
+// 收入、支出、期末结余全部由 bill_items 实时计算，bills 表不再维护这些汇总值。
+// kind 取值：
+//   income  收入，计入收入合计与结余
+//   expense 支出，计入支出合计与结余（取负）
+//   opening 期初结余/历史结余调整，只计入结余，不计入收支合计
+export type ItemKind = 'income' | 'expense' | 'opening'
 
 export interface BillTotals {
   income: number
@@ -9,13 +14,13 @@ export interface BillTotals {
 
 const round2 = (value: number) => Math.round(value * 100) / 100
 
-// 从明细列表汇总收入/支出
+// 从明细列表汇总收入/支出（opening 类明细只影响结余，不进入收支合计）
 export function totalsFromItems(items: { kind: string, amount: number | string }[]): BillTotals {
   let income = 0
   let expense = 0
   for (const item of items) {
     if (item.kind === 'income') income += Number(item.amount)
-    else expense += Number(item.amount)
+    else if (item.kind === 'expense') expense += Number(item.amount)
   }
   return { income: round2(income), expense: round2(expense) }
 }
@@ -38,12 +43,16 @@ export async function getBillTotals(billIds: number[]) {
   return totals
 }
 
+// 结余口径：income 与 opening 累加，expense 累减（prefix 用于带表别名的查询）
+export const balanceExpr = (prefix = '') =>
+  `CASE WHEN ${prefix}kind = 'expense' THEN -${prefix}amount ELSE ${prefix}amount END`
+
 // 期末结余 = 截至该月末的全部明细净额（实时计算，不落库）
 export async function getBillBalance(venueId: number, month: string) {
   const [year, mon] = month.split('-').map(Number)
   const nextMonthStart = new Date(Date.UTC(year ?? 0, mon ?? 1, 1)).toISOString().slice(0, 10)
   const rows = await query<{ balance: number | string }>(
-    `SELECT COALESCE(SUM(CASE WHEN kind = 'income' THEN amount ELSE -amount END), 0) AS balance
+    `SELECT COALESCE(SUM(${balanceExpr()}), 0) AS balance
      FROM bill_items WHERE venue_id = ? AND occurred_on < ?`,
     [venueId, nextMonthStart]
   )

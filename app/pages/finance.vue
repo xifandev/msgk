@@ -63,9 +63,14 @@ const items = ref<any[]>([])
 const itemVisible = ref(false)
 const itemSaving = ref(false)
 const itemForm = reactive({ id: 0, kind: 'income', occurredOn: '', summary: '', amount: '' })
-const amountLabel = computed(() => itemForm.kind === 'income' ? '收入金额' : '支出金额')
+const KIND_LABELS: Record<string, string> = { income: '收入', expense: '支出', opening: '期初结余' }
+const KIND_TAGS: Record<string, 'success' | 'info' | 'warning'> = { income: 'success', expense: 'info', opening: 'warning' }
 const billEditable = computed(() => ['draft', 'rejected'].includes(current.value.state))
-// 录入态按录入顺序倒序（id 倒序，最新录入的排第一，便于确认刚录入内容）；审核态按日期正序（从小到大）
+// 期初结余只在场所第一张账单上录入，且每个场所仅一条；老数据已由迁移脚本补录，这里主要服务新建场所
+const canAddOpening = computed(() => billEditable.value && current.value.isFirstBill && !current.value.hasOpening)
+const canPickOpening = computed(() => canAddOpening.value || itemForm.kind === 'opening')
+const amountLabel = computed(() => (itemForm.kind === 'opening' ? '期初金额' : itemForm.kind === 'income' ? '收入金额' : '支出金额'))
+// 录入态按录入顺序倒序（id 倒序，最新录入的排第一，便于确认刚录入内容）；审核态按日期正序（从小到大），期初结余固定排最前
 const sortedItems = computed(() => {
   const arr = [...items.value]
   if (billEditable.value) {
@@ -73,6 +78,9 @@ const sortedItems = computed(() => {
   } else {
     arr.sort((a, b) => String(a.occurred_on ?? '').localeCompare(String(b.occurred_on ?? '')))
   }
+  // 期初结余固定排最前，便于阅读时先看到起点
+  const openingIndex = arr.findIndex(item => item.kind === 'opening')
+  if (openingIndex > 0) arr.unshift(...arr.splice(openingIndex, 1))
   return arr
 })
 
@@ -114,7 +122,15 @@ async function openBill(row: any) {
   } catch (error) { ElMessage.error(errorMessage(error)) }
 }
 function editItem(item?: any) {
-  Object.assign(itemForm, item ? { id: item.id, kind: item.kind, occurredOn: item.occurred_on, summary: item.summary, amount: item.amount } : { id: 0, kind: 'income', occurredOn: `${current.value.bill_month}-01`, summary: '', amount: '' })
+  if (item) {
+    Object.assign(itemForm, { id: item.id, kind: item.kind, occurredOn: item.occurred_on, summary: item.summary, amount: item.amount })
+  } else {
+    Object.assign(itemForm, { id: 0, kind: 'income', occurredOn: `${current.value.bill_month}-01`, summary: '', amount: '' })
+  }
+  itemVisible.value = true
+}
+function addOpening() {
+  Object.assign(itemForm, { id: 0, kind: 'opening', occurredOn: `${current.value.bill_month}-01`, summary: '期初结余', amount: '' })
   itemVisible.value = true
 }
 function normalizeAmount() {
@@ -123,6 +139,7 @@ function normalizeAmount() {
 }
 async function saveItem() {
   if (!itemForm.occurredOn) { ElMessage.warning('请选择日期'); return }
+  if (!itemForm.summary.trim()) { itemForm.summary = itemForm.kind === 'opening' ? '期初结余' : '' }
   if (!itemForm.summary.trim()) { ElMessage.warning('请输入简要描述'); return }
   if (!(Number(itemForm.amount) > 0)) { ElMessage.warning(`请输入${amountLabel.value}`); return }
   const url = itemForm.id ? `/api/admin/finance/items/${itemForm.id}` : `/api/admin/finance/${current.value.id}/items`
@@ -249,11 +266,12 @@ onMounted(() => {
           </div>
           <div class="toolbar">
             <el-button v-if="hasPerm('finance:edit') && billEditable" type="primary" @click="editItem()">添加收支</el-button>
+            <el-button v-if="hasPerm('finance:edit') && canAddOpening" @click="addOpening">录入期初结余</el-button>
           </div>
           <el-table :data="sortedItems" class="finance-items-table" aria-label="收支明细">
             <el-table-column prop="occurred_on" label="日期" width="115" class-name="finance-nowrap-cell" label-class-name="finance-nowrap-cell" />
-            <el-table-column label="收支类型" width="80">
-              <template #default="{ row }"><el-tag :type="row.kind === 'income' ? 'success' : 'info'">{{ row.kind === 'income' ? '收入' : '支出' }}</el-tag></template>
+            <el-table-column label="收支类型" width="96">
+              <template #default="{ row }"><el-tag :type="KIND_TAGS[row.kind] ?? 'info'">{{ KIND_LABELS[row.kind] ?? row.kind }}</el-tag></template>
             </el-table-column>
             <el-table-column prop="summary" label="简要描述" min-width="100" />
             <el-table-column label="金额" width="104" align="right"><template #default="{ row }">{{ row.kind === 'expense' ? formatExpense(row.amount) : formatMoney(row.amount) }}</template></el-table-column>
@@ -277,14 +295,21 @@ onMounted(() => {
       </div>
     </el-drawer>
 
-    <el-dialog v-model="itemVisible" :title="itemForm.id ? '编辑明细' : '添加收支'" width="min(520px, 94vw)">
+    <el-dialog v-model="itemVisible" :title="itemForm.id ? '编辑明细' : (itemForm.kind === 'opening' ? '录入期初结余' : '添加收支')" width="min(520px, 94vw)">
       <el-form label-position="top" @submit.prevent="saveItem">
-        <el-form-item label="收支类型" required><el-radio-group v-model="itemForm.kind"><el-radio-button value="income">收入</el-radio-button><el-radio-button value="expense">支出</el-radio-button></el-radio-group></el-form-item>
+        <el-form-item label="收支类型" required>
+          <el-radio-group v-model="itemForm.kind">
+            <el-radio-button value="income">收入</el-radio-button>
+            <el-radio-button value="expense">支出</el-radio-button>
+            <el-radio-button v-if="canPickOpening" value="opening">期初结余</el-radio-button>
+          </el-radio-group>
+        </el-form-item>
         <el-form-item label="选择日期" required><el-date-picker v-model="itemForm.occurredOn" value-format="YYYY-MM-DD" :disabled-date="disableOutsideMonth" placeholder="日期需在账单月份内" /></el-form-item>
-        <el-form-item label="简要描述" required><el-input v-model="itemForm.summary" maxlength="100" placeholder="请输入简要描述" /></el-form-item>
+        <el-form-item label="简要描述" required><el-input v-model="itemForm.summary" maxlength="100" :placeholder="itemForm.kind === 'opening' ? '默认：期初结余' : '请输入简要描述'" /></el-form-item>
         <el-form-item :label="amountLabel" required>
           <el-input v-model="itemForm.amount" inputmode="decimal" :placeholder="`请输入${amountLabel}`" @blur="normalizeAmount" />
         </el-form-item>
+        <p v-if="itemForm.kind === 'opening'" class="opening-hint">期初结余只计入期末结余，不进入本月收入和支出。仅在该场所第一次填报时录入，后续月份无需再填。</p>
       </el-form>
       <template #footer>
         <div class="dialog-actions">
@@ -307,6 +332,7 @@ onMounted(() => {
 .table-region :deep(.finance-month-head .cell) { font-size: 15px; font-weight: 600; }
 .table-region :deep(.finance-month-tag) { height: 26px; padding-inline: 10px; font-size: 14px; line-height: 24px; font-variant-numeric: tabular-nums; }
 .muted { color: var(--muted); font-size: 13px; }
+.opening-hint { margin: -6px 0 16px; color: var(--muted); font-size: 13px; line-height: 1.6; }
 .table-actions.compact :deep(.el-button) { height: 26px; padding-inline: 10px; font-size: 13px; }
 :global(.finance-drawer .finance-drawer-title) { display: grid; gap: 2px; line-height: 1.3; }
 :global(.finance-drawer .finance-drawer-venue) { font-size: 17px; font-weight: 600; color: #1f2937; }

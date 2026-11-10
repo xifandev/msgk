@@ -3,7 +3,7 @@ export default defineEventHandler(async (event) => {
   const itemId = positiveId(getRouterParam(event, 'itemId'), '明细ID')
   const body = await readBody(event)
   const kind = String(body.kind ?? '')
-  if (!['income', 'expense'].includes(kind)) throw createError({ statusCode: 400, message: '收支类型不正确' })
+  if (!['income', 'expense', 'opening'].includes(kind)) throw createError({ statusCode: 400, message: '收支类型不正确' })
   const occurredOn = String(body.occurredOn ?? '')
   if (!/^\d{4}-\d{2}-\d{2}$/.test(occurredOn)) throw createError({ statusCode: 400, message: '日期格式不正确' })
   const amount = money(body.amount)
@@ -11,15 +11,19 @@ export default defineEventHandler(async (event) => {
   const summary = text(body.summary, '摘要', 100)
   await withTransaction(async (conn) => {
     const [rows] = await conn.query(
-      `SELECT i.id, b.id AS bill_id, b.venue_id, b.bill_month, b.state
+      `SELECT i.id, i.kind AS item_kind, b.id AS bill_id, b.venue_id, b.bill_month, b.state
        FROM bill_items i JOIN bills b ON b.id = i.bill_id WHERE i.id = ? FOR UPDATE`,
       [itemId]
     )
-    const item = (rows as { bill_id: number, venue_id: number, bill_month: string, state: string }[])[0]
+    const item = (rows as { item_kind: string, bill_id: number, venue_id: number, bill_month: string, state: string }[])[0]
     if (!item) throw createError({ statusCode: 404, message: '明细不存在' })
     requireVenueScope(admin, item.venue_id)
     if (!['draft', 'rejected'].includes(item.state)) throw createError({ statusCode: 409, message: '当前状态不能编辑明细' })
     if (occurredOn.slice(0, 7) !== item.bill_month) throw createError({ statusCode: 400, message: '明细日期必须属于账单月份' })
+    // 期初结余与收支明细不能互相转换，避免结余口径被静默改写
+    if ((item.item_kind === 'opening') !== (kind === 'opening')) {
+      throw createError({ statusCode: 409, message: '期初结余与收支明细不能互相转换' })
+    }
     await conn.query('UPDATE bill_items SET occurred_on = ?, kind = ?, summary = ?, amount = ? WHERE id = ?', [occurredOn, kind, summary, amount, itemId])
   })
   await logAction(admin, '财务公开', String(itemId), '编辑收支明细', event)
