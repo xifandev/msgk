@@ -22,13 +22,20 @@
   background: linear-gradient(180deg, #d31027 0%, #ea384d 22%, #f1f2f4 70%);
 }
 
-/* 财务公开使用紧凑浅色页头，让首屏优先展示账目 */
+/* 财务公开：全屏低饱和薄荷绿，顶部更清晰、底部更安静 */
 .bgc--green {
-  background: #f3f6f4;
+  background: linear-gradient(180deg, #d5e9dd 0%, #e3eee6 38%, #e8f0ea 100%);
 }
 
 .bgc--green::after {
-  display: none;
+  content: '';
+  position: absolute;
+  top: -220rpx;
+  right: -180rpx;
+  width: 520rpx;
+  height: 520rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0) 68%);
 }
 
 .top-box {
@@ -74,11 +81,11 @@
 }
 
 .fs-back--green {
-  background: #e5ece8;
+  background: rgba(247, 252, 248, 0.56);
 }
 
 .fs-back--green.fs-back--hover {
-  background: #d9e4dd;
+  background: rgba(247, 252, 248, 0.82);
 }
 
 .top-title {
@@ -100,14 +107,14 @@
 }
 
 .top-box--green {
-  padding-bottom: 24rpx;
+  padding-bottom: 28rpx;
 }
 
 .top-box--green .top-title {
   margin-left: 0;
-  padding: 8rpx 32rpx 0;
-  color: #152b23;
-  font-size: 42rpx;
+  padding: 22rpx 32rpx 0;
+  color: #153d2e;
+  font-size: 48rpx;
   font-weight: 650;
   line-height: 1.25;
   letter-spacing: 0;
@@ -117,13 +124,13 @@
   display: flex;
   align-items: center;
   max-width: calc(100vw - 64rpx);
-  margin: 10rpx 32rpx 0;
+  margin: 12rpx 32rpx 0;
   padding: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  color: #74827b;
-  font-size: 24rpx;
+  color: #526f60;
+  font-size: 27rpx;
   font-weight: 400;
   line-height: 1.45;
   letter-spacing: 0;
@@ -173,7 +180,8 @@
 .top-box--green + .cellgroup {
   margin: 0;
   border-radius: 28rpx 28rpx 0 0;
-  background-color: #f5f7f6;
+  background-color: #e8f0ea;
+  box-shadow: 0 -8rpx 30rpx rgba(44, 84, 62, 0.04);
 }
 
 .cellgroup__scroll {
@@ -184,7 +192,7 @@
 }
 
 .top-box--green + .cellgroup .cellgroup__scroll {
-  background-color: #f5f7f6;
+  background-color: #e8f0ea;
 }
 
 .bottom-gap {

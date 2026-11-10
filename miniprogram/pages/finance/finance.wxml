@@ -228,7 +228,7 @@
   drag-zone="{{ 96 }}"
   z-index="{{ 1200 }}"
   bind:close="closeMonthDetail"
-  custom-style="height: 78vh; background: #f5f7f6; overflow: hidden;"
+  custom-style="height: 78vh; background: #e8f0ea; overflow: hidden;"
 >
   <view class="sheet">
     <!-- 抓手即下拉关闭手柄：data-drag 让弹层只在按到这里时才接管手势 -->
