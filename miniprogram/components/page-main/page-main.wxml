@@ -20,7 +20,7 @@
     <view class="top-subtitle" wx:if="{{ subtitle }}">
       <text>{{ subtitle }}</text>
     </view>
-    <view class="top-title2">
+    <view class="top-title2" wx:if="{{ title1 || title2 || title3 }}">
       <view class="top-title2-item" wx:if="{{ title1 }}">
         <ms-icon name="passed" size="26rpx" color="{{ theme === 'green' ? '#236647' : 'rgba(255,255,255,0.85)' }}" />
         <text>{{ title1 }}</text>

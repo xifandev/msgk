@@ -100,7 +100,7 @@
 }
 
 .top-box--green {
-  padding-bottom: 28rpx;
+  padding-bottom: 20rpx;
 }
 
 .top-box--green .top-title {
