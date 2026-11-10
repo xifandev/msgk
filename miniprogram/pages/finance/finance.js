@@ -35,6 +35,9 @@ Page({
   // 忽略旧请求的响应，防止切换月份/年份时旧数据覆盖新数据
   monthlyRequestId: 0,
   yearlyRequestId: 0,
+  detailRequestId: 0,
+  // 年度页月份明细缓存：{ 'YYYY-MM': 渲染数据 }，重复打开同一月份不再请求
+  detailCache: null,
 
   data: {
     // 当前标签页索引：0 月度收支 / 1 年度收支
@@ -65,6 +68,19 @@ Page({
     yearColumns: [],
     yearDefaultIndex: 0,
     pendingYearIndex: 0,
+
+    // --------- 年度页：月度明细抽屉 ---------
+    detailShow: false,
+    detailMonth: '', // YYYY-MM
+    detailMonthText: '',
+    detailIndex: -1, // 在 months 中的位置，用于上下月切换
+    detailPrev: false,
+    detailNext: false,
+    detailState: 'idle', // idle | loading | ready | error
+    detailBill: null,
+    detailGroups: [],
+    detailSub: '',
+    detailScrollTop: 0, // 切月时在 0/1 之间交替，用于把明细区滚回顶部
   },
 
   // ------------------- 月度 -------------------
@@ -81,12 +97,7 @@ Page({
           return;
         }
         const bill = this.buildBill(res.bill);
-        const items = (res.items || []).map((item) => ({
-          ...item,
-          kindText: item.kind === 'expense' ? '支出' : '收入',
-          amountText: `${item.kind === 'expense' ? '-' : '+'}${formatAmount(item.amount)}`,
-          date: formatDate(item.occurredOn),
-        }));
+        const items = this.mapItems(res.items);
         const monthPatch = this.resolveMonth(res.month);
         this.setData(
           Object.assign(
@@ -132,6 +143,16 @@ Page({
       patch.pendingYearIndex = columns.yearDefaultIndex;
     }
     return patch;
+  },
+
+  // 明细行统一加工：收支文案、带符号金额、日期（月度页与抽屉共用）
+  mapItems(rawItems) {
+    return (rawItems || []).map((item) => ({
+      ...item,
+      kindText: item.kind === 'expense' ? '支出' : '收入',
+      amountText: `${item.kind === 'expense' ? '-' : '+'}${formatAmount(item.amount)}`,
+      date: formatDate(item.occurredOn),
+    }));
   },
 
   // 结余卡：期末结余（截至当月末的累计结余）+ 本月收入/支出
@@ -292,6 +313,122 @@ Page({
       },
       () => this.loadYearly()
     );
+  },
+
+  // ------------------- 年度页：月度明细抽屉 -------------------
+  // 点开某个月份卡片：先出抽屉骨架，再补该月收支明细（接口复用公开月度接口）
+  openMonthDetail(e) {
+    const dataset = (e.currentTarget && e.currentTarget.dataset) || {};
+    const index = Number(dataset.index);
+    const target = this.data.months[index];
+    if (!target) {
+      return;
+    }
+    this.setData(
+      Object.assign(
+        {
+          detailShow: true,
+          detailMonth: target.month,
+          detailMonthText: target.monthText,
+          detailIndex: index,
+          detailScrollTop: this.nextScrollTop(),
+          // 先清掉上一个月份的明细，避免抽屉上升过程中闪出旧数据
+          detailState: 'loading',
+          detailBill: null,
+          detailGroups: [],
+          detailSub: '正在加载明细',
+        },
+        this.resolveNav(index)
+      )
+    );
+    this.loadMonthDetail(target.month);
+  },
+
+  closeMonthDetail() {
+    this.setData({ detailShow: false });
+  },
+
+  // 抽屉内切换上下月：只在当前年份已公开的月份之间移动，到边界不响应
+  switchMonthDetail(e) {
+    const step = Number((e.currentTarget && e.currentTarget.dataset || {}).step) || 0;
+    const index = this.data.detailIndex + step;
+    const target = this.data.months[index];
+    if (!step || !target) {
+      return;
+    }
+    this.setData(
+      Object.assign(
+        {
+          detailMonth: target.month,
+          detailMonthText: target.monthText,
+          detailIndex: index,
+          detailScrollTop: this.nextScrollTop(),
+        },
+        this.resolveNav(index)
+      )
+    );
+    this.loadMonthDetail(target.month);
+  },
+
+  // scroll-top 只在值变化时生效，0/1 交替即可把新月份的明细拉回顶部
+  nextScrollTop() {
+    return this.data.detailScrollTop === 0 ? 1 : 0;
+  },
+
+  // 上下月按钮是否可用
+  resolveNav(index) {
+    return {
+      detailPrev: index > 0,
+      detailNext: index >= 0 && index < this.data.months.length - 1,
+    };
+  },
+
+  loadMonthDetail(month) {
+    if (!month) {
+      return;
+    }
+    const cache = this.detailCache || (this.detailCache = {});
+    const cached = cache[month];
+    if (cached) {
+      this.setData(Object.assign({ detailState: 'ready' }, cached));
+      return;
+    }
+
+    const requestId = ++this.detailRequestId;
+    this.setData({
+      detailState: 'loading',
+      detailBill: null,
+      detailGroups: [],
+      detailSub: '正在加载明细',
+    });
+    get('/api/public/finance/monthly', { venueId: this.data.venueId, month }, { loading: false })
+      .then((res) => {
+        const items = this.mapItems(res.items);
+        const detail = {
+          detailBill: this.buildBill(res.bill),
+          detailGroups: this.groupByDay(items),
+          detailSub: items.length
+            ? `共 ${items.length} 笔明细`
+            : res.bill
+              ? '该月无收支明细'
+              : '该月暂无公开数据',
+        };
+        cache[month] = detail;
+        if (requestId !== this.detailRequestId) {
+          return;
+        }
+        this.setData(Object.assign({ detailState: 'ready' }, detail));
+      })
+      .catch(() => {
+        if (requestId !== this.detailRequestId) {
+          return;
+        }
+        this.setData({ detailState: 'error', detailBill: null, detailGroups: [], detailSub: '明细加载失败' });
+      });
+  },
+
+  retryMonthDetail() {
+    this.loadMonthDetail(this.data.detailMonth);
   },
 
   // 顶部展示场所名：失败不影响主数据，静默忽略

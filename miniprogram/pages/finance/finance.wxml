@@ -124,16 +124,30 @@
             </block>
           </view>
 
-          <!-- 月度明细：本月收入 / 本月支出 / 期末结余 -->
+          <!-- 月度明细：本月收入 / 本月支出 / 期末结余；点开卡片查看该月收支明细 -->
           <view class="section">
             <view class="section__head">
               <view class="section__bar"></view>
               <text class="section__title">月度明细</text>
+              <text class="section__extra">点按月份查看明细</text>
             </view>
 
-            <view class="month" wx:for="{{ months }}" wx:key="month">
+            <view
+              class="month"
+              wx:for="{{ months }}"
+              wx:key="month"
+              data-index="{{ index }}"
+              bind:tap="openMonthDetail"
+              hover-class="month--hover"
+              aria-role="button"
+              aria-label="查看 {{ item.monthText }} 收支明细"
+            >
               <view class="month__head">
                 <text class="month__name">{{ item.monthText }}</text>
+                <view class="month__more">
+                  <text class="month__more-text">查看明细</text>
+                  <ms-icon name="arrow" size="20rpx" color="#8f939a" />
+                </view>
               </view>
 
               <view class="month__row">
@@ -183,3 +197,98 @@
 <ms-action-sheet show="{{ yearPickerShow }}" title="选择年份" bind:close="closeYearPicker">
   <ms-picker id="year-picker" columns="{{ yearColumns }}" default-index="{{ yearDefaultIndex }}" bind:confirm="confirmYear" bind:cancel="closeYearPicker" bind:change="onYearChange" />
 </ms-action-sheet>
+
+<!-- 月度明细抽屉：年度页点开某个月份卡片后，从底部展开该月收支明细 -->
+<ms-popup
+  show="{{ detailShow }}"
+  position="bottom"
+  round
+  z-index="{{ 1200 }}"
+  bind:close="closeMonthDetail"
+  custom-style="height: 78vh; background: #f4faf6; overflow: hidden;"
+>
+  <view class="sheet">
+    <view class="sheet__handle"></view>
+
+    <view class="sheet__head">
+      <view class="sheet__arrow {{ detailPrev ? '' : 'is-disabled' }}" data-step="-1" bind:tap="switchMonthDetail" aria-role="button" aria-label="上一月">
+        <ms-icon name="arrow-left" size="26rpx" color="{{ detailPrev ? '#0a7d59' : '#c9d3ce' }}" />
+      </view>
+
+      <view class="sheet__title-box">
+        <text class="sheet__title">{{ detailMonthText }}</text>
+        <text class="sheet__sub">{{ detailSub }}</text>
+      </view>
+
+      <view class="sheet__arrow {{ detailNext ? '' : 'is-disabled' }}" data-step="1" bind:tap="switchMonthDetail" aria-role="button" aria-label="下一月">
+        <ms-icon name="arrow" size="26rpx" color="{{ detailNext ? '#0a7d59' : '#c9d3ce' }}" />
+      </view>
+
+      <view class="sheet__close" bind:tap="closeMonthDetail" hover-class="sheet__close--hover" aria-role="button" aria-label="关闭明细">
+        <ms-icon name="cross" size="30rpx" color="#9aa3a0" />
+      </view>
+    </view>
+
+    <!-- 该月合计：与卡片上的三个数值一致，作为明细的汇总口径 -->
+    <view class="sheet__summary" wx:if="{{ detailState === 'ready' && detailBill }}">
+      <view class="mstat">
+        <text class="mstat__label">本月收入</text>
+        <text class="mstat__value is-income">{{ detailBill.incomeText }}</text>
+      </view>
+      <view class="mstat">
+        <text class="mstat__label">本月支出</text>
+        <text class="mstat__value is-expense">{{ detailBill.expenseText }}</text>
+      </view>
+      <view class="mstat">
+        <text class="mstat__label">期末结余</text>
+        <text class="mstat__value {{ detailBill.currentNegative ? 'is-negative' : '' }}">{{ detailBill.currentText }}</text>
+      </view>
+    </view>
+
+    <scroll-view scroll-y scroll-top="{{ detailScrollTop }}" class="sheet__scroll" wx:if="{{ detailState === 'ready' }}">
+      <block wx:if="{{ detailGroups.length > 0 }}">
+        <view class="day" wx:for="{{ detailGroups }}" wx:key="date">
+          <view class="day__head">
+            <view class="day__date">
+              <view class="day__dot"></view>
+              <text>{{ item.label }}</text>
+            </view>
+          </view>
+
+          <view class="day__card">
+            <view class="bill" wx:for="{{ item.items }}" wx:for-item="row" wx:key="id">
+              <view class="bill__icon {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">
+                <text class="bill__glyph">{{ row.kind === 'expense' ? '−' : '+' }}</text>
+              </view>
+              <view class="bill__body">
+                <text class="bill__summary">{{ row.summary || '未填写摘要' }}</text>
+                <text class="bill__sub">{{ row.kindText }}</text>
+              </view>
+              <text class="bill__amount {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">{{ row.amountText }}</text>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <view class="sheet__empty" wx:else>
+        <ms-empty description="{{ detailBill ? '该月无收支明细' : '该月暂无公开数据' }}" />
+      </view>
+
+      <view class="sheet__notice">
+        <ms-icon name="passed" size="22rpx" color="#5d9a80" />
+        <text class="sheet__notice-text">明细由场所按月上报，经审核后公开</text>
+      </view>
+    </scroll-view>
+
+    <view class="sheet__loading" wx:elif="{{ detailState === 'loading' }}">
+      <view class="skeleton__row"></view>
+      <view class="skeleton__row"></view>
+      <view class="skeleton__row"></view>
+    </view>
+
+    <view class="sheet__error" wx:else>
+      <text class="sheet__error-text">明细加载失败，请重试</text>
+      <view class="sheet__retry" bind:tap="retryMonthDetail" hover-class="sheet__retry--hover" aria-role="button" aria-label="重新加载明细">重新加载</view>
+    </view>
+  </view>
+</ms-popup>

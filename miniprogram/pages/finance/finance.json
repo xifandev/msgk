@@ -4,6 +4,7 @@
     "ms-icon": "/components/ms-icon/index",
     "ms-tabs": "/components/ms-tabs/index",
     "ms-empty": "/components/ms-empty/index",
+    "ms-popup": "/components/ms-popup/index",
     "ms-action-sheet": "/components/ms-action-sheet/index",
     "ms-datetime-picker": "/components/ms-datetime-picker/index",
     "ms-picker": "/components/ms-picker/index"
