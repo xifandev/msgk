@@ -90,17 +90,6 @@
               <text class="bill-card__hero-label">期末结余（元）</text>
               <text class="bill-card__hero-value {{ totals.balanceNegative ? 'is-negative' : '' }}">{{ totals.balanceText }}</text>
             </view>
-
-            <view class="bill-card__flow">
-              <view class="bill-card__item">
-                <text class="bill-card__item-label">年总收入</text>
-                <text class="bill-card__item-value is-income">{{ totals.incomeText }}</text>
-              </view>
-              <view class="bill-card__item bill-card__item--right">
-                <text class="bill-card__item-label">年总支出</text>
-                <text class="bill-card__item-value is-expense">{{ totals.expenseText }}</text>
-              </view>
-            </view>
           </block>
 
           <view class="bill-card__empty" wx:else>

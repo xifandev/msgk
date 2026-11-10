@@ -305,18 +305,14 @@ Page({
           };
         });
 
-        const rawTotals = res.totals || { income: 0, expense: 0 };
-        const incomeNum = Number(rawTotals.income) || 0;
-        const expenseNum = Number(rawTotals.expense) || 0;
-        // 年度期末结余 = 最后一个公开月份的累计结余
+        // 年度期末结余 = 最后一个公开月份的累计结余。
+        // 卡片只展示结余，不展示年总收入/年总支出，避免总额引发不必要的争议
         const last = rows.length > 0 ? rows[rows.length - 1] : null;
         const balanceNum = last ? Number(last.currentBalance) || 0 : 0;
         // 该年没有任何公开账单时不给数值，卡片直接显示"暂无公开账单"，避免出现一排 0.00
         const totals =
           months.length > 0
             ? {
-                incomeText: formatAmount(incomeNum),
-                expenseText: formatAmount(expenseNum),
                 balanceText: formatAmount(balanceNum),
                 balanceNegative: balanceNum < 0,
               }
