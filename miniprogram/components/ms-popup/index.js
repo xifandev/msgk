@@ -54,11 +54,16 @@ Component({
     toggle(value) {
       clearTimeout(this.timer);
       if (value) {
-        this.setData({ render: true }, () => {
-          this.timer = setTimeout(() => this.setData({ visible: true }), 30);
-        });
-        // 入场动画结束后量一次面板位置，供"顶部区域可拖"判定使用
+        // 关闭动画途中重新打开时，上一次拖拽/遮罩状态可能还没复位，这里一并清掉
         this.panelTop = null;
+        this.drag = null;
+        this.setData(
+          { render: true, dragging: false, maskDriven: false, panelBottom: 0, maskOpacity: 1 },
+          () => {
+            this.timer = setTimeout(() => this.setData({ visible: true }), 30);
+          }
+        );
+        // 入场动画结束后量一次面板位置，供"顶部区域可拖"判定使用
         this.measureTimer = setTimeout(() => this.measure(), 320);
       } else {
         this.drag = null;

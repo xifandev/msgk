@@ -40,7 +40,7 @@
           </block>
 
           <view class="bill-card__empty" wx:else>
-            <text class="bill-card__empty-text">{{ monthLoaded ? '该月暂无公开账单，可切换月份查看' : '正在加载…' }}</text>
+            <text class="bill-card__empty-text">{{ monthError ? '账单加载失败，可切换月份后重试' : (monthLoaded ? '该月暂无公开账单，可切换月份查看' : '正在加载…') }}</text>
           </view>
         </view>
 

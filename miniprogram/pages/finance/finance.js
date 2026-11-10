@@ -40,6 +40,7 @@ Page({
     items: [],
     groups: [], // 按日期分组的明细
     monthLoaded: false,
+    monthError: false,
 
     // --------- 年度 ---------
     year: 0,
@@ -71,7 +72,7 @@ Page({
   // ------------------- 月度 -------------------
   loadMonthly() {
     const requestId = ++this.monthlyRequestId;
-    this.setData({ monthLoaded: false });
+    this.setData({ monthLoaded: false, monthError: false });
     get('/api/public/finance/monthly', {
       venueId: this.data.venueId,
       // 月份为空时由服务端解析为该场所最近一次对外公开的月份
@@ -101,7 +102,7 @@ Page({
         if (requestId !== this.monthlyRequestId) {
           return;
         }
-        this.setData({ bill: null, items: [], groups: [], monthLoaded: true });
+        this.setData({ bill: null, items: [], groups: [], monthLoaded: true, monthError: true });
       });
   },
 
@@ -243,6 +244,9 @@ Page({
         bill: null,
         items: [],
         groups: [],
+        // 先回到加载态，避免切换瞬间闪出"该月暂无公开账单"
+        monthLoaded: false,
+        monthError: false,
       },
       () => this.loadMonthly()
     );
