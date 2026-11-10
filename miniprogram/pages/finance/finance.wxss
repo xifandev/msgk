@@ -57,6 +57,75 @@
   color: #7f8782;
 }
 
+/* ---------- 公开明细：月份分组信息流 ---------- */
+/* 每个公开月份一组：顶部是月份标题 + 该月收支小结，下面是按日期分组的完整明细 */
+.month-group {
+  margin-top: 28rpx;
+}
+
+.month-group__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 24rpx 14rpx;
+}
+
+.month-group__title-box {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.month-group__title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #17211c;
+  letter-spacing: 0.5rpx;
+}
+
+.month-group__meta {
+  margin-left: 14rpx;
+  font-size: 23rpx;
+  color: #8f9a94;
+}
+
+.month-group__sum {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.month-group__sum-item {
+  font-size: 24rpx;
+  color: #7f8782;
+}
+
+.month-group__sum-item + .month-group__sum-item {
+  margin-left: 16rpx;
+}
+
+.month-group__sum-item.is-income {
+  color: #0a7d59;
+}
+
+.month-group__sum-item.is-expense {
+  color: #c98214;
+}
+
+.month-group__empty {
+  margin: 0 24rpx;
+  padding: 30rpx 24rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(6, 89, 63, 0.05);
+  text-align: center;
+}
+
+.month-group__empty-text {
+  font-size: 24rpx;
+  color: #9db2a7;
+}
+
 /* ---------- 日期分组 ---------- */
 .day {
   margin: 0 24rpx 20rpx;
@@ -209,15 +278,6 @@
   line-height: 44rpx;
   font-weight: 600;
   color: #ffffff;
-  letter-spacing: 1rpx;
-}
-
-/* 标题右侧的辅助信息（如"已公开 N 个月"），弱化的小字 */
-.bill-card__meta {
-  flex-shrink: 0;
-  margin-left: 20rpx;
-  font-size: 23rpx;
-  color: rgba(255, 255, 255, 0.72);
   letter-spacing: 1rpx;
 }
 

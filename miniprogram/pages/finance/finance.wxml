@@ -1,105 +1,78 @@
 <page-main theme="green" custom-nav title="财务公开" subtitle="{{ venueName }}" bind:chudi="onScrollLower">
-  <ms-tabs tabs="{{ ['月度收支', '年度收支'] }}" active="{{ active }}" animated swipeable sticky color="#0a7d59" bind:change="onTabChange">
+  <ms-tabs tabs="{{ ['公开明细', '年度收支'] }}" active="{{ active }}" animated swipeable sticky color="#0a7d59" bind:change="onTabChange">
     <view class="pane">
-      <!-- ================= 月度收支（信息流） ================= -->
+      <!-- ================= 公开明细（信息流） ================= -->
       <block wx:if="{{ active === 0 }}">
-        <!-- 公开总览卡：公开月数 + 最新期末结余 + 累计收入/支出，取代原单月统计卡 -->
-        <view class="bill-card">
-          <view class="bill-card__glow"></view>
-
-          <view class="bill-card__head">
-            <text class="bill-card__title">{{ monthOverview ? '收支总览' : '月度收支' }}</text>
-            <text class="bill-card__meta" wx:if="{{ monthOverview }}">已公开 {{ monthOverview.publishedText }} 个月</text>
+        <!-- 月份信息流：按月分组，每月直接铺开全部收支明细，下滑自动加载更早月份 -->
+        <view class="month-group" wx:for="{{ monthList }}" wx:key="month" wx:for-item="mo">
+          <view class="month-group__head">
+            <view class="month-group__title-box">
+              <text class="month-group__title">{{ mo.monthText }}</text>
+              <text class="month-group__meta" wx:if="{{ mo.count > 0 }}">共 {{ mo.count }} 笔</text>
+            </view>
+            <view class="month-group__sum" wx:if="{{ mo.count > 0 }}">
+              <text class="month-group__sum-item is-income">收 {{ mo.incomeText }}</text>
+              <text class="month-group__sum-item is-expense">支 {{ mo.expenseText }}</text>
+            </view>
           </view>
 
-          <block wx:if="{{ monthOverview }}">
-            <view class="bill-card__hero">
-              <text class="bill-card__hero-label">期末结余（元）</text>
-              <text class="bill-card__hero-value {{ monthOverview.latestNegative ? 'is-negative' : '' }}">{{ monthOverview.latestText }}</text>
-            </view>
-
-            <view class="bill-card__flow">
-              <view class="bill-card__item">
-                <text class="bill-card__item-label">累计收入</text>
-                <text class="bill-card__item-value is-income">{{ monthOverview.incomeText }}</text>
+          <!-- 该月明细：沿用原单月明细的日期分组排版 -->
+          <block wx:if="{{ mo.groups.length > 0 }}">
+            <view class="day" wx:for="{{ mo.groups }}" wx:key="date" wx:for-item="g">
+              <view class="day__head">
+                <view class="day__date">
+                  <view class="day__dot"></view>
+                  <text>{{ g.label }}</text>
+                </view>
               </view>
-              <view class="bill-card__item bill-card__item--right">
-                <text class="bill-card__item-label">累计支出</text>
-                <text class="bill-card__item-value is-expense">{{ monthOverview.expenseText }}</text>
+
+              <view class="day__card">
+                <view class="bill" wx:for="{{ g.items }}" wx:for-item="row" wx:key="id">
+                  <view class="bill__icon {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">
+                    <text class="bill__glyph">{{ row.kind === 'expense' ? '−' : '+' }}</text>
+                  </view>
+                  <view class="bill__body">
+                    <text class="bill__summary">{{ row.summary || '未填写摘要' }}</text>
+                    <text class="bill__sub">{{ row.kindText }}</text>
+                  </view>
+                  <text class="bill__amount {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">{{ row.amountText }}</text>
+                </view>
               </view>
             </view>
           </block>
 
-          <view class="bill-card__empty" wx:else>
-            <text class="bill-card__empty-text">{{ monthStreamState === 'error' ? '账单加载失败' : (monthStreamState === 'ready' ? '该场所暂无公开账单' : '正在加载…') }}</text>
+          <view class="month-group__empty" wx:else>
+            <text class="month-group__empty-text">该月暂无收支明细</text>
           </view>
         </view>
 
-        <!-- 月份信息流：每个公开月份一张卡，点开查看该月明细；下滑自动加载更早月份 -->
-        <view class="section" wx:if="{{ monthList.length > 0 }}">
-          <view class="section__head">
-            <view class="section__bar"></view>
-            <text class="section__title">月度明细</text>
-            <text class="section__extra">已公开 {{ monthOverview.publishedText }} 个月</text>
-          </view>
-
-          <view
-            class="month"
-            wx:for="{{ monthList }}"
-            wx:key="month"
-            data-index="{{ index }}"
-            bind:tap="openStreamMonthDetail"
-            hover-class="month--hover"
-            aria-role="button"
-            aria-label="查看 {{ item.monthText }} 收支明细"
-          >
-            <view class="month__head">
-              <text class="month__name">{{ item.monthText }}</text>
-              <view class="month__more">
-                <text class="month__more-text">查看明细</text>
-                <ms-icon name="arrow" size="20rpx" color="#8f939a" />
-              </view>
-            </view>
-
-            <view class="month__row">
-              <view class="mstat">
-                <text class="mstat__label">本月收入</text>
-                <text class="mstat__value is-income">{{ item.incomeText }}</text>
-              </view>
-              <view class="mstat">
-                <text class="mstat__label">本月支出</text>
-                <text class="mstat__value is-expense">{{ item.expenseText }}</text>
-              </view>
-              <view class="mstat">
-                <text class="mstat__label">期末结余</text>
-                <text class="mstat__value {{ item.currentNegative ? 'is-negative' : '' }}">{{ item.currentText }}</text>
-              </view>
-            </view>
-          </view>
-
-          <!-- 加载更多状态：加载中 / 已到底 -->
-          <view class="stream-foot">
-            <block wx:if="{{ streamLoadingMore }}">
-              <text class="stream-foot__text">加载更多月份…</text>
-            </block>
-            <block wx:elif="{{ !monthHasMore }}">
-              <text class="stream-foot__text">已展示全部公开月份</text>
-            </block>
-          </view>
+        <!-- 加载更多状态：加载中 / 已到底 -->
+        <view class="stream-foot" wx:if="{{ monthList.length > 0 }}">
+          <block wx:if="{{ streamLoadingMore }}">
+            <text class="stream-foot__text">加载更多月份…</text>
+          </block>
+          <block wx:elif="{{ !monthHasMore }}">
+            <text class="stream-foot__text">已展示全部公开月份</text>
+          </block>
         </view>
 
         <!-- 首屏骨架 -->
-        <view class="skeleton" wx:elif="{{ monthStreamState === 'loading' }}">
+        <view class="skeleton" wx:if="{{ monthStreamState === 'loading' && monthList.length === 0 }}">
           <view class="skeleton__row"></view>
           <view class="skeleton__row"></view>
           <view class="skeleton__row"></view>
         </view>
 
         <!-- 首屏加载失败 -->
-        <view class="empty-card" wx:elif="{{ monthStreamState === 'error' }}">
+        <view class="empty-card" wx:if="{{ monthStreamState === 'error' && monthList.length === 0 }}">
           <ms-empty description="账单加载失败">
             <view class="empty-card__retry" bind:tap="retryMonthStream" hover-class="empty-card__retry--hover" aria-role="button" aria-label="重新加载">重新加载</view>
           </ms-empty>
+        </view>
+
+        <!-- 无公开数据 -->
+        <view class="empty-card" wx:if="{{ monthStreamState === 'ready' && monthList.length === 0 }}">
+          <ms-empty description="该场所暂无公开账单" />
         </view>
       </block>
 

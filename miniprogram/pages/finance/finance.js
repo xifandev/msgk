@@ -33,12 +33,11 @@ Page({
     venueId: '',
     venueName: '',
 
-    // --------- 月度（信息流：分页拉取已公开月份汇总，下滑加载更多） ---------
-    monthList: [], // [{ month, monthText, incomeText, expenseText, currentText, currentNegative }]
+    // --------- 月度（信息流：分页拉取已公开月份明细，下滑加载更多） ---------
+    monthList: [], // [{ month, monthText, incomeText, expenseText, groups, count }]
     monthStreamState: 'idle', // idle | loading | ready | error
     streamLoadingMore: false,
     monthHasMore: false,
-    monthOverview: null, // 顶部总览卡：{ publishedText, latestText, latestNegative, incomeText, expenseText }
 
     // --------- 年度 ---------
     year: 0,
@@ -58,7 +57,6 @@ Page({
 
     // --------- 年度页：月度明细抽屉 ---------
     detailShow: false,
-    detailList: [], // 当前抽屉的月份列表（月度信息流 / 年度月份），用于上下月切换
     detailMonth: '', // YYYY-MM
     detailMonthText: '',
     detailIndex: -1, // 在 months 中的位置，用于上下月切换
@@ -76,7 +74,7 @@ Page({
     const requestId = ++this.streamRequestId;
     this.setData(
       reset
-        ? { monthStreamState: 'loading', monthList: [], monthHasMore: false, streamLoadingMore: false, monthOverview: null }
+        ? { monthStreamState: 'loading', monthList: [], monthHasMore: false, streamLoadingMore: false }
         : { streamLoadingMore: true }
     );
 
@@ -98,7 +96,6 @@ Page({
           streamLoadingMore: false,
         };
         if (reset) {
-          next.monthOverview = this.buildOverview(res.overview);
           // 年度页年份跟随最近公开月份，避免跨年时年度页默认落在空年份
           const first = rows[0];
           if (first) {
@@ -124,35 +121,20 @@ Page({
     return list.length ? list[list.length - 1].month : '';
   },
 
-  // 月份汇总行 → 卡片渲染数据
+  // 月份汇总行 → 卡片渲染数据（含该月明细，按日期分组，直接铺开）
   mapStreamMonths(rawMonths) {
     return (rawMonths || []).map((item) => {
       const parts = String(item.month).split('-');
-      const currentNum = Number(item.currentBalance) || 0;
+      const items = this.mapItems(item.items);
       return {
         month: item.month,
         monthText: parts.length === 2 ? `${parts[0]}年${parseInt(parts[1], 10)}月` : String(item.month),
         incomeText: formatAmount(Number(item.income) || 0),
         expenseText: formatAmount(Number(item.expense) || 0),
-        currentText: formatAmount(currentNum),
-        currentNegative: currentNum < 0,
+        groups: this.groupByDay(items),
+        count: items.length,
       };
     });
-  },
-
-  // 顶部总览卡：公开月数 + 最新期末结余 + 累计收入/支出
-  buildOverview(raw) {
-    if (!raw || Number(raw.publishedCount) <= 0) {
-      return null;
-    }
-    const latest = Number(raw.latestBalance) || 0;
-    return {
-      publishedText: String(raw.publishedCount),
-      latestText: formatAmount(latest),
-      latestNegative: latest < 0,
-      incomeText: formatAmount(Number(raw.totalIncome) || 0),
-      expenseText: formatAmount(Number(raw.totalExpense) || 0),
-    };
   },
 
   // 触底加载更多（page-main 的 chudi 事件），仅月度页生效
@@ -360,21 +342,11 @@ Page({
   },
 
   // ------------------- 年度页：月度明细抽屉 -------------------
-  // 年度页：点开某个月份卡片（明细接口复用公开月度接口）
+  // 年度页：点开某个月份卡片，展开抽屉看该月收支明细（接口复用公开月度接口）
   openMonthDetail(e) {
-    const index = Number(((e.currentTarget && e.currentTarget.dataset) || {}).index);
-    this.setData({ detailList: this.data.months }, () => this.showMonthDetail(index));
-  },
-
-  // 月度信息流：点开某个月份卡片
-  openStreamMonthDetail(e) {
-    const index = Number(((e.currentTarget && e.currentTarget.dataset) || {}).index);
-    this.setData({ detailList: this.data.monthList }, () => this.showMonthDetail(index));
-  },
-
-  // 展开抽屉：先出骨架，再补该月收支明细
-  showMonthDetail(index) {
-    const target = this.data.detailList[index];
+    const dataset = (e.currentTarget && e.currentTarget.dataset) || {};
+    const index = Number(dataset.index);
+    const target = this.data.months[index];
     if (!target) {
       return;
     }
@@ -406,7 +378,7 @@ Page({
   switchMonthDetail(e) {
     const step = Number((e.currentTarget && e.currentTarget.dataset || {}).step) || 0;
     const index = this.data.detailIndex + step;
-    const target = this.data.detailList[index];
+    const target = this.data.months[index];
     if (!step || !target) {
       return;
     }
@@ -433,7 +405,7 @@ Page({
   resolveNav(index) {
     return {
       detailPrev: index > 0,
-      detailNext: index >= 0 && index < this.data.detailList.length - 1,
+      detailNext: index >= 0 && index < this.data.months.length - 1,
     };
   },
 
