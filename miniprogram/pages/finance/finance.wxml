@@ -1,5 +1,5 @@
 <page-main theme="green" custom-nav title="财务公开" subtitle="{{ venueName }}" bind:chudi="onScrollLower">
-  <ms-tabs tabs="{{ ['公开明细', '年度收支'] }}" active="{{ active }}" animated swipeable sticky color="#0a7d59" bind:change="onTabChange">
+  <ms-tabs tabs="{{ ['公开明细', '收支统计'] }}" active="{{ active }}" animated swipeable sticky color="#0a7d59" bind:change="onTabChange">
     <view class="pane">
       <!-- ================= 公开明细（信息流） ================= -->
       <block wx:if="{{ active === 0 }}">
