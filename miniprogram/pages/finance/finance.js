@@ -83,10 +83,8 @@ Page({
         const bill = this.buildBill(res.bill);
         const items = (res.items || []).map((item) => ({
           ...item,
-          kindText: item.kind === 'expense' ? '支出' : item.kind === 'opening' ? '期初结余' : '收入',
-          amountText: item.kind === 'opening'
-            ? formatAmount(item.amount)
-            : `${item.kind === 'expense' ? '-' : '+'}${formatAmount(item.amount)}`,
+          kindText: item.kind === 'expense' ? '支出' : '收入',
+          amountText: `${item.kind === 'expense' ? '-' : '+'}${formatAmount(item.amount)}`,
           date: formatDate(item.occurredOn),
         }));
         const monthPatch = this.resolveMonth(res.month);

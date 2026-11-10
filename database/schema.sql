@@ -201,7 +201,6 @@ CREATE TABLE IF NOT EXISTS bill_items (
   bill_id BIGINT UNSIGNED NOT NULL,
   venue_id BIGINT UNSIGNED NOT NULL,
   occurred_on DATE NOT NULL,
-  -- income 收入 / expense 支出 / opening 期初结余与历史结余调整（只计入结余，不计入收支合计）
   kind VARCHAR(16) NOT NULL,
   summary VARCHAR(100) NOT NULL,
   amount DECIMAL(14,2) NOT NULL,

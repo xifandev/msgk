@@ -240,11 +240,6 @@
   background: linear-gradient(135deg, #f2b455 0%, #dd9a2b 100%);
 }
 
-/* 期初结余是账面起点，不是当月收支，用中性灰区分 */
-.bill__icon.is-opening {
-  background: linear-gradient(135deg, #9aa4a0 0%, #6f7a76 100%);
-}
-
 /* 收/支用正负号区分，不只靠颜色 */
 .bill__glyph {
   font-size: 40rpx;
@@ -289,10 +284,6 @@
 
 .bill__amount.is-expense {
   color: #17211c;
-}
-
-.bill__amount.is-opening {
-  color: #4b5652;
 }
 
 /* ---------- 年度账单卡 ---------- */
