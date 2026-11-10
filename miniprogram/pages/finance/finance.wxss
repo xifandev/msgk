@@ -66,18 +66,16 @@
 }
 
 /* 每月收支不进独立卡片：直接落在内容区上做区块标题，
-   渐变竖条 + 月份 + 笔数一行，收入/支出小字随行 */
+   渐变竖条 + 月份，收入/支出统计收进标题行右侧（替代原来的笔数） */
 .month-group__head {
-  padding: 0 24rpx;
-}
-
-.month-group__title-box {
   display: flex;
   align-items: center;
   min-width: 0;
+  padding: 0 24rpx;
 }
 
 .month-group__bar {
+  flex-shrink: 0;
   width: 6rpx;
   height: 26rpx;
   border-radius: 4rpx;
@@ -93,38 +91,33 @@
   font-weight: 600;
   line-height: 1.3;
   letter-spacing: 0.5rpx;
-}
-
-.month-group__meta {
-  flex-shrink: 0;
-  margin-left: 16rpx;
-  color: #7f8782;
-  font-size: 24rpx;
   white-space: nowrap;
 }
 
 .month-group__sum {
+  flex-shrink: 0;
   display: flex;
   align-items: baseline;
-  margin-top: 10rpx;
-  padding-left: 18rpx;
+  margin-left: 16rpx;
 }
 
 .month-group__sum-label {
-  flex-shrink: 0;
-  margin-right: 10rpx;
+  margin-right: 8rpx;
   color: #7f8782;
-  font-size: 23rpx;
+  font-size: 22rpx;
   line-height: 1.3;
 }
 
 .month-group__sum-value {
-  margin-right: 36rpx;
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 600;
   line-height: 1.35;
   font-variant-numeric: tabular-nums;
-  word-break: break-all;
+  white-space: nowrap;
+}
+
+.month-group__sum-label:not(:first-child) {
+  margin-left: 20rpx;
 }
 
 .month-group__sum-value.is-income {
