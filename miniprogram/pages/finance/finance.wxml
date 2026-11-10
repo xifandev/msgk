@@ -17,7 +17,7 @@
               aria-label="切换月份"
             >
               <text class="bill-card__switch-text">切换月份</text>
-              <ms-icon name="arrow-down" size="20rpx" color="rgba(255,255,255,0.78)" />
+              <ms-icon name="arrow-down" size="22rpx" color="#0b5c3d" />
             </view>
           </view>
 
@@ -104,7 +104,7 @@
               aria-label="切换年份，当前 {{ year }} 年"
             >
               <text class="bill-card__switch-text">切换年份</text>
-              <ms-icon name="arrow-down" size="20rpx" color="rgba(255,255,255,0.78)" />
+              <ms-icon name="arrow-down" size="22rpx" color="#0b5c3d" />
             </view>
           </view>
 
