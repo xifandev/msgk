@@ -12,11 +12,11 @@
             </view>
             <view class="month-group__sum" wx:if="{{ mo.count > 0 }}">
               <view class="month-group__sum-item">
-                <text class="month-group__sum-label is-income">收</text>
+                <text class="month-group__sum-label is-income">收入</text>
                 <text class="month-group__sum-value">{{ mo.incomeText }}</text>
               </view>
               <view class="month-group__sum-item">
-                <text class="month-group__sum-label is-expense">支</text>
+                <text class="month-group__sum-label is-expense">支出</text>
                 <text class="month-group__sum-value">{{ mo.expenseText }}</text>
               </view>
             </view>
@@ -228,7 +228,7 @@
   drag-zone="{{ 96 }}"
   z-index="{{ 1200 }}"
   bind:close="closeMonthDetail"
-  custom-style="height: 78vh; background: #f4faf6; overflow: hidden;"
+  custom-style="height: 78vh; background: #f5f7f6; overflow: hidden;"
 >
   <view class="sheet">
     <!-- 抓手即下拉关闭手柄：data-drag 让弹层只在按到这里时才接管手势 -->

@@ -9,7 +9,7 @@
   },
   "navigationStyle": "custom",
   "navigationBarTextStyle": "black",
-  "backgroundColorTop": "#81fbb8",
-  "backgroundColor": "#f4faf6",
+  "backgroundColorTop": "#f3f6f4",
+  "backgroundColor": "#f5f7f6",
   "disableScroll": true
 }
