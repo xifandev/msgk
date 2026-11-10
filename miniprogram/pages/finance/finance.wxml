@@ -23,7 +23,7 @@
 
           <block wx:if="{{ bill }}">
             <view class="bill-card__hero">
-              <text class="bill-card__hero-label">期末结余（元）</text>
+              <text class="bill-card__hero-label">截至 {{ monthText }}末结余（元）</text>
               <text class="bill-card__hero-value {{ bill.currentNegative ? 'is-negative' : '' }}">{{ bill.currentText }}</text>
             </view>
 
@@ -110,8 +110,13 @@
 
           <block wx:if="{{ totals }}">
             <view class="bill-card__hero">
-              <text class="bill-card__hero-label">期末结余（元）</text>
+              <text class="bill-card__hero-label">{{ totals.balanceLabel }}</text>
               <text class="bill-card__hero-value {{ totals.balanceNegative ? 'is-negative' : '' }}">{{ totals.balanceText }}</text>
+              <view class="bill-card__note" wx:if="{{ totals.openingKnown }}">
+                <text class="bill-card__note-text">年初结转 {{ totals.openingText }}</text>
+                <text class="bill-card__note-dot">·</text>
+                <text class="bill-card__note-text">本年净额 {{ totals.netText }}</text>
+              </view>
             </view>
 
             <view class="bill-card__flow">

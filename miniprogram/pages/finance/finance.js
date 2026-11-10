@@ -5,6 +5,8 @@ const { getVenueId, redirectHome } = require('../../utils/venue');
 
 const WEEK = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
+const round2 = (value) => Math.round(value * 100) / 100;
+
 // 年份选择列：近 11 年，必要时扩展到目标年份
 function buildYearColumns(targetYear) {
   const currentYear = new Date().getFullYear();
@@ -255,9 +257,14 @@ Page({
         const rawTotals = res.totals || { income: 0, expense: 0 };
         const incomeNum = Number(rawTotals.income) || 0;
         const expenseNum = Number(rawTotals.expense) || 0;
-        // 年度期末结余 = 最后一个公开月份的累计结余
+        // 期末结余 = 截至最后公开月末的累计结余（含往年结转），不是本年度收支相减
         const last = rows.length > 0 ? rows[rows.length - 1] : null;
         const balanceNum = last ? Number(last.currentBalance) || 0 : 0;
+        const openingNum = Number(res.openingBalance) || 0;
+        // 老版本接口没有 openingBalance，此时不显示算式，避免显示成"年初结转 0.00"
+        const openingKnown = res.openingBalance !== undefined && res.openingBalance !== null;
+        const netNum = round2(incomeNum - expenseNum);
+        const lastMonthNum = last ? parseInt(String(last.month).split('-')[1], 10) : 0;
         // 该年没有任何公开账单时不给数值，卡片直接显示"暂无公开账单"，避免出现一排 0.00
         const totals =
           months.length > 0
@@ -266,6 +273,10 @@ Page({
                 expenseText: formatAmount(expenseNum),
                 balanceText: formatAmount(balanceNum),
                 balanceNegative: balanceNum < 0,
+                balanceLabel: lastMonthNum ? `截至 ${lastMonthNum} 月末结余（元）` : '期末结余（元）',
+                openingText: formatAmount(openingNum),
+                netText: formatAmount(netNum),
+                openingKnown,
               }
             : null;
 

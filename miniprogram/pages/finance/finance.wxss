@@ -275,6 +275,28 @@
   word-break: break-all;
 }
 
+/* 年初结转 + 本年净额：让"为什么结余和收支差对不上"能直接算明白 */
+.bill-card__note {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 14rpx;
+}
+
+.bill-card__note-text {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.52);
+  line-height: 1.5;
+}
+
+.bill-card__note-dot {
+  margin: 0 10rpx;
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.3);
+  line-height: 1.5;
+}
+
 /* 年结余为负时换成暖沙色，不只靠符号区分 */
 .bill-card__hero-value.is-negative {
   color: #f7c98d;
