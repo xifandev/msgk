@@ -23,7 +23,7 @@
 
           <block wx:if="{{ bill }}">
             <view class="bill-card__hero">
-              <text class="bill-card__hero-label">截至 {{ monthText }}末结余（元）</text>
+              <text class="bill-card__hero-label">期末结余（元）</text>
               <text class="bill-card__hero-value {{ bill.currentNegative ? 'is-negative' : '' }}">{{ bill.currentText }}</text>
             </view>
 
@@ -110,13 +110,8 @@
 
           <block wx:if="{{ totals }}">
             <view class="bill-card__hero">
-              <text class="bill-card__hero-label">{{ totals.balanceLabel }}</text>
+              <text class="bill-card__hero-label">期末结余（元）</text>
               <text class="bill-card__hero-value {{ totals.balanceNegative ? 'is-negative' : '' }}">{{ totals.balanceText }}</text>
-              <view class="bill-card__note" wx:if="{{ totals.openingKnown }}">
-                <text class="bill-card__note-text">年初结转 {{ totals.openingText }}</text>
-                <text class="bill-card__note-dot">·</text>
-                <text class="bill-card__note-text">本年净额 {{ totals.netText }}</text>
-              </view>
             </view>
 
             <view class="bill-card__flow">
@@ -194,14 +189,65 @@
   </ms-tabs>
 </page-main>
 
-<!-- 选择年月 -->
-<ms-action-sheet show="{{ monthPickerShow }}" title="选择年月" bind:close="closeMonthPicker">
-  <ms-datetime-picker type="year-month" value="{{ currentDate }}" min-date="{{ minDate }}" max-date="{{ maxDate }}" bind:input="onMonthInput" bind:confirm="confirmMonth" bind:cancel="closeMonthPicker" />
-</ms-action-sheet>
+<!-- 选择月份 / 选择年份：只列该场所已公开的账期，点选即切换 -->
+<ms-action-sheet show="{{ periodsShow }}" title="{{ periodMode === 'year' ? '选择年份' : '选择月份' }}" bind:close="closePeriods">
+  <view class="periods">
+    <block wx:if="{{ periodState === 'ready' }}">
+      <view class="periods__state" wx:if="{{ periodYears.length === 0 }}">
+        <text class="periods__state-text">该场所暂无公开账期</text>
+      </view>
 
-<!-- 选择年份 -->
-<ms-action-sheet show="{{ yearPickerShow }}" title="选择年份" bind:close="closeYearPicker">
-  <ms-picker id="year-picker" columns="{{ yearColumns }}" default-index="{{ yearDefaultIndex }}" bind:confirm="confirmYear" bind:cancel="closeYearPicker" bind:change="onYearChange" />
+      <view class="ps-years" wx:elif="{{ periodMode === 'year' }}">
+        <view
+          class="ps-chip ps-chip--year {{ item.year == year ? 'is-active' : '' }}"
+          wx:for="{{ periodYears }}"
+          wx:key="year"
+          data-year="{{ item.year }}"
+          bind:tap="selectYear"
+          hover-class="ps-chip--hover"
+          aria-role="button"
+          aria-label="选择 {{ item.year }} 年"
+        >
+          <text class="ps-chip__label">{{ item.year }} 年</text>
+          <text class="ps-chip__tag">{{ item.months.length }} 个月</text>
+        </view>
+      </view>
+
+      <block wx:else>
+        <!-- 月份：按年份分组，只有已公开月份可点 -->
+        <view class="ps-group" wx:for="{{ periodYears }}" wx:key="year">
+          <view class="ps-group__head">
+            <text class="ps-group__year">{{ item.year }} 年</text>
+            <text class="ps-group__count">{{ item.months.length }} 个月</text>
+          </view>
+
+          <view class="ps-grid">
+            <view
+              class="ps-chip {{ m.month == month ? 'is-active' : '' }}"
+              wx:for="{{ item.months }}"
+              wx:for-item="m"
+              wx:key="month"
+              data-month="{{ m.month }}"
+              bind:tap="selectMonth"
+              hover-class="ps-chip--hover"
+              aria-role="button"
+              aria-label="选择 {{ item.year }} 年 {{ m.label }}"
+            >
+              <text class="ps-chip__label">{{ m.label }}</text>
+              <text class="ps-chip__tag">已公开</text>
+            </view>
+          </view>
+        </view>
+      </block>
+    </block>
+
+    <view class="periods__state" wx:elif="{{ periodState === 'loading' }}">正在加载已公开账期…</view>
+
+    <view class="periods__state" wx:else>
+      <text class="periods__state-text">账期加载失败</text>
+      <view class="periods__retry" bind:tap="loadPeriods" hover-class="periods__retry--hover" aria-role="button" aria-label="重新加载账期">重新加载</view>
+    </view>
+  </view>
 </ms-action-sheet>
 
 <!-- 月度明细抽屉：年度页点开某个月份卡片后，从底部展开该月收支明细 -->

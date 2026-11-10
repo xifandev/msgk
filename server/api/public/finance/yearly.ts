@@ -44,9 +44,6 @@ export default defineEventHandler(async (event) => {
   for (const row of aggregates) {
     if (row.ym < `${year}-01`) running = round2(running + Number(row.net))
   }
-  // 年初结转 = 本年度之前的全部明细净额，用于让"结转 + 本年净额 = 期末结余"可对得上
-  const openingBalance = running
-
   const months: { month: string, income: number, expense: number, currentBalance: number }[] = []
   for (let month = 1; month <= 12; month += 1) {
     const ym = `${year}-${String(month).padStart(2, '0')}`
@@ -67,5 +64,5 @@ export default defineEventHandler(async (event) => {
     }),
     { income: 0, expense: 0 }
   )
-  return { venueId, year, months, totals, openingBalance }
+  return { venueId, year, months, totals }
 })

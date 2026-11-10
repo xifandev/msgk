@@ -5,23 +5,6 @@ const { getVenueId, redirectHome } = require('../../utils/venue');
 
 const WEEK = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
-const round2 = (value) => Math.round(value * 100) / 100;
-
-// 年份选择列：近 11 年，必要时扩展到目标年份
-function buildYearColumns(targetYear) {
-  const currentYear = new Date().getFullYear();
-  const end = Math.max(currentYear, Number(targetYear) || currentYear);
-  const yearColumns = [];
-  let yearDefaultIndex = 0;
-  for (let i = end - 10; i <= end; i++) {
-    yearColumns.push(`${i}`);
-    if (i === Number(targetYear)) {
-      yearDefaultIndex = yearColumns.length - 1;
-    }
-  }
-  return { yearColumns, yearDefaultIndex };
-}
-
 // 'YYYY-MM-DD' → '11月04日 周二'
 function dayLabel(date) {
   const parts = String(date || '').split('-');
@@ -38,6 +21,9 @@ Page({
   monthlyRequestId: 0,
   yearlyRequestId: 0,
   detailRequestId: 0,
+  periodRequestId: 0,
+  // 已公开账期缓存：场所的公开月份不会频繁变化，首次打开弹窗拉取后复用
+  periodCache: null,
   // 年度页月份明细缓存：{ 'YYYY-MM': 渲染数据 }，重复打开同一月份不再请求
   detailCache: null,
 
@@ -54,11 +40,6 @@ Page({
     items: [],
     groups: [], // 按日期分组的明细
     monthLoaded: false,
-    // 月份选择
-    monthPickerShow: false,
-    currentDate: Date.now(),
-    minDate: new Date(2000, 0, 1).getTime(),
-    maxDate: Date.now(),
 
     // --------- 年度 ---------
     year: 0,
@@ -66,11 +47,12 @@ Page({
     totals: null,
     yearLoaded: false,
     yearError: false,
-    // 年份选择
-    yearPickerShow: false,
-    yearColumns: [],
-    yearDefaultIndex: 0,
-    pendingYearIndex: 0,
+
+    // --------- 选择月份 / 年份（只列已公开账期） ---------
+    periodsShow: false,
+    periodMode: 'month', // month | year
+    periodState: 'idle', // idle | loading | ready | error
+    periodYears: [], // [{ year: '2026', months: [{ month: '2026-09', label: '9月' }] }]
 
     // --------- 年度页：月度明细抽屉 ---------
     detailShow: false,
@@ -135,15 +117,11 @@ Page({
     const targetYear = Number(y);
     const patch = {
       month,
-      monthText: `${y}年${m}月`,
-      currentDate: new Date(targetYear, Number(m) - 1, 1).getTime(),
+      monthText: `${y}年${parseInt(m, 10)}月`,
     };
+    // 年度页年份跟随最近公开月份变化
     if (targetYear !== this.data.year) {
-      const columns = buildYearColumns(targetYear);
       patch.year = targetYear;
-      patch.yearColumns = columns.yearColumns;
-      patch.yearDefaultIndex = columns.yearDefaultIndex;
-      patch.pendingYearIndex = columns.yearDefaultIndex;
     }
     return patch;
   },
@@ -187,35 +165,104 @@ Page({
     return groups;
   },
 
+  // ------------------- 选择月份 / 年份（已公开账期） -------------------
   openMonthPicker() {
-    this.setData({ monthPickerShow: true });
+    this.openPeriods('month');
   },
 
-  closeMonthPicker() {
-    this.setData({ monthPickerShow: false });
+  openYearPicker() {
+    this.openPeriods('year');
   },
 
-  // 年月选择器滚动时同步当前时间戳
-  onMonthInput(e) {
-    this.setData({ currentDate: e.detail.value });
+  openPeriods(mode) {
+    this.setData({ periodsShow: true, periodMode: mode });
+    this.loadPeriods();
   },
 
-  confirmMonth(e) {
-    // ms-datetime-picker 确认事件携带所选时间戳
-    const timestamp = e.detail && e.detail.value ? e.detail.value : this.data.currentDate;
-    const d = new Date(timestamp);
-    const year = d.getFullYear();
-    const month = `0${d.getMonth() + 1}`.slice(-2);
+  closePeriods() {
+    this.setData({ periodsShow: false });
+  },
+
+  // 账期列表只拉一次：场所的公开月份不会频繁变化，弹窗内切换不再请求
+  loadPeriods() {
+    if (this.periodCache) {
+      this.setData({ periodState: 'ready', periodYears: this.periodCache });
+      return;
+    }
+    const requestId = ++this.periodRequestId;
+    this.setData({ periodState: 'loading' });
+    get('/api/public/finance/periods', { venueId: this.data.venueId }, { loading: false })
+      .then((res) => {
+        const groups = this.buildPeriodGroups(res.months);
+        this.periodCache = groups;
+        if (requestId !== this.periodRequestId) {
+          return;
+        }
+        this.setData({ periodState: 'ready', periodYears: groups });
+      })
+      .catch(() => {
+        if (requestId !== this.periodRequestId) {
+          return;
+        }
+        this.setData({ periodState: 'error', periodYears: [] });
+      });
+  },
+
+  // ['2026-09','2026-08','2025-12'] → [{ year:'2026', months:[...] }, ...]，最近的排前面
+  buildPeriodGroups(months) {
+    const groups = [];
+    const index = {};
+    (months || []).forEach((month) => {
+      const parts = String(month).split('-');
+      if (parts.length !== 2) {
+        return;
+      }
+      if (index[parts[0]] == null) {
+        index[parts[0]] = groups.length;
+        groups.push({ year: parts[0], months: [] });
+      }
+      groups[index[parts[0]]].months.push({
+        month,
+        label: `${parseInt(parts[1], 10)}月`,
+      });
+    });
+    return groups;
+  },
+
+  selectMonth(e) {
+    const month = (e.currentTarget && e.currentTarget.dataset || {}).month;
+    if (!month) {
+      return;
+    }
+    const parts = String(month).split('-');
     this.setData(
       {
-        month: `${year}-${month}`,
-        monthText: `${year}年${month}月`,
-        monthPickerShow: false,
+        month,
+        monthText: `${parts[0]}年${parseInt(parts[1], 10)}月`,
+        periodsShow: false,
         bill: null,
         items: [],
         groups: [],
       },
       () => this.loadMonthly()
+    );
+  },
+
+  selectYear(e) {
+    const year = Number((e.currentTarget && e.currentTarget.dataset || {}).year);
+    if (!year) {
+      return;
+    }
+    this.setData(
+      {
+        year,
+        periodsShow: false,
+        months: [],
+        totals: null,
+        yearLoaded: false,
+        yearError: false,
+      },
+      () => this.loadYearly()
     );
   },
 
@@ -257,14 +304,9 @@ Page({
         const rawTotals = res.totals || { income: 0, expense: 0 };
         const incomeNum = Number(rawTotals.income) || 0;
         const expenseNum = Number(rawTotals.expense) || 0;
-        // 期末结余 = 截至最后公开月末的累计结余（含往年结转），不是本年度收支相减
+        // 年度期末结余 = 最后一个公开月份的累计结余
         const last = rows.length > 0 ? rows[rows.length - 1] : null;
         const balanceNum = last ? Number(last.currentBalance) || 0 : 0;
-        const openingNum = Number(res.openingBalance) || 0;
-        // 老版本接口没有 openingBalance，此时不显示算式，避免显示成"年初结转 0.00"
-        const openingKnown = res.openingBalance !== undefined && res.openingBalance !== null;
-        const netNum = round2(incomeNum - expenseNum);
-        const lastMonthNum = last ? parseInt(String(last.month).split('-')[1], 10) : 0;
         // 该年没有任何公开账单时不给数值，卡片直接显示"暂无公开账单"，避免出现一排 0.00
         const totals =
           months.length > 0
@@ -273,10 +315,6 @@ Page({
                 expenseText: formatAmount(expenseNum),
                 balanceText: formatAmount(balanceNum),
                 balanceNegative: balanceNum < 0,
-                balanceLabel: lastMonthNum ? `截至 ${lastMonthNum} 月末结余（元）` : '期末结余（元）',
-                openingText: formatAmount(openingNum),
-                netText: formatAmount(netNum),
-                openingKnown,
               }
             : null;
 
@@ -288,49 +326,6 @@ Page({
         }
         this.setData({ months: [], totals: null, yearLoaded: true, yearError: true });
       });
-  },
-
-  openYearPicker() {
-    const currentIndex = this.data.yearColumns.indexOf(String(this.data.year));
-    const index = Math.max(currentIndex, 0);
-    this.setData(
-      { yearDefaultIndex: index, pendingYearIndex: index, yearPickerShow: true },
-      () => {
-        // 弹窗复用时也强制回到当前年份，避免保留组件初始值或上次滚动位置
-        const picker = this.selectComponent('#year-picker');
-        if (picker) {
-          picker.refresh();
-        }
-      }
-    );
-  },
-
-  closeYearPicker() {
-    this.setData({ yearPickerShow: false });
-  },
-
-  // 年份滚动选中
-  onYearChange(e) {
-    this.setData({ pendingYearIndex: e.detail.index });
-  },
-
-  confirmYear(e) {
-    // ms-picker 确认事件携带选中索引
-    const index = e.detail && e.detail.index != null ? e.detail.index : this.data.pendingYearIndex;
-    const year = Number(this.data.yearColumns[index]);
-    this.setData(
-      {
-        year,
-        yearDefaultIndex: index,
-        pendingYearIndex: index,
-        yearPickerShow: false,
-        months: [],
-        totals: null,
-        yearLoaded: false,
-        yearError: false,
-      },
-      () => this.loadYearly()
-    );
   },
 
   // ------------------- 年度页：月度明细抽屉 -------------------
@@ -470,18 +465,13 @@ Page({
 
     // 默认视图由服务端解析为该场所最近一次对外公开的月份，年度页年份随之对齐
     const currentYear = new Date().getFullYear();
-    const columns = buildYearColumns(currentYear);
 
     this.setData(
       {
         venueId,
         month: '',
         monthText: '',
-        currentDate: Date.now(),
         year: currentYear,
-        yearColumns: columns.yearColumns,
-        yearDefaultIndex: columns.yearDefaultIndex,
-        pendingYearIndex: columns.yearDefaultIndex,
       },
       () => {
         this.loadVenueName();
