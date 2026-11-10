@@ -63,6 +63,7 @@ Page({
     months: [],
     totals: null,
     yearLoaded: false,
+    yearError: false,
     // 年份选择
     yearPickerShow: false,
     yearColumns: [],
@@ -219,7 +220,7 @@ Page({
   // ------------------- 年度 -------------------
   loadYearly() {
     const requestId = ++this.yearlyRequestId;
-    this.setData({ yearLoaded: false });
+    this.setData({ yearLoaded: false, yearError: false });
     get('/api/public/finance/yearly', {
       venueId: this.data.venueId,
       year: String(this.data.year),
@@ -257,12 +258,16 @@ Page({
         // 年度期末结余 = 最后一个公开月份的累计结余
         const last = rows.length > 0 ? rows[rows.length - 1] : null;
         const balanceNum = last ? Number(last.currentBalance) || 0 : 0;
-        const totals = {
-          incomeText: formatAmount(incomeNum),
-          expenseText: formatAmount(expenseNum),
-          balanceText: formatAmount(balanceNum),
-          balanceNegative: balanceNum < 0,
-        };
+        // 该年没有任何公开账单时不给数值，卡片直接显示"暂无公开账单"，避免出现一排 0.00
+        const totals =
+          months.length > 0
+            ? {
+                incomeText: formatAmount(incomeNum),
+                expenseText: formatAmount(expenseNum),
+                balanceText: formatAmount(balanceNum),
+                balanceNegative: balanceNum < 0,
+              }
+            : null;
 
         this.setData({ months, totals, yearLoaded: true });
       })
@@ -270,7 +275,7 @@ Page({
         if (requestId !== this.yearlyRequestId) {
           return;
         }
-        this.setData({ months: [], totals: null, yearLoaded: true });
+        this.setData({ months: [], totals: null, yearLoaded: true, yearError: true });
       });
   },
 
@@ -310,6 +315,8 @@ Page({
         yearPickerShow: false,
         months: [],
         totals: null,
+        yearLoaded: false,
+        yearError: false,
       },
       () => this.loadYearly()
     );

@@ -287,12 +287,12 @@
 }
 
 /* ---------- 年度账单卡 ---------- */
-/* 深绿实地卡片，只承载三个数值结论：年结余为主视觉，总收入 / 总支出在下沿分行对置。
-   不再放柱状图与图例，靠字号、留白和明暗对比撑住版面。 */
+/* 深绿实地卡片，只承载三个数值结论：期末结余为主视觉，年总收入 / 年总支出在下沿分行对置。
+   年份切换收进标题行，上方不再单独占一条选择条。 */
 .year {
   position: relative;
   overflow: hidden;
-  margin: 18rpx 24rpx 0;
+  margin: 26rpx 24rpx 0;
   padding: 40rpx 36rpx 36rpx;
   border-radius: 32rpx;
   background: linear-gradient(158deg, #1e8a60 0%, #0f6a45 55%, #0b4d33 100%);
@@ -327,16 +327,39 @@
   letter-spacing: 1rpx;
 }
 
-/* 公开月份数收进描边小标签，避免在标题下再压一行说明文字 */
-.year__tag {
+/* 年份切换收进卡片标题右侧：描边胶囊 + 下拉箭头，既能读又能点 */
+.year__switch {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
   margin-left: 16rpx;
-  padding: 4rpx 16rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.24);
+  padding: 10rpx 20rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.26);
   border-radius: 999rpx;
-  font-size: 22rpx;
+}
+
+.year__switch--hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.year__switch-text {
+  margin-right: 6rpx;
+  font-size: 23rpx;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* 该年没有公开账单：不摆一排 0.00，只留一句结论 */
+.year__empty {
+  position: relative;
+  margin-top: 44rpx;
+  padding-bottom: 6rpx;
+}
+
+.year__empty-text {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.6);
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.72);
 }
 
 .year__hero {

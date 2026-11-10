@@ -84,97 +84,92 @@
 
       <!-- ================= 年度收支 ================= -->
       <block wx:else>
-        <view class="period" bind:tap="openYearPicker" hover-class="period--hover" aria-role="button" aria-label="切换年份">
-          <view class="period__left">
-            <ms-icon name="calendar" size="30rpx" color="#0a7d59" />
-            <text class="period__text">{{ year }} 年</text>
-          </view>
-          <view class="period__right">
-            <text>切换年份</text>
-            <ms-icon name="arrow-down" size="22rpx" color="#9a9ca1" />
-          </view>
-        </view>
+        <!-- 年度账单卡：标题右侧即切换年份入口，去掉页面上方单独一条年份选择条 -->
+        <view class="year">
+          <view class="year__glow"></view>
 
-        <block wx:if="{{ yearLoaded && months.length > 0 }}">
-          <!-- 年度账单卡：只放数值结论（期末结余 / 总收入 / 总支出） -->
-          <view class="year">
-            <view class="year__glow"></view>
-
-            <view class="year__head">
-              <text class="year__title">{{ year }} 年度账单</text>
-              <text class="year__tag">已公开 {{ months.length }} 个月</text>
-            </view>
-
-            <block wx:if="{{ totals }}">
-              <view class="year__hero">
-                <text class="year__hero-label">期末结余（元）</text>
-                <text class="year__hero-value {{ totals.balanceNegative ? 'is-negative' : '' }}">{{ totals.balanceText }}</text>
-              </view>
-
-              <view class="year__flow">
-                <view class="year__item">
-                  <text class="year__item-label">总收入</text>
-                  <text class="year__item-value is-income">{{ totals.incomeText }}</text>
-                </view>
-                <view class="year__item year__item--right">
-                  <text class="year__item-label">总支出</text>
-                  <text class="year__item-value is-expense">{{ totals.expenseText }}</text>
-                </view>
-              </view>
-            </block>
-          </view>
-
-          <!-- 月度明细：本月收入 / 本月支出 / 期末结余；点开卡片查看该月收支明细 -->
-          <view class="section">
-            <view class="section__head">
-              <view class="section__bar"></view>
-              <text class="section__title">月度明细</text>
-              <text class="section__extra">点按月份查看明细</text>
-            </view>
-
+          <view class="year__head">
+            <text class="year__title">{{ year }} 年度账单</text>
             <view
-              class="month"
-              wx:for="{{ months }}"
-              wx:key="month"
-              data-index="{{ index }}"
-              bind:tap="openMonthDetail"
-              hover-class="month--hover"
+              class="year__switch"
+              bind:tap="openYearPicker"
+              hover-class="year__switch--hover"
               aria-role="button"
-              aria-label="查看 {{ item.monthText }} 收支明细"
+              aria-label="切换年份，当前 {{ year }} 年"
             >
-              <view class="month__head">
-                <text class="month__name">{{ item.monthText }}</text>
-                <view class="month__more">
-                  <text class="month__more-text">查看明细</text>
-                  <ms-icon name="arrow" size="20rpx" color="#8f939a" />
-                </view>
-              </view>
+              <text class="year__switch-text">切换年份</text>
+              <ms-icon name="arrow-down" size="20rpx" color="rgba(255,255,255,0.78)" />
+            </view>
+          </view>
 
-              <view class="month__row">
-                <view class="mstat">
-                  <text class="mstat__label">本月收入</text>
-                  <text class="mstat__value is-income">{{ item.incomeText }}</text>
-                </view>
-                <view class="mstat">
-                  <text class="mstat__label">本月支出</text>
-                  <text class="mstat__value is-expense">{{ item.expenseText }}</text>
-                </view>
-                <view class="mstat">
-                  <text class="mstat__label">期末结余</text>
-                  <text class="mstat__value {{ item.currentNegative ? 'is-negative' : '' }}">{{ item.currentText }}</text>
-                </view>
+          <block wx:if="{{ totals }}">
+            <view class="year__hero">
+              <text class="year__hero-label">期末结余（元）</text>
+              <text class="year__hero-value {{ totals.balanceNegative ? 'is-negative' : '' }}">{{ totals.balanceText }}</text>
+            </view>
+
+            <view class="year__flow">
+              <view class="year__item">
+                <text class="year__item-label">年总收入</text>
+                <text class="year__item-value is-income">{{ totals.incomeText }}</text>
+              </view>
+              <view class="year__item year__item--right">
+                <text class="year__item-label">年总支出</text>
+                <text class="year__item-value is-expense">{{ totals.expenseText }}</text>
+              </view>
+            </view>
+          </block>
+
+          <view class="year__empty" wx:else>
+            <text class="year__empty-text">{{ yearError ? '账单加载失败，可切换年份后重试' : (yearLoaded ? '本年暂无公开账单，可切换年份查看' : '正在加载…') }}</text>
+          </view>
+        </view>
+
+        <!-- 月度明细：本月收入 / 本月支出 / 期末结余；点开卡片查看该月收支明细 -->
+        <view class="section" wx:if="{{ months.length > 0 }}">
+          <view class="section__head">
+            <view class="section__bar"></view>
+            <text class="section__title">月度明细</text>
+            <text class="section__extra">已公开 {{ months.length }} 个月</text>
+          </view>
+
+          <view
+            class="month"
+            wx:for="{{ months }}"
+            wx:key="month"
+            data-index="{{ index }}"
+            bind:tap="openMonthDetail"
+            hover-class="month--hover"
+            aria-role="button"
+            aria-label="查看 {{ item.monthText }} 收支明细"
+          >
+            <view class="month__head">
+              <text class="month__name">{{ item.monthText }}</text>
+              <view class="month__more">
+                <text class="month__more-text">查看明细</text>
+                <ms-icon name="arrow" size="20rpx" color="#8f939a" />
+              </view>
+            </view>
+
+            <view class="month__row">
+              <view class="mstat">
+                <text class="mstat__label">本月收入</text>
+                <text class="mstat__value is-income">{{ item.incomeText }}</text>
+              </view>
+              <view class="mstat">
+                <text class="mstat__label">本月支出</text>
+                <text class="mstat__value is-expense">{{ item.expenseText }}</text>
+              </view>
+              <view class="mstat">
+                <text class="mstat__label">期末结余</text>
+                <text class="mstat__value {{ item.currentNegative ? 'is-negative' : '' }}">{{ item.currentText }}</text>
               </view>
             </view>
           </view>
-        </block>
-
-        <view class="empty-card" wx:elif="{{ yearLoaded && months.length === 0 }}">
-          <ms-empty description="本年暂无公开数据">
-            <text class="empty-card__hint">可切换年份查看历史公开记录</text>
-          </ms-empty>
         </view>
-        <view class="skeleton" wx:else>
-          <view class="skeleton__hero"></view>
+
+        <view class="skeleton" wx:elif="{{ !yearLoaded }}">
+          <view class="skeleton__row"></view>
           <view class="skeleton__row"></view>
           <view class="skeleton__row"></view>
         </view>
