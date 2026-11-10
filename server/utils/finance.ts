@@ -39,12 +39,18 @@ export async function getBillTotals(billIds: number[]) {
 }
 
 // 期末结余 = 截至该月末的全部明细净额（实时计算，不落库）
-export async function getBillBalance(venueId: number, month: string) {
+// publicOnly：只统计审核通过且已公开账单的明细。对外接口必须开启，
+// 否则未公开月份的金额会滚进公开月份的结余里，等于间接泄露未公开数据
+export async function getBillBalance(venueId: number, month: string, options: { publicOnly?: boolean } = {}) {
   const [year, mon] = month.split('-').map(Number)
   const nextMonthStart = new Date(Date.UTC(year ?? 0, mon ?? 1, 1)).toISOString().slice(0, 10)
+  const joinPublished = options.publicOnly
+    ? " JOIN bills b ON b.id = i.bill_id AND b.state = 'approved' AND b.published = 1"
+    : ''
   const rows = await query<{ balance: number | string }>(
-    `SELECT COALESCE(SUM(CASE WHEN kind = 'income' THEN amount ELSE -amount END), 0) AS balance
-     FROM bill_items WHERE venue_id = ? AND occurred_on < ?`,
+    `SELECT COALESCE(SUM(CASE WHEN i.kind = 'income' THEN i.amount ELSE -i.amount END), 0) AS balance
+     FROM bill_items i${joinPublished}
+     WHERE i.venue_id = ? AND i.occurred_on < ?`,
     [venueId, nextMonthStart]
   )
   return round2(Number(rows[0]?.balance ?? 0))

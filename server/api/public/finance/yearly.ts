@@ -31,12 +31,15 @@ export default defineEventHandler(async (event) => {
   const published = new Set(rows.map(row => row.bill_month))
 
   // 收入、支出、期末结余全部按明细现算；结余按截至当月末的明细净额滚动
+  // 只统计已公开账单的明细：未公开月份的金额一旦进入累计，等于对外泄露
   const aggregates = await query<AggregateRow>(
-    `SELECT DATE_FORMAT(occurred_on, '%Y-%m') AS ym,
-            COALESCE(SUM(CASE WHEN kind = 'income' THEN amount ELSE 0 END), 0) AS income,
-            COALESCE(SUM(CASE WHEN kind = 'expense' THEN amount ELSE 0 END), 0) AS expense,
-            COALESCE(SUM(CASE WHEN kind = 'income' THEN amount ELSE -amount END), 0) AS net
-     FROM bill_items WHERE venue_id = ? AND occurred_on < ? GROUP BY ym ORDER BY ym`,
+    `SELECT DATE_FORMAT(i.occurred_on, '%Y-%m') AS ym,
+            COALESCE(SUM(CASE WHEN i.kind = 'income' THEN i.amount ELSE 0 END), 0) AS income,
+            COALESCE(SUM(CASE WHEN i.kind = 'expense' THEN i.amount ELSE 0 END), 0) AS expense,
+            COALESCE(SUM(CASE WHEN i.kind = 'income' THEN i.amount ELSE -i.amount END), 0) AS net
+     FROM bill_items i
+     JOIN bills b ON b.id = i.bill_id AND b.state = 'approved' AND b.published = 1
+     WHERE i.venue_id = ? AND i.occurred_on < ? GROUP BY ym ORDER BY ym`,
     [venueId, `${Number(year) + 1}-01-01`]
   )
   const byMonth = new Map(aggregates.map(row => [row.ym, row]))

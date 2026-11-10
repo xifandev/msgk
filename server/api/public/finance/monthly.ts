@@ -47,7 +47,8 @@ export default defineEventHandler(async (event) => {
       'SELECT id, occurred_on, kind, summary, amount FROM bill_items WHERE bill_id = ? ORDER BY occurred_on ASC, id ASC',
       [bill.id]
     ),
-    getBillBalance(bill.venue_id, bill.bill_month)
+    // 结余只由已公开账单的明细累计，未公开月份不参与
+    getBillBalance(bill.venue_id, bill.bill_month, { publicOnly: true })
   ])
   const totals = totalsFromItems(items)
   return {

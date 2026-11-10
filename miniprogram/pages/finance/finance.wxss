@@ -635,9 +635,18 @@
 
 
 /* ---------- 选择月份 / 选择年份弹窗 ---------- */
-/* 只列该场所已公开的账期，点选即切换：chip 主文案是账期，副文案是公开状态 */
+/* 账期 chip 主文案是账期，副文案是公开状态：已公开可点，填报中置灰不可点 */
 .periods {
   padding: 4rpx 28rpx 34rpx;
+}
+
+/* 年份数量少（通常 2~5 个），内容撑不起高度，面板会缩成一条矮条。
+   这里给年份面板一个固定下限并把年份按钮居中，面板观感与月份面板一致 */
+.periods--year {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 520rpx;
 }
 
 .periods__state {
@@ -672,9 +681,24 @@
   flex-wrap: wrap;
 }
 
-/* 年份 chip 一行两个，宽度随字数自适应 */
-.ps-chip--year {
-  min-width: 208rpx;
+/* 年份 chip 一行两个，做成整行高的大按钮：年份字大、状态字在下。
+   双类名是为了盖过后面的 .ps-chip 基础样式，不受声明顺序影响 */
+.ps-chip.ps-chip--year {
+  box-sizing: border-box;
+  width: calc(50% - 14rpx);
+  align-items: center;
+  padding: 40rpx 0 34rpx;
+  border-radius: 20rpx;
+}
+
+.ps-chip--year .ps-chip__label {
+  font-size: 36rpx;
+  font-weight: 600;
+}
+
+.ps-chip--year .ps-chip__tag {
+  margin-top: 8rpx;
+  font-size: 22rpx;
 }
 
 .ps-group + .ps-group {
@@ -692,11 +716,6 @@
   font-size: 27rpx;
   font-weight: 600;
   color: #17211c;
-}
-
-.ps-group__count {
-  font-size: 22rpx;
-  color: #8f939a;
 }
 
 .ps-grid {
@@ -728,6 +747,21 @@
 .ps-chip.is-active .ps-chip__label {
   color: #0a7d59;
   font-weight: 600;
+}
+
+/* 填报中：后台已建账但未对外公开，置灰且不可点选。
+   留着这些月份是为了说明"不是缺了，而是还在填报"，别让公开月份看起来断档 */
+.ps-chip.is-locked {
+  border-color: #edf1ef;
+  background: #f6f8f7;
+}
+
+.ps-chip.is-locked .ps-chip__label {
+  color: #aab2ad;
+}
+
+.ps-chip.is-locked .ps-chip__tag {
+  color: #b6beb9;
 }
 
 .ps-chip__label {

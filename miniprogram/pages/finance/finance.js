@@ -49,11 +49,14 @@ Page({
     yearLoaded: false,
     yearError: false,
 
-    // --------- 选择月份 / 年份（只列已公开账期） ---------
+    // --------- 选择月份 / 年份（已公开账期 + 填报中账期） ---------
     periodsShow: false,
     periodMode: 'month', // month | year
     periodState: 'idle', // idle | loading | ready | error
-    periodYears: [], // [{ year: '2026', months: [{ month: '2026-09', label: '9月' }] }]
+    // [{ year: '2026', months: [{ month, label, status, statusText }] }]，最近的排前面
+    periodYears: [],
+    // 年份选择只列有已公开账期的年份
+    yearOptions: [],
 
     // --------- 年度页：月度明细抽屉 ---------
     detailShow: false,
@@ -166,7 +169,7 @@ Page({
     return groups;
   },
 
-  // ------------------- 选择月份 / 年份（已公开账期） -------------------
+  // ------------------- 选择月份 / 年份（已公开账期 + 填报中占位） -------------------
   openMonthPicker() {
     this.openPeriods('month');
   },
@@ -187,52 +190,67 @@ Page({
   // 账期列表只拉一次：场所的公开月份不会频繁变化，弹窗内切换不再请求
   loadPeriods() {
     if (this.periodCache) {
-      this.setData({ periodState: 'ready', periodYears: this.periodCache });
+      const cached = this.periodCache;
+      this.setData({ periodState: 'ready', periodYears: cached.groups, yearOptions: cached.years });
       return;
     }
     const requestId = ++this.periodRequestId;
     this.setData({ periodState: 'loading' });
     get('/api/public/finance/periods', { venueId: this.data.venueId }, { loading: false })
       .then((res) => {
-        const groups = this.buildPeriodGroups(res.months);
-        this.periodCache = groups;
+        const data = this.buildPeriodGroups(res.periods);
+        this.periodCache = data;
         if (requestId !== this.periodRequestId) {
           return;
         }
-        this.setData({ periodState: 'ready', periodYears: groups });
+        this.setData({ periodState: 'ready', periodYears: data.groups, yearOptions: data.years });
       })
       .catch(() => {
         if (requestId !== this.periodRequestId) {
           return;
         }
-        this.setData({ periodState: 'error', periodYears: [] });
+        this.setData({ periodState: 'error', periodYears: [], yearOptions: [] });
       });
   },
 
-  // ['2026-09','2026-08','2025-12'] → [{ year:'2026', months:[...] }, ...]，最近的排前面
-  buildPeriodGroups(months) {
+  // [{ month:'2026-11', status:'filling' }, ...] → 按年份分组的月份按钮 + 可选年份列表
+  // 已公开月份可点选；填报中月份只作占位，说明该月不是缺失而是尚未公开
+  buildPeriodGroups(periods) {
     const groups = [];
     const index = {};
-    (months || []).forEach((month) => {
-      const parts = String(month).split('-');
+    (periods || []).forEach((item) => {
+      const parts = String((item && item.month) || '').split('-');
       if (parts.length !== 2) {
         return;
       }
-      if (index[parts[0]] == null) {
-        index[parts[0]] = groups.length;
-        groups.push({ year: parts[0], months: [] });
+      const year = parts[0];
+      if (index[year] == null) {
+        index[year] = groups.length;
+        groups.push({ year, months: [], published: 0 });
       }
-      groups[index[parts[0]]].months.push({
-        month,
+      const status = item.status === 'published' ? 'published' : 'filling';
+      const group = groups[index[year]];
+      group.months.push({
+        month: item.month,
         label: `${parseInt(parts[1], 10)}月`,
+        status,
+        statusText: status === 'published' ? '已公开' : '填报中',
       });
+      if (status === 'published') {
+        group.published += 1;
+      }
     });
-    return groups;
+    return {
+      groups,
+      years: groups.filter((group) => group.published > 0).map((group) => ({ year: group.year })),
+    };
   },
 
   selectMonth(e) {
-    const month = (e.currentTarget && e.currentTarget.dataset || {}).month;
-    if (!month) {
+    const dataset = (e.currentTarget && e.currentTarget.dataset) || {};
+    const month = dataset.month;
+    // 填报中月份不可点选，避免进入没有公开数据的月份
+    if (!month || dataset.status !== 'published') {
       return;
     }
     const parts = String(month).split('-');
