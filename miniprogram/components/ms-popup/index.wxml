@@ -1,6 +1,17 @@
 <view class="ms-popup" wx:if="{{ render }}" style="z-index: {{ zIndex }}">
-  <view class="ms-popup__mask {{ visible ? 'is-visible' : '' }}" bind:tap="onMaskTap"></view>
-  <view class="ms-popup__panel ms-popup__panel--{{ position }} {{ round ? 'is-round' : '' }} {{ visible ? 'is-visible' : '' }}" style="{{ customStyle }}" catchtouchmove="noop">
+  <view
+    class="ms-popup__mask {{ visible ? 'is-visible' : '' }} {{ dragging ? 'is-dragging' : '' }}"
+    style="{{ maskDriven ? 'opacity: ' + maskOpacity + ';' : '' }}"
+    bind:tap="onMaskTap"
+  ></view>
+  <view
+    class="ms-popup__panel ms-popup__panel--{{ position }} {{ round ? 'is-round' : '' }} {{ visible ? 'is-visible' : '' }} {{ dragging ? 'is-dragging' : '' }}"
+    style="{{ customStyle }}{{ draggable && position === 'bottom' ? '; bottom: ' + panelBottom + 'px;' : '' }}"
+    catchtouchmove="onDragMove"
+    bindtouchstart="onDragStart"
+    bindtouchend="onDragEnd"
+    bindtouchcancel="onDragEnd"
+  >
     <slot></slot>
   </view>
 </view>

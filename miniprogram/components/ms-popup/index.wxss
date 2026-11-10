@@ -21,13 +21,24 @@
   opacity: 1;
 }
 
+/* 跟手拖动时遮罩透明度由内联值决定，必须去掉过渡，否则会拖出延迟感 */
+.ms-popup__mask.is-dragging {
+  transition: none;
+}
+
 .ms-popup__panel {
   position: absolute;
   background-color: #fff;
-  transition: transform 0.26s ease, opacity 0.26s ease;
+  transition: transform 0.26s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.26s ease,
+    bottom 0.26s cubic-bezier(0.32, 0.72, 0, 1);
   box-sizing: border-box;
   max-height: 90vh;
   overflow-y: auto;
+}
+
+/* 拖动中面板要严格跟手，回弹时才走过渡 */
+.ms-popup__panel.is-dragging {
+  transition: none;
 }
 
 .ms-popup__panel.is-round {

@@ -571,13 +571,28 @@
   box-sizing: border-box;
 }
 
+/* 抓手：同时是下拉关闭手柄。整块是 44rpx 高的透明命中区，横条用伪元素画，
+   这样手指压在横条边缘也能触发拖动（不依赖子节点） */
 .sheet__handle {
   flex-shrink: 0;
-  width: 68rpx;
-  height: 8rpx;
-  margin: 16rpx auto 0;
+  width: 240rpx;
+  height: 44rpx;
+  margin: 8rpx auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sheet__handle::after {
+  content: '';
+  width: 72rpx;
+  height: 10rpx;
   border-radius: 999rpx;
-  background: #d7e3dc;
+  background: #d2e0d9;
+}
+
+.sheet__handle--hover::after {
+  background: #b8cec3;
 }
 
 .sheet__head {

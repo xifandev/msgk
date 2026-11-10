@@ -203,12 +203,15 @@
   show="{{ detailShow }}"
   position="bottom"
   round
+  draggable
+  drag-zone="{{ 96 }}"
   z-index="{{ 1200 }}"
   bind:close="closeMonthDetail"
   custom-style="height: 78vh; background: #f4faf6; overflow: hidden;"
 >
   <view class="sheet">
-    <view class="sheet__handle"></view>
+    <!-- 抓手即下拉关闭手柄：data-drag 让弹层只在按到这里时才接管手势 -->
+    <view class="sheet__handle" data-drag="1" hover-class="sheet__handle--hover" hover-stay-time="80" aria-role="button" aria-label="下拉关闭明细"></view>
 
     <view class="sheet__head">
       <view class="sheet__arrow {{ detailPrev ? '' : 'is-disabled' }}" data-step="-1" bind:tap="switchMonthDetail" aria-role="button" aria-label="上一月">
