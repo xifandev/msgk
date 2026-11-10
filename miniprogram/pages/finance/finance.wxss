@@ -1,19 +1,31 @@
-/* 财务公开：对账单式设计 · 阳光绿主题（公开 / 明亮 / 通透）
-   色彩：主色 #0a7d59，浅绿底 #f4faf6；支出用暗金 #b97a10 点缀。
-   版式原则：编辑排版式层级 —— 细线代替色块、留白分组、单一墨绿 + 暖金两个点缀色 */
+/* 财务公开：对账单式设计 · 深底白卡（墨绿暗场 + 白色账单卡）
+   色彩：暗场 #0f1613，主色 #0a7d59，浅点缀 #3d9b76 / 暖金 #d19a3f。
+   版式原则：深色底托白卡 —— 卡片是舞台主角，细线与留白分层，色彩只做点缀 */
 
 .pane {
-  background: #f4faf6;
+  background: #0f1613;
   padding-bottom: 30rpx;
   min-height: 60vh;
 }
 
-/* 内容区、滚动区与标签页主体统一浅绿底，去掉说明文字下方的白色底块；
-   不改 page-main 的 env(safe-area-inset-bottom) 外边距，继续保留 iPhone 底部安全区 */
+/* 内容区、滚动区与标签页主体统一暗场底；不改 page-main 安全区外边距 */
 .cellgroup,
 .cellgroup__scroll,
 .ms-tabs {
-  background-color: #f4faf6;
+  background-color: #0f1613;
+}
+
+/* 暗场上的标签栏：未选中淡白灰，选中纯白（组件 active 色是内联样式，需 !important 覆盖） */
+.ms-tabs__nav {
+  background-color: transparent;
+}
+
+.ms-tabs__item {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.ms-tabs__item.is-active {
+  color: #ffffff !important;
 }
 
 .bottom-gap {
@@ -24,7 +36,7 @@
    只留一层极淡的投影，内容滚到栏下方时才有层次，静止时几乎看不见 */
 .ms-tabs.is-sticky .ms-tabs__nav {
   border-bottom: 0;
-  box-shadow: 0 3rpx 10rpx rgba(6, 89, 63, 0.04);
+  box-shadow: 0 3rpx 12rpx rgba(0, 0, 0, 0.25);
 }
 
 /* ---------- 区块标题 ---------- */
@@ -50,12 +62,12 @@
   flex: 1;
   font-size: 30rpx;
   font-weight: 600;
-  color: #17211c;
+  color: #eef3ef;
 }
 
 .section__extra {
   font-size: 24rpx;
-  color: #7f8782;
+  color: #7e8a83;
 }
 
 /* ---------- 公开明细：月份分组信息流 ---------- */
@@ -64,31 +76,39 @@
   margin-top: 48rpx;
 }
 
+/* 月份头一行放下：标题与"共 N 笔"强制不换行，收/支统计收小，
+   窄屏优先压缩统计列，不再把标题顶折行 */
 .month-group__head {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  padding: 0 28rpx 16rpx;
+  padding: 0 24rpx 16rpx;
 }
 
 .month-group__title-box {
   display: flex;
   align-items: baseline;
+  flex-shrink: 1;
   min-width: 0;
+  padding-right: 16rpx;
 }
 
 .month-group__title {
-  font-size: 36rpx;
+  flex-shrink: 0;
+  font-size: 32rpx;
   font-weight: 700;
-  color: #17211c;
+  color: #f2f6f3;
   letter-spacing: 1rpx;
+  white-space: nowrap;
 }
 
 .month-group__meta {
-  margin-left: 14rpx;
-  font-size: 22rpx;
-  color: #9aa5a0;
+  flex-shrink: 0;
+  margin-left: 12rpx;
+  font-size: 21rpx;
+  color: #7e8a83;
   letter-spacing: 1rpx;
+  white-space: nowrap;
 }
 
 .month-group__sum {
@@ -100,33 +120,34 @@
 .month-group__sum-item {
   display: flex;
   align-items: baseline;
+  white-space: nowrap;
 }
 
 .month-group__sum-item + .month-group__sum-item {
-  margin-left: 24rpx;
+  margin-left: 18rpx;
 }
 
-/* 收/支只是小标签，数值用墨色 —— 颜色退居其次，层级靠字重 */
+/* 收/支只是小标签，数值用近白 —— 层级靠字重不靠颜色 */
 .month-group__sum-label {
-  margin-right: 8rpx;
-  font-size: 21rpx;
-  color: #9aa5a0;
+  margin-right: 6rpx;
+  font-size: 20rpx;
+  color: #6d7a73;
   letter-spacing: 1rpx;
 }
 
 .month-group__sum-label.is-income {
-  color: #3d9b76;
+  color: #4fbf8f;
 }
 
 .month-group__sum-label.is-expense {
-  color: #b97a10;
+  color: #d19a3f;
 }
 
 .month-group__sum-value {
-  font-size: 26rpx;
+  font-size: 24rpx;
   font-weight: 600;
-  color: #17211c;
-  letter-spacing: 0.5rpx;
+  color: #eef3ef;
+  letter-spacing: 0;
 }
 
 .month-group__empty {
@@ -158,7 +179,7 @@
 .day__date {
   flex-shrink: 0;
   font-size: 22rpx;
-  color: #8f9a94;
+  color: #7e8a83;
   font-weight: 500;
   letter-spacing: 2rpx;
 }
@@ -167,7 +188,7 @@
   flex: 1;
   height: 1rpx;
   margin-left: 18rpx;
-  background: #e3ebe6;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 /* 卡片改平面细边：投影只留一丝，靠留白和细线分层 */
@@ -299,7 +320,8 @@
   padding: 40rpx 36rpx 36rpx;
   border-radius: 32rpx;
   background: linear-gradient(158deg, #1e8a60 0%, #0f6a45 55%, #0b4d33 100%);
-  box-shadow: 0 18rpx 40rpx rgba(10, 84, 56, 0.18);
+  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 18rpx 40rpx rgba(0, 0, 0, 0.35);
 }
 
 /* 右上角柔光：纯装饰，不承载信息 */
@@ -543,7 +565,7 @@
 
 .stream-foot__text {
   font-size: 23rpx;
-  color: #8f9a94;
+  color: #6d7a73;
 }
 
 /* ---------- 空态 / 骨架 / 说明 ---------- */
@@ -582,8 +604,8 @@
 .skeleton__row {
   height: 96rpx;
   margin-top: 16rpx;
-  border-radius: 20rpx;
-  background: linear-gradient(90deg, #f4f7f5 25%, #eaf0ec 37%, #f4f7f5 63%);
+  border-radius: 24rpx;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.1) 37%, rgba(255, 255, 255, 0.05) 63%);
   background-size: 400% 100%;
   animation: skeleton 1.4s ease infinite;
 }
@@ -603,14 +625,14 @@
   margin: 28rpx 28rpx 0;
   padding: 16rpx 20rpx;
   border-radius: 14rpx;
-  background: #edf7f1;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .notice__text {
   flex: 1;
   margin-left: 10rpx;
   font-size: 23rpx;
-  color: #4d7f68;
+  color: #93a89c;
   line-height: 1.6;
 }
 

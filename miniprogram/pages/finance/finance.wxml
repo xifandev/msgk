@@ -177,7 +177,7 @@
       </block>
 
       <view class="notice">
-        <ms-icon name="passed" size="24rpx" color="#5d9a80" />
+        <ms-icon name="passed" size="24rpx" color="#6fae90" />
         <text class="notice__text">数据由场所按月上报，经审核后公开，接受社会监督</text>
       </view>
     </view>
