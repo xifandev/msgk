@@ -20,5 +20,9 @@ export default defineEventHandler(async (event) => {
     status: row.state === 'approved' && Number(row.published) === 1 ? 'published' : 'filling'
   }))
 
-  return { venueId, periods }
+  // months 仅为兼容已发布的小程序版本（旧版只认已公开月份数组）；
+  // 新版本读 periods，自行区分已公开与填报中
+  const months = periods.filter(item => item.status === 'published').map(item => item.month)
+
+  return { venueId, months, periods }
 })
