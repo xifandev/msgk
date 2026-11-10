@@ -45,6 +45,7 @@ Component({
   },
 
   detached() {
+    this.transitionId = (this.transitionId || 0) + 1;
     clearTimeout(this.timer);
     clearTimeout(this.maskTimer);
     clearTimeout(this.measureTimer);
@@ -52,6 +53,9 @@ Component({
 
   methods: {
     toggle(value) {
+      // setData 回调本身也是异步的：快速开关时不能靠 clearTimeout 拦住尚未创建的定时器，
+      // 用递增令牌同时校验回调和定时器，过期回调直接丢弃
+      const transitionId = (this.transitionId = (this.transitionId || 0) + 1);
       clearTimeout(this.timer);
       clearTimeout(this.maskTimer);
       clearTimeout(this.measureTimer);
@@ -62,28 +66,42 @@ Component({
         this.setData(
           { render: true, dragging: false, maskDriven: false, panelBottom: 0, maskOpacity: 1 },
           () => {
-            this.timer = setTimeout(() => this.setData({ visible: true }), 30);
+            if (transitionId !== this.transitionId) {
+              return;
+            }
+            this.timer = setTimeout(() => {
+              if (transitionId !== this.transitionId) {
+                return;
+              }
+              this.setData({ visible: true });
+            }, 30);
           }
         );
         // 入场动画结束后量一次面板位置，供"顶部区域可拖"判定使用
-        this.measureTimer = setTimeout(() => this.measure(), 320);
+        this.measureTimer = setTimeout(() => {
+          if (transitionId !== this.transitionId) {
+            return;
+          }
+          this.measure();
+        }, 320);
       } else {
         this.drag = null;
         this.panelTop = null;
         // 交还给 class 控制遮罩，避免拖拽后的内联透明度让关闭动画失效
         this.setData({ visible: false, dragging: false, maskDriven: false, maskOpacity: 1 });
         // 滑出动画结束后再清掉拖拽位移，避免下次打开时面板停在半空
-        this.timer = setTimeout(
-          () =>
-            this.setData({
-              render: false,
-              dragging: false,
-              maskDriven: false,
-              panelBottom: 0,
-              maskOpacity: 1,
-            }),
-          260
-        );
+        this.timer = setTimeout(() => {
+          if (transitionId !== this.transitionId) {
+            return;
+          }
+          this.setData({
+            render: false,
+            dragging: false,
+            maskDriven: false,
+            panelBottom: 0,
+            maskOpacity: 1,
+          });
+        }, 260);
       }
     },
 
