@@ -65,6 +65,8 @@ const itemSaving = ref(false)
 const itemForm = reactive({ id: 0, kind: 'income', occurredOn: '', summary: '', amount: '' })
 const amountLabel = computed(() => itemForm.kind === 'income' ? '收入金额' : '支出金额')
 const billEditable = computed(() => ['draft', 'rejected'].includes(current.value.state))
+// 仅"场所的第一张账单 + 处于可编辑状态 + 尚未录入期初结余"时提示
+const showOpeningTip = computed(() => billEditable.value && current.value.isFirstBill === true && current.value.hasOpening !== true)
 // 录入态按录入顺序倒序（id 倒序，最新录入的排第一，便于确认刚录入内容）；审核态按日期正序（从小到大）
 const sortedItems = computed(() => {
   const arr = [...items.value]
@@ -239,6 +241,18 @@ onMounted(() => {
       </template>
       <div class="detail-layout">
         <section class="detail-main">
+          <el-alert
+            v-if="showOpeningTip"
+            class="opening-tip"
+            type="info"
+            :closable="false"
+            show-icon
+            title="这是该场所的第一张账单，请先确认期初结余"
+          >
+            <template #default>
+              如果场所启用系统前手里有结余现金，请点「添加收支」录入一条<strong>收入</strong>，摘要填「期初结余」，金额填当时的实际余额；没有结余可忽略本提示。期初结余只需录一次，后续月份不用再填。
+            </template>
+          </el-alert>
           <div class="summary-grid">
             <el-descriptions :column="2" border>
               <el-descriptions-item label="本月收入">{{ formatMoney(current.income) }}</el-descriptions-item>
@@ -328,5 +342,7 @@ onMounted(() => {
 .review-card-title { font-size: 14px; font-weight: 600; color: #344054; }
 .review-card :deep(.el-card__body) { display: grid; gap: 20px; padding: 16px; }
 .summary-grid { display: grid; gap: 16px; margin-block-end: 18px; }
+.opening-tip { margin-block-end: 16px; border-radius: 10px; }
+.opening-tip :deep(.el-alert__content) { line-height: 1.7; }
 .finance-items-table :deep(.finance-nowrap-cell .cell) { white-space: nowrap; }
 </style>

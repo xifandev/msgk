@@ -4,11 +4,15 @@ export default defineEventHandler(async (event) => {
   const bill = await queryOne<{ venue_id: number, bill_month: string }>('SELECT b.*, v.name AS venue_name FROM bills b JOIN venues v ON v.id = b.venue_id WHERE b.id = ?', [id])
   if (!bill) throw createError({ statusCode: 404, message: '账单不存在' })
   requireVenueScope(admin, bill.venue_id)
-  const [items, balance] = await Promise.all([
-    query<{ kind: string, amount: number | string }>('SELECT * FROM bill_items WHERE bill_id = ? ORDER BY occurred_on DESC, id DESC', [id]),
-    getBillBalance(bill.venue_id, bill.bill_month)
+  const [items, balance, first] = await Promise.all([
+    query<{ kind: string, amount: number | string, summary: string }>('SELECT * FROM bill_items WHERE bill_id = ? ORDER BY occurred_on DESC, id DESC', [id]),
+    getBillBalance(bill.venue_id, bill.bill_month),
+    queryOne<{ m: string }>('SELECT MIN(bill_month) AS m FROM bills WHERE venue_id = ?', [bill.venue_id])
   ])
   // 收入/支出与期末结余一样由明细实时得出，不读取 bills 里的落库快照
   const totals = totalsFromItems(items)
-  return { bill: { ...bill, income: totals.income, expense: totals.expense, balance }, items }
+  // 只有场所的第一张账单才提示录入期初结余；已录过就不再提醒
+  const isFirstBill = first?.m === bill.bill_month
+  const hasOpening = items.some(item => String(item.summary ?? '').includes('期初'))
+  return { bill: { ...bill, income: totals.income, expense: totals.expense, balance, isFirstBill, hasOpening }, items }
 })
