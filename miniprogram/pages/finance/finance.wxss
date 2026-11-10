@@ -66,12 +66,18 @@
 }
 
 /* 每月收支不进独立卡片：直接落在内容区上做区块标题，
-   渐变竖条 + 月份，收入/支出统计收进标题行右侧（替代原来的笔数） */
+   渐变竖条 + 月份，收入/支出统计收进标题行右侧（替代原来的笔数）。
+   标头按序吸顶：滚动时当前月份头贴在标签栏（88rpx）下方，
+   下个月滚到位置后把它顶走；底色与内容区一致，避免下方明细透出 */
 .month-group__head {
+  position: sticky;
+  top: 88rpx;
+  z-index: 10;
   display: flex;
   align-items: center;
   min-width: 0;
-  padding: 0 24rpx;
+  padding: 14rpx 24rpx;
+  background: #f4faf6;
 }
 
 .month-group__bar {
