@@ -635,7 +635,7 @@
 
 
 /* ---------- 选择月份 / 选择年份弹窗 ---------- */
-/* 账期 chip 主文案是账期，副文案是公开状态：已公开可点，填报中置灰不可点 */
+/* 只列已公开账期：chip 主文案是账期，副文案是公开状态 */
 .periods {
   padding: 4rpx 28rpx 34rpx;
 }
@@ -747,21 +747,6 @@
 .ps-chip.is-active .ps-chip__label {
   color: #0a7d59;
   font-weight: 600;
-}
-
-/* 填报中：后台已建账但未对外公开，置灰且不可点选。
-   留着这些月份是为了说明"不是缺了，而是还在填报"，别让公开月份看起来断档 */
-.ps-chip.is-locked {
-  border-color: #edf1ef;
-  background: #f6f8f7;
-}
-
-.ps-chip.is-locked .ps-chip__label {
-  color: #aab2ad;
-}
-
-.ps-chip.is-locked .ps-chip__tag {
-  color: #b6beb9;
 }
 
 .ps-chip__label {

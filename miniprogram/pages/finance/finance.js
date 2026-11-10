@@ -49,11 +49,11 @@ Page({
     yearLoaded: false,
     yearError: false,
 
-    // --------- 选择月份 / 年份（已公开账期 + 填报中账期） ---------
+    // --------- 选择月份 / 年份（只列已公开账期） ---------
     periodsShow: false,
     periodMode: 'month', // month | year
     periodState: 'idle', // idle | loading | ready | error
-    // [{ year: '2026', months: [{ month, label, status, statusText }] }]，最近的排前面
+    // [{ year: '2026', months: [{ month, label, status }] }]，最近的排前面
     periodYears: [],
     // 年份选择只列有已公开账期的年份
     yearOptions: [],
@@ -169,7 +169,7 @@ Page({
     return groups;
   },
 
-  // ------------------- 选择月份 / 年份（已公开账期 + 填报中占位） -------------------
+  // ------------------- 选择月份 / 年份（只列已公开账期） -------------------
   openMonthPicker() {
     this.openPeriods('month');
   },
@@ -198,11 +198,15 @@ Page({
     this.setData({ periodState: 'loading' });
     get('/api/public/finance/periods', { venueId: this.data.venueId }, { loading: false })
       .then((res) => {
-        const data = this.buildPeriodGroups(res.periods);
-        this.periodCache = data;
         if (requestId !== this.periodRequestId) {
           return;
         }
+        // 兼容尚未升级的旧服务端：旧接口只返回已公开月份数组
+        const periods = Array.isArray(res.periods)
+          ? res.periods
+          : (res.months || []).map((month) => ({ month, status: 'published' }));
+        const data = this.buildPeriodGroups(periods);
+        this.periodCache = data;
         this.setData({ periodState: 'ready', periodYears: data.groups, yearOptions: data.years });
       })
       .catch(() => {
@@ -213,14 +217,14 @@ Page({
       });
   },
 
-  // [{ month:'2026-11', status:'filling' }, ...] → 按年份分组的月份按钮 + 可选年份列表
-  // 已公开月份可点选；填报中月份只作占位，说明该月不是缺失而是尚未公开
+  // [{ month:'2026-11', status:'published' }, ...] → 按年份分组的月份按钮 + 可选年份列表
+  // 客户端再过滤一次，避免新旧服务端交替期间展示未公开账期
   buildPeriodGroups(periods) {
     const groups = [];
     const index = {};
     (periods || []).forEach((item) => {
       const parts = String((item && item.month) || '').split('-');
-      if (parts.length !== 2) {
+      if (parts.length !== 2 || item.status !== 'published') {
         return;
       }
       const year = parts[0];
@@ -228,17 +232,13 @@ Page({
         index[year] = groups.length;
         groups.push({ year, months: [], published: 0 });
       }
-      const status = item.status === 'published' ? 'published' : 'filling';
       const group = groups[index[year]];
       group.months.push({
         month: item.month,
         label: `${parseInt(parts[1], 10)}月`,
-        status,
-        statusText: status === 'published' ? '已公开' : '填报中',
+        status: 'published',
       });
-      if (status === 'published') {
-        group.published += 1;
-      }
+      group.published += 1;
     });
     return {
       groups,
@@ -249,7 +249,7 @@ Page({
   selectMonth(e) {
     const dataset = (e.currentTarget && e.currentTarget.dataset) || {};
     const month = dataset.month;
-    // 填报中月份不可点选，避免进入没有公开数据的月份
+    // 仅接受已公开月份，异常或旧响应中的其他状态一律不进入
     if (!month || dataset.status !== 'published') {
       return;
     }
@@ -422,6 +422,8 @@ Page({
     if (!month) {
       return;
     }
+    // 即使命中缓存也要作废旧请求，否则旧响应会覆盖刚切到的缓存月份
+    const requestId = ++this.detailRequestId;
     const cache = this.detailCache || (this.detailCache = {});
     const cached = cache[month];
     if (cached) {
@@ -429,7 +431,6 @@ Page({
       return;
     }
 
-    const requestId = ++this.detailRequestId;
     this.setData({
       detailState: 'loading',
       detailBill: null,
@@ -448,10 +449,10 @@ Page({
               ? '该月无收支明细'
               : '该月暂无公开数据',
         };
-        cache[month] = detail;
         if (requestId !== this.detailRequestId) {
           return;
         }
+        cache[month] = detail;
         this.setData(Object.assign({ detailState: 'ready' }, detail));
       })
       .catch(() => {

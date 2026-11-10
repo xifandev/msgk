@@ -189,7 +189,7 @@
   </ms-tabs>
 </page-main>
 
-<!-- 选择月份 / 选择年份：已公开账期可点选，填报中账期只作占位、不可点选 -->
+<!-- 选择月份 / 选择年份：只列该场所已公开的账期，点选即切换 -->
 <ms-action-sheet show="{{ periodsShow }}" title="{{ periodMode === 'year' ? '选择年份' : '选择月份' }}" bind:close="closePeriods">
   <view class="periods {{ periodMode === 'year' ? 'periods--year' : '' }}">
     <block wx:if="{{ periodState === 'ready' }}">
@@ -215,7 +215,7 @@
       </view>
 
       <block wx:else>
-        <!-- 月份：按年份分组；已公开可点，后台已建账但未公开的月份标"填报中"且不可点 -->
+        <!-- 月份：按年份分组，只有已公开月份可点 -->
         <view class="ps-group" wx:for="{{ periodYears }}" wx:key="year">
           <view class="ps-group__head">
             <text class="ps-group__year">{{ item.year }} 年</text>
@@ -223,20 +223,19 @@
 
           <view class="ps-grid">
             <view
-              class="ps-chip {{ m.status === 'filling' ? 'is-locked' : '' }} {{ m.month == month ? 'is-active' : '' }}"
+              class="ps-chip {{ m.month == month ? 'is-active' : '' }}"
               wx:for="{{ item.months }}"
               wx:for-item="m"
               wx:key="month"
               data-month="{{ m.month }}"
               data-status="{{ m.status }}"
               bind:tap="selectMonth"
-              hover-class="{{ m.status === 'filling' ? 'none' : 'ps-chip--hover' }}"
+              hover-class="ps-chip--hover"
               aria-role="button"
-              aria-disabled="{{ m.status === 'filling' }}"
-              aria-label="{{ item.year }} 年 {{ m.label }}{{ m.statusText }}"
+              aria-label="选择 {{ item.year }} 年 {{ m.label }}"
             >
               <text class="ps-chip__label">{{ m.label }}</text>
-              <text class="ps-chip__tag">{{ m.statusText }}</text>
+              <text class="ps-chip__tag">已公开</text>
             </view>
           </view>
         </view>
