@@ -58,69 +58,69 @@
 
 /* ---------- 月度信息流：每月一组 ---------- */
 .month-group {
-  margin-top: 28rpx;
+  margin-top: 36rpx;
 }
 
-/* 每月汇总头：嫩绿渐变卡，月份标题 + 半透明白条收入/支出，与旧版结余主卡同一语言 */
+.month-group:first-child {
+  margin-top: 20rpx;
+}
+
+/* 每月收支不进独立卡片：直接落在内容区上做区块标题，
+   渐变竖条 + 月份 + 笔数一行，收入/支出小字随行 */
 .month-group__head {
-  margin: 0 24rpx;
-  padding: 26rpx 28rpx 24rpx;
-  border-radius: 28rpx;
-  background: linear-gradient(148deg, #d9fae8 0%, #c2f2d7 50%, #a2e7c2 100%);
-  box-shadow: 0 14rpx 32rpx rgba(32, 143, 91, 0.13);
+  padding: 0 24rpx;
 }
 
 .month-group__title-box {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
   min-width: 0;
 }
 
+.month-group__bar {
+  width: 6rpx;
+  height: 26rpx;
+  border-radius: 4rpx;
+  background: linear-gradient(180deg, #35c885, #0a7d59);
+  margin-right: 12rpx;
+}
+
 .month-group__title {
-  flex-shrink: 0;
-  color: #0c5a38;
-  font-size: 34rpx;
-  font-weight: 650;
+  flex: 1;
+  min-width: 0;
+  color: #17211c;
+  font-size: 32rpx;
+  font-weight: 600;
   line-height: 1.3;
   letter-spacing: 0.5rpx;
-  white-space: nowrap;
 }
 
 .month-group__meta {
   flex-shrink: 0;
   margin-left: 16rpx;
-  color: #386b52;
-  font-size: 22rpx;
+  color: #7f8782;
+  font-size: 24rpx;
   white-space: nowrap;
 }
 
 .month-group__sum {
   display: flex;
-  align-items: center;
-  margin-top: 22rpx;
-  padding: 18rpx 10rpx;
-  border-radius: 18rpx;
-  background: rgba(255, 255, 255, 0.52);
-}
-
-.month-group__sum-item {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  align-items: baseline;
+  margin-top: 10rpx;
+  padding-left: 18rpx;
 }
 
 .month-group__sum-label {
-  margin-bottom: 8rpx;
-  color: #386b52;
+  flex-shrink: 0;
+  margin-right: 10rpx;
+  color: #7f8782;
   font-size: 23rpx;
   line-height: 1.3;
 }
 
 .month-group__sum-value {
-  font-size: 30rpx;
+  margin-right: 36rpx;
+  font-size: 28rpx;
   font-weight: 600;
   line-height: 1.35;
   font-variant-numeric: tabular-nums;
@@ -136,16 +136,12 @@
 }
 
 .month-group__empty {
-  margin: 20rpx 24rpx 0;
-  padding: 36rpx 20rpx;
-  border-radius: 20rpx;
-  background: #fff;
-  box-shadow: 0 2rpx 12rpx rgba(6, 89, 63, 0.05);
-  text-align: center;
+  margin: 14rpx 24rpx 0;
+  padding-left: 18rpx;
 }
 
 .month-group__empty-text {
-  color: #7f8782;
+  color: #9db2a7;
   font-size: 24rpx;
 }
 

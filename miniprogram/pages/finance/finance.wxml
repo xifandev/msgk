@@ -7,18 +7,15 @@
         <view class="month-group" wx:for="{{ monthList }}" wx:key="month" wx:for-item="mo">
           <view class="month-group__head">
             <view class="month-group__title-box">
+              <view class="month-group__bar"></view>
               <text class="month-group__title">{{ mo.monthText }}</text>
               <text class="month-group__meta" wx:if="{{ mo.count > 0 }}">共 {{ mo.count }} 笔</text>
             </view>
             <view class="month-group__sum" wx:if="{{ mo.count > 0 }}">
-              <view class="month-group__sum-item">
-                <text class="month-group__sum-label">收入</text>
-                <text class="month-group__sum-value is-income">{{ mo.incomeText }}</text>
-              </view>
-              <view class="month-group__sum-item">
-                <text class="month-group__sum-label">支出</text>
-                <text class="month-group__sum-value is-expense">{{ mo.expenseText }}</text>
-              </view>
+              <text class="month-group__sum-label">收入</text>
+              <text class="month-group__sum-value is-income">{{ mo.incomeText }}</text>
+              <text class="month-group__sum-label">支出</text>
+              <text class="month-group__sum-value is-expense">{{ mo.expenseText }}</text>
             </view>
           </view>
 
