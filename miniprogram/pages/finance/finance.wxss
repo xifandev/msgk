@@ -1,93 +1,73 @@
-/* 财务公开：低饱和浅色底、紧凑页头与按月整合的账单 */
+/* 财务公开：账单式设计 · 阳光绿主题（公开 / 明亮 / 通透）
+   色彩：主色 #0a7d59，嫩绿 #35c885，浅绿底 #f4faf6；支出用暖沙色 #c98214 区分 */
 
 .pane {
   min-height: 60vh;
   padding: 4rpx 0 32rpx;
-  background: #e8f0ea;
+  background: #f4faf6;
 }
 
+/* 内容区、滚动区与标签页主体统一浅绿底；
+   不改 page-main 的 env(safe-area-inset-bottom) 外边距，继续保留 iPhone 底部安全区 */
 .cellgroup,
 .cellgroup__scroll,
 .ms-tabs {
-  background-color: #e8f0ea;
+  background-color: #f4faf6;
 }
 
-.ms-tabs__nav {
-  width: calc(100% - 48rpx);
-  height: 76rpx;
-  margin: 20rpx 24rpx 0;
-  padding: 6rpx;
-  border: 0;
-  border-radius: 18rpx;
-  background: #d4e3d8;
-}
-
-.ms-tabs__item {
-  border-radius: 13rpx;
-  color: #76817b;
-  font-size: 28rpx;
-}
-
-.ms-tabs__item.is-active {
-  color: #145d45 !important;
-  font-weight: 600;
-  background: #fbfdf9;
-  box-shadow: 0 2rpx 8rpx rgba(27, 54, 43, 0.08);
-}
-
-.ms-tabs__line {
-  display: none;
-}
-
+/* 吸顶标签栏恢复白底下划线样式：靠与浅绿内容区的色差分界，只留一层极淡的投影 */
 .ms-tabs.is-sticky .ms-tabs__nav {
   border-bottom: 0;
-  box-shadow: 0 5rpx 16rpx rgba(27, 54, 43, 0.06);
+  box-shadow: 0 3rpx 10rpx rgba(6, 89, 63, 0.04);
 }
 
 .bottom-gap {
   height: 24rpx;
 }
 
-/* 区块标题 */
+/* ---------- 区块标题 ---------- */
 .section {
-  margin-top: 32rpx;
+  margin-top: 36rpx;
 }
 
 .section__head {
   display: flex;
   align-items: center;
-  padding: 0 28rpx 16rpx;
+  padding: 0 24rpx 14rpx;
 }
 
 .section__bar {
-  display: none;
+  width: 6rpx;
+  height: 26rpx;
+  border-radius: 4rpx;
+  background: linear-gradient(180deg, #35c885, #0a7d59);
+  margin-right: 12rpx;
 }
 
 .section__title {
   flex: 1;
   font-size: 30rpx;
   font-weight: 600;
-  color: #1a2721;
+  color: #17211c;
 }
 
 .section__extra {
-  font-size: 22rpx;
-  color: #8a948f;
+  font-size: 24rpx;
+  color: #7f8782;
 }
 
-/* 每月一张完整账单：汇总与每日明细保持在同一阅读上下文 */
+/* ---------- 月度信息流：每月一组 ---------- */
 .month-group {
-  margin: 24rpx 24rpx 0;
-  overflow: hidden;
-  border: 1rpx solid #d5e3d9;
-  border-radius: 24rpx;
-  background: #fbfdf9;
-  box-shadow: 0 8rpx 24rpx rgba(42, 78, 58, 0.055);
+  margin-top: 28rpx;
 }
 
+/* 每月汇总头：嫩绿渐变卡，月份标题 + 半透明白条收入/支出，与旧版结余主卡同一语言 */
 .month-group__head {
-  padding: 28rpx 28rpx 24rpx;
-  background: linear-gradient(180deg, #eff7f0 0%, #fbfdf9 100%);
+  margin: 0 24rpx;
+  padding: 26rpx 28rpx 24rpx;
+  border-radius: 28rpx;
+  background: linear-gradient(148deg, #d9fae8 0%, #c2f2d7 50%, #a2e7c2 100%);
+  box-shadow: 0 14rpx 32rpx rgba(32, 143, 91, 0.13);
 }
 
 .month-group__title-box {
@@ -99,28 +79,29 @@
 
 .month-group__title {
   flex-shrink: 0;
-  color: #173e2e;
+  color: #0c5a38;
   font-size: 34rpx;
   font-weight: 650;
   line-height: 1.3;
+  letter-spacing: 0.5rpx;
   white-space: nowrap;
 }
 
 .month-group__meta {
   flex-shrink: 0;
   margin-left: 16rpx;
-  color: #758b7e;
+  color: #386b52;
   font-size: 22rpx;
   white-space: nowrap;
 }
 
 .month-group__sum {
   display: flex;
-  align-items: stretch;
-  margin-top: 24rpx;
-  padding: 20rpx 0;
-  border-radius: 16rpx;
-  background: #e2eee5;
+  align-items: center;
+  margin-top: 22rpx;
+  padding: 18rpx 10rpx;
+  border-radius: 18rpx;
+  background: rgba(255, 255, 255, 0.52);
 }
 
 .month-group__sum-item {
@@ -128,141 +109,116 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 0 20rpx;
-}
-
-.month-group__sum-item + .month-group__sum-item {
-  border-left: 1rpx solid #e4eae6;
+  align-items: center;
 }
 
 .month-group__sum-label {
   margin-bottom: 8rpx;
-  color: #7d8882;
-  font-size: 22rpx;
+  color: #386b52;
+  font-size: 23rpx;
   line-height: 1.3;
 }
 
-.month-group__sum-label.is-income {
-  color: #397860;
-}
-
-.month-group__sum-label.is-expense {
-  color: #8a7356;
-}
-
 .month-group__sum-value {
-  color: #24322c;
-  font-size: 28rpx;
+  font-size: 30rpx;
   font-weight: 600;
   line-height: 1.35;
   font-variant-numeric: tabular-nums;
   word-break: break-all;
 }
 
+.month-group__sum-value.is-income {
+  color: #0a7d59;
+}
+
+.month-group__sum-value.is-expense {
+  color: #c98214;
+}
+
 .month-group__empty {
-  margin: 0 28rpx 28rpx;
+  margin: 20rpx 24rpx 0;
   padding: 36rpx 20rpx;
-  border-radius: 16rpx;
-  background: #f6f8f7;
+  border-radius: 20rpx;
+  background: #fff;
+  box-shadow: 0 2rpx 12rpx rgba(6, 89, 63, 0.05);
   text-align: center;
 }
 
 .month-group__empty-text {
-  color: #8a948f;
+  color: #7f8782;
   font-size: 24rpx;
 }
 
-/* 日期是账单内的小节，不再拆成一张张独立卡片 */
+/* ---------- 日期分组 ---------- */
 .day {
-  padding: 0 28rpx;
-}
-
-.day:last-child {
-  padding-bottom: 12rpx;
+  margin: 24rpx 24rpx 0;
 }
 
 .day__head {
   display: flex;
   align-items: center;
-  padding: 20rpx 0 8rpx;
+  padding: 0 8rpx 12rpx;
+}
+
+.day__dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: #17a273;
+  margin-right: 10rpx;
 }
 
 .day__date {
-  flex-shrink: 0;
-  color: #78847e;
-  font-size: 23rpx;
+  font-size: 26rpx;
+  color: #4c545e;
   font-weight: 500;
-  letter-spacing: 0.5rpx;
-}
-
-.day__rule {
-  flex: 1;
-  height: 1rpx;
-  margin-left: 14rpx;
-  background: #edf0ee;
 }
 
 .day__card {
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
+  padding: 4rpx 24rpx;
+  border-radius: 20rpx;
+  background: #fff;
+  box-shadow: 0 2rpx 12rpx rgba(6, 89, 63, 0.05);
+  overflow: hidden;
 }
 
 .bill {
-  position: relative;
   display: flex;
   align-items: center;
   min-width: 0;
-  padding: 24rpx 0;
+  padding: 22rpx 0;
+  border-bottom: 1rpx solid #f2f5f3;
 }
 
-.bill::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 60rpx;
-  height: 1rpx;
-  background: #f0f2f1;
+.bill:last-child {
+  border-bottom: none;
 }
 
-.bill:last-child::after {
-  display: none;
-}
-
+/* 收/支图标：收入绿渐变、支出橙渐变的圆角方块，白色正负号 */
 .bill__mark {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44rpx;
-  height: 44rpx;
-  border-radius: 13rpx;
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 22rpx;
 }
 
 .bill__mark.is-income {
-  background: #edf6f1;
+  background: linear-gradient(135deg, #1aab7c 0%, #0a7d59 100%);
 }
 
 .bill__mark.is-expense {
-  background: #f7f3ed;
+  background: linear-gradient(135deg, #f2b455 0%, #dd9a2b 100%);
 }
 
 .bill__glyph {
-  font-size: 25rpx;
+  font-size: 40rpx;
   font-weight: 500;
   line-height: 1;
-  transform: translateY(-1rpx);
-}
-
-.bill__mark.is-income .bill__glyph {
-  color: #197454;
-}
-
-.bill__mark.is-expense .bill__glyph {
-  color: #9a7748;
+  color: #fff;
+  transform: translateY(-2rpx);
 }
 
 .bill__body {
@@ -270,68 +226,64 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 0 16rpx;
+  padding: 0 18rpx;
 }
 
 .bill__summary {
-  color: #202b26;
+  color: #17211c;
   font-size: 30rpx;
-  font-weight: 500;
-  line-height: 1.45;
+  line-height: 1.5;
   word-break: break-all;
 }
 
 .bill__sub {
-  margin-top: 4rpx;
-  color: #87958c;
-  font-size: 22rpx;
+  margin-top: 6rpx;
+  color: #7f8782;
+  font-size: 24rpx;
   line-height: 1.35;
 }
 
+/* 金额带正负号：收入绿色，支出深色（支大于收语义靠符号区分，不只靠颜色） */
 .bill__amount {
   flex-shrink: 0;
-  display: flex;
-  align-items: baseline;
   margin-left: 12rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  letter-spacing: 0.5rpx;
   font-variant-numeric: tabular-nums;
 }
 
-.bill__currency {
-  margin-right: 3rpx;
-  color: #8c9b92;
-  font-size: 22rpx;
-  font-weight: 400;
+.bill__amount.is-income {
+  color: #0a7d59;
 }
 
-.bill__value {
-  color: #26332d;
-  font-size: 32rpx;
-  font-weight: 600;
-  letter-spacing: 0.2rpx;
+.bill__amount.is-expense {
+  color: #17211c;
 }
 
-.bill__amount.is-income .bill__value {
-  color: #197454;
-}
-
-.bill__amount.is-expense .bill__value {
-  color: #26332d;
-}
-
-/* 年度汇总：淡绿向暖白过渡，与明细页保持同一视觉语言 */
+/* ---------- 年度账单卡 ---------- */
+/* 深绿实地卡片：期末结余为主视觉，年总收入 / 年总支出在下沿分行对置；
+   切换年份收进标题行右侧的白底实心胶囊 */
 .bill-card {
   position: relative;
-  margin: 24rpx 24rpx 0;
-  padding: 30rpx 28rpx;
   overflow: hidden;
-  border: 1rpx solid #d5e3d9;
-  border-radius: 24rpx;
-  background: linear-gradient(145deg, #e4f0e7 0%, #fbfdf9 72%);
-  box-shadow: 0 8rpx 24rpx rgba(42, 78, 58, 0.055);
+  margin: 22rpx 24rpx 0;
+  padding: 40rpx 36rpx 36rpx;
+  border-radius: 32rpx;
+  background: linear-gradient(158deg, #1e8a60 0%, #0f6a45 55%, #0b4d33 100%);
+  box-shadow: 0 18rpx 40rpx rgba(10, 84, 56, 0.18);
 }
 
+/* 右上角柔光：纯装饰，不承载信息 */
 .bill-card__glow {
-  display: none;
+  position: absolute;
+  top: -170rpx;
+  right: -130rpx;
+  width: 440rpx;
+  height: 440rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(94, 226, 168, 0.32) 0%, rgba(94, 226, 168, 0) 68%);
+  pointer-events: none;
 }
 
 .bill-card__head {
@@ -345,10 +297,11 @@
 .bill-card__title {
   flex: 1;
   min-width: 0;
-  color: #17251f;
-  font-size: 32rpx;
+  color: #ffffff;
+  font-size: 34rpx;
   font-weight: 600;
   line-height: 1.35;
+  letter-spacing: 1rpx;
 }
 
 .bill-card__switch {
@@ -358,56 +311,60 @@
   justify-content: center;
   height: 52rpx;
   margin-left: 16rpx;
-  padding: 0 18rpx;
-  border-radius: 14rpx;
-  background: #eef5f1;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  background: #ffffff;
+  box-shadow: 0 4rpx 12rpx rgba(8, 61, 40, 0.18);
 }
 
 .bill-card__switch--hover {
-  background: #e3eee8;
+  background: #eef7f2;
 }
 
 .bill-card__switch-text {
   margin-right: 6rpx;
-  color: #176b4e;
+  color: #0b5c3d;
   font-size: 23rpx;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1;
 }
 
 .bill-card__hero {
   position: relative;
-  margin-top: 36rpx;
+  margin-top: 44rpx;
 }
 
 .bill-card__hero-label {
   display: block;
-  color: #8a948f;
-  font-size: 23rpx;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 24rpx;
+  letter-spacing: 2rpx;
 }
 
 .bill-card__hero-value {
   display: block;
-  margin-top: 12rpx;
-  color: #14281f;
-  font-size: 64rpx;
-  font-weight: 650;
-  line-height: 1.15;
+  margin-top: 16rpx;
+  color: #edfff6;
+  font-size: 76rpx;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: 1rpx;
   font-variant-numeric: tabular-nums;
   word-break: break-all;
 }
 
+/* 年结余为负时换成暖沙色，不只靠符号区分 */
 .bill-card__hero-value.is-negative {
-  color: #9b5d31;
+  color: #f7c98d;
 }
 
 .bill-card__flow {
   position: relative;
   display: flex;
   align-items: flex-end;
-  margin-top: 32rpx;
-  padding-top: 24rpx;
-  border-top: 1rpx solid #edf0ee;
+  margin-top: 40rpx;
+  padding-top: 30rpx;
+  border-top: 1rpx solid rgba(255, 255, 255, 0.14);
 }
 
 .bill-card__item {
@@ -423,52 +380,53 @@
 }
 
 .bill-card__item-label {
-  color: #8a948f;
-  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 24rpx;
+  letter-spacing: 1rpx;
 }
 
 .bill-card__item-value {
-  margin-top: 10rpx;
-  color: #26332d;
-  font-size: 32rpx;
+  margin-top: 12rpx;
+  font-size: 38rpx;
   font-weight: 600;
+  letter-spacing: 0.5rpx;
   line-height: 1.35;
   font-variant-numeric: tabular-nums;
   word-break: break-all;
 }
 
 .bill-card__item-value.is-income {
-  color: #197454;
+  color: #7fe3b4;
 }
 
 .bill-card__item-value.is-expense {
-  color: #6f6252;
+  color: #f6cd8e;
 }
 
 .bill-card__empty {
   position: relative;
-  margin-top: 32rpx;
+  margin-top: 36rpx;
   padding-bottom: 4rpx;
 }
 
 .bill-card__empty-text {
-  color: #8a948f;
+  color: rgba(255, 255, 255, 0.72);
   font-size: 25rpx;
   line-height: 1.6;
 }
 
-/* 年度页的月份入口 */
+/* ---------- 年度页的月份入口卡 ---------- */
 .month {
-  margin: 0 24rpx 16rpx;
-  padding: 24rpx 26rpx;
-  border: 1rpx solid #e6ece8;
+  margin: 0 24rpx 18rpx;
+  padding: 22rpx 24rpx 20rpx;
   border-radius: 20rpx;
-  background: #fbfdf9;
+  background: #fff;
+  box-shadow: 0 2rpx 12rpx rgba(6, 89, 63, 0.05);
   transition: background-color 0.16s ease;
 }
 
 .month--hover {
-  background: #fafcfb;
+  background: #f2f9f5;
 }
 
 .month__head {
@@ -480,8 +438,8 @@
 .month__name {
   flex: 1;
   min-width: 0;
-  color: #1b2923;
-  font-size: 29rpx;
+  color: #17211c;
+  font-size: 30rpx;
   font-weight: 600;
 }
 
@@ -494,14 +452,14 @@
 
 .month__more-text {
   margin-right: 6rpx;
-  color: #8a948f;
+  color: #8f939a;
   font-size: 22rpx;
 }
 
 .month__row {
   display: flex;
   align-items: stretch;
-  margin-top: 22rpx;
+  margin-top: 18rpx;
 }
 
 .mstat {
@@ -509,48 +467,44 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  padding: 0 12rpx;
-  text-align: left;
-}
-
-.month__row .mstat:first-child {
-  padding-left: 0;
+  align-items: center;
+  padding: 0 8rpx;
+  text-align: center;
 }
 
 .mstat + .mstat {
-  border-left: 1rpx solid #edf0ee;
+  border-left: 1rpx solid #edf3ef;
 }
 
 .mstat__label {
-  color: #8a948f;
-  font-size: 21rpx;
+  color: #7f8782;
+  font-size: 23rpx;
   white-space: nowrap;
 }
 
 .mstat__value {
   margin-top: 8rpx;
-  color: #26332d;
-  font-size: 28rpx;
+  color: #17211c;
+  font-size: 30rpx;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.4;
   font-variant-numeric: tabular-nums;
   word-break: break-all;
 }
 
 .mstat__value.is-income {
-  color: #197454;
+  color: #0a7d59;
 }
 
 .mstat__value.is-expense {
-  color: #6f6252;
+  color: #c98214;
 }
 
 .mstat__value.is-negative {
-  color: #9b5d31;
+  color: #9a5410;
 }
 
-/* 加载、空态与公开说明 */
+/* ---------- 加载、空态与公开说明 ---------- */
 .stream-foot {
   display: flex;
   align-items: center;
@@ -559,21 +513,21 @@
 }
 
 .stream-foot__text {
-  color: #8a948f;
+  color: #7f8782;
   font-size: 22rpx;
 }
 
 .empty-card {
   margin: 24rpx 24rpx 0;
   overflow: hidden;
-  border: 1rpx solid #e6ece8;
-  border-radius: 24rpx;
-  background: #fbfdf9;
+  border-radius: 20rpx;
+  background: #fff;
+  box-shadow: 0 2rpx 12rpx rgba(6, 89, 63, 0.05);
 }
 
 .empty-card__hint {
   margin-top: 10rpx;
-  color: #8a948f;
+  color: #9db2a7;
   font-size: 23rpx;
   line-height: 1.6;
   text-align: center;
@@ -582,14 +536,14 @@
 .empty-card__retry {
   margin-top: 22rpx;
   padding: 12rpx 36rpx;
-  border: 1rpx solid #cbded4;
+  border: 1rpx solid #bfe0d0;
   border-radius: 14rpx;
-  color: #176b4e;
+  color: #0a7d59;
   font-size: 25rpx;
 }
 
 .empty-card__retry--hover {
-  background: #eef5f1;
+  background: #eef7f2;
 }
 
 .skeleton {
@@ -600,9 +554,13 @@
   height: 96rpx;
   margin-top: 16rpx;
   border-radius: 20rpx;
-  background: linear-gradient(90deg, #e9eeeb 25%, #f3f6f4 37%, #e9eeeb 63%);
+  background: linear-gradient(90deg, #eef3f0 25%, #e4ece7 37%, #eef3f0 63%);
   background-size: 400% 100%;
   animation: skeleton 1.4s ease infinite;
+}
+
+.skeleton__row:first-child {
+  margin-top: 0;
 }
 
 @keyframes skeleton {
@@ -617,25 +575,27 @@
 .notice {
   display: flex;
   align-items: flex-start;
-  margin: 26rpx 28rpx 0;
-  padding: 12rpx 4rpx;
+  margin: 28rpx 28rpx 0;
+  padding: 16rpx 20rpx;
+  border-radius: 14rpx;
+  background: #edf7f1;
 }
 
 .notice__text {
   flex: 1;
   margin-left: 10rpx;
-  color: #8a948f;
-  font-size: 22rpx;
+  color: #4d7f68;
+  font-size: 23rpx;
   line-height: 1.6;
 }
 
-/* 月度明细抽屉 */
+/* ---------- 月度明细抽屉 ---------- */
 .sheet {
   display: flex;
   flex-direction: column;
   height: 100%;
   box-sizing: border-box;
-  background: #e8f0ea;
+  background: #f4faf6;
 }
 
 .sheet__handle {
@@ -653,11 +613,11 @@
   width: 72rpx;
   height: 8rpx;
   border-radius: 999rpx;
-  background: #d4dcd7;
+  background: #cfddd5;
 }
 
 .sheet__handle--hover::after {
-  background: #b8c6be;
+  background: #aec6ba;
 }
 
 .sheet__head {
@@ -677,11 +637,13 @@
   width: 60rpx;
   height: 60rpx;
   border-radius: 18rpx;
-  background: #e9f0ec;
+  background: #fff;
+  box-shadow: 0 2rpx 10rpx rgba(6, 89, 63, 0.06);
 }
 
 .sheet__arrow.is-disabled {
   background: transparent;
+  box-shadow: none;
 }
 
 .sheet__title-box {
@@ -693,14 +655,14 @@
 }
 
 .sheet__title {
-  color: #17251f;
+  color: #17211c;
   font-size: 32rpx;
   font-weight: 600;
 }
 
 .sheet__sub {
   margin-top: 6rpx;
-  color: #8a948f;
+  color: #7f8782;
   font-size: 22rpx;
 }
 
@@ -718,54 +680,50 @@
 }
 
 .sheet__close--hover {
-  background: #e9f0ec;
+  background: #e6f2eb;
 }
 
+/* 抽屉内该月合计：白底三栏卡，与年度页月份卡同一口径 */
 .sheet__summary {
   flex-shrink: 0;
   display: flex;
   align-items: stretch;
   margin: 0 24rpx;
   padding: 22rpx 8rpx;
-  border: 1rpx solid #e6ece8;
   border-radius: 20rpx;
-  background: #fbfdf9;
-}
-
-.sheet__summary .mstat {
-  align-items: center;
-  text-align: center;
+  background: #fff;
+  box-shadow: 0 2rpx 12rpx rgba(6, 89, 63, 0.05);
 }
 
 .sheet__scroll {
   flex: 1;
   min-height: 0;
   box-sizing: border-box;
-  margin: 20rpx 24rpx 0;
-  padding: 4rpx 24rpx 0;
-  border: 1rpx solid #e6ece8;
-  border-radius: 20rpx;
-  background: #fbfdf9;
+  margin-top: 4rpx;
+  padding: 0 0 24rpx;
 }
 
 .sheet__scroll .day {
-  padding: 0;
+  margin: 24rpx 24rpx 0;
 }
 
 .sheet__empty {
-  padding: 46rpx 0 6rpx;
+  margin: 24rpx 24rpx 0;
+  padding: 46rpx 0;
+  border-radius: 20rpx;
+  background: #fff;
 }
 
 .sheet__notice {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 18rpx 24rpx 30rpx;
+  padding: 22rpx 24rpx 30rpx;
 }
 
 .sheet__notice-text {
   margin-left: 8rpx;
-  color: #8a948f;
+  color: #4d7f68;
   font-size: 21rpx;
 }
 
@@ -786,24 +744,24 @@
 }
 
 .sheet__error-text {
-  color: #8a948f;
+  color: #7f8782;
   font-size: 25rpx;
 }
 
 .sheet__retry {
   margin-top: 20rpx;
   padding: 12rpx 36rpx;
-  border: 1rpx solid #cbded4;
+  border: 1rpx solid #bfe0d0;
   border-radius: 14rpx;
-  color: #176b4e;
+  color: #0a7d59;
   font-size: 25rpx;
 }
 
 .sheet__retry--hover {
-  background: #e9f0ec;
+  background: #e6f2eb;
 }
 
-/* 年份选择 */
+/* ---------- 年份选择 ---------- */
 .periods {
   padding: 4rpx 28rpx 34rpx;
 }
@@ -820,26 +778,26 @@
   flex-direction: column;
   align-items: center;
   padding: 54rpx 0 66rpx;
-  color: #8a948f;
+  color: #7f8782;
   font-size: 25rpx;
 }
 
 .periods__state-text {
-  color: #8a948f;
+  color: #7f8782;
   font-size: 25rpx;
 }
 
 .periods__retry {
   margin-top: 20rpx;
   padding: 12rpx 36rpx;
-  border: 1rpx solid #cbded4;
+  border: 1rpx solid #bfe0d0;
   border-radius: 14rpx;
-  color: #176b4e;
+  color: #0a7d59;
   font-size: 25rpx;
 }
 
 .periods__retry--hover {
-  background: #eef5f1;
+  background: #eef7f2;
 }
 
 .ps-years {
@@ -865,28 +823,6 @@
   font-size: 21rpx;
 }
 
-.ps-group + .ps-group {
-  margin-top: 28rpx;
-}
-
-.ps-group__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 4rpx 14rpx;
-}
-
-.ps-group__year {
-  color: #17251f;
-  font-size: 27rpx;
-  font-weight: 600;
-}
-
-.ps-grid {
-  display: flex;
-  flex-wrap: wrap;
-}
-
 .ps-chip {
   display: flex;
   flex-direction: column;
@@ -899,28 +835,28 @@
 }
 
 .ps-chip--hover {
-  background: #eef5f1;
+  background: #eef7f2;
 }
 
 .ps-chip.is-active {
-  border-color: #197454;
+  border-color: #0a7d59;
   background: #edf6f1;
 }
 
 .ps-chip.is-active .ps-chip__label {
-  color: #176b4e;
+  color: #0a7d59;
   font-weight: 600;
 }
 
 .ps-chip__label {
-  color: #17251f;
+  color: #17211c;
   font-size: 28rpx;
   line-height: 1.4;
 }
 
 .ps-chip__tag {
   margin-top: 2rpx;
-  color: #197454;
+  color: #0a7d59;
   font-size: 21rpx;
   line-height: 1.4;
 }

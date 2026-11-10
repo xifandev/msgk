@@ -12,12 +12,12 @@
             </view>
             <view class="month-group__sum" wx:if="{{ mo.count > 0 }}">
               <view class="month-group__sum-item">
-                <text class="month-group__sum-label is-income">收入</text>
-                <text class="month-group__sum-value">{{ mo.incomeText }}</text>
+                <text class="month-group__sum-label">收入</text>
+                <text class="month-group__sum-value is-income">{{ mo.incomeText }}</text>
               </view>
               <view class="month-group__sum-item">
-                <text class="month-group__sum-label is-expense">支出</text>
-                <text class="month-group__sum-value">{{ mo.expenseText }}</text>
+                <text class="month-group__sum-label">支出</text>
+                <text class="month-group__sum-value is-expense">{{ mo.expenseText }}</text>
               </view>
             </view>
           </view>
@@ -26,8 +26,8 @@
           <block wx:if="{{ mo.groups.length > 0 }}">
             <view class="day" wx:for="{{ mo.groups }}" wx:key="date" wx:for-item="g">
               <view class="day__head">
+                <view class="day__dot"></view>
                 <text class="day__date">{{ g.label }}</text>
-                <view class="day__rule"></view>
               </view>
 
               <view class="day__card">
@@ -39,10 +39,7 @@
                     <text class="bill__summary">{{ row.summary || '未填写摘要' }}</text>
                     <text class="bill__sub">{{ row.kindText }}</text>
                   </view>
-                  <view class="bill__amount {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">
-                    <text class="bill__currency">¥</text>
-                    <text class="bill__value">{{ row.amountText }}</text>
-                  </view>
+                  <text class="bill__amount {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">{{ row.amountText }}</text>
                 </view>
               </view>
             </view>
@@ -177,7 +174,7 @@
       </block>
 
       <view class="notice">
-        <ms-icon name="passed" size="24rpx" color="#6fae90" />
+        <ms-icon name="passed" size="24rpx" color="#5d9a80" />
         <text class="notice__text">数据由场所按月上报，经审核后公开，接受社会监督</text>
       </view>
     </view>
@@ -228,7 +225,7 @@
   drag-zone="{{ 96 }}"
   z-index="{{ 1200 }}"
   bind:close="closeMonthDetail"
-  custom-style="height: 78vh; background: #e8f0ea; overflow: hidden;"
+  custom-style="height: 78vh; background: #f4faf6; overflow: hidden;"
 >
   <view class="sheet">
     <!-- 抓手即下拉关闭手柄：data-drag 让弹层只在按到这里时才接管手势 -->
@@ -273,8 +270,8 @@
       <block wx:if="{{ detailGroups.length > 0 }}">
           <view class="day" wx:for="{{ detailGroups }}" wx:key="date">
             <view class="day__head">
+              <view class="day__dot"></view>
               <text class="day__date">{{ item.label }}</text>
-              <view class="day__rule"></view>
             </view>
 
             <view class="day__card">
@@ -286,10 +283,7 @@
                   <text class="bill__summary">{{ row.summary || '未填写摘要' }}</text>
                   <text class="bill__sub">{{ row.kindText }}</text>
                 </view>
-                <view class="bill__amount {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">
-                  <text class="bill__currency">¥</text>
-                  <text class="bill__value">{{ row.amountText }}</text>
-                </view>
+                <text class="bill__amount {{ row.kind === 'expense' ? 'is-expense' : 'is-income' }}">{{ row.amountText }}</text>
               </view>
             </view>
           </view>
